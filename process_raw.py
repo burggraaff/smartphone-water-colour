@@ -91,29 +91,40 @@ for folder_main in folders:
 
         hc.histogram_raw(water_all, sky_all, card_all, camera=camera, saveto=data_path/"statistics_raw.pdf")
 
-        # Flatten lists and combine G and G2
-        water_RGB, sky_RGB, card_RGB = hc.RGBG2_to_RGB(water_cut, sky_cut, card_cut)
+        # Reshape the central images to lists
+        water_RGBG = water_cut.reshape(4, -1)
+        sky_RGBG = sky_cut.reshape(4, -1)
+        card_RGBG = card_cut.reshape(4, -1)
+        all_RGBG = np.concatenate([water_RGBG, sky_RGBG, card_RGBG])
 
-        water_mean = np.array([rgb.mean() for rgb in water_RGB])
-        sky_mean = np.array([rgb.mean() for rgb in sky_RGB])
-        card_mean = np.array([rgb.mean() for rgb in card_RGB])
+        # Calculate mean values
+        water_mean = water_RGBG.mean(axis=1)
+        sky_mean = sky_RGBG.mean(axis=1)
+        card_mean = card_RGBG.mean(axis=1)
+        all_mean = all_RGBG.mean(axis=1)
         print("Calculated mean values per channel")
 
-        water_std = np.array([rgb.std() for rgb in water_RGB])
-        sky_std = np.array([rgb.std() for rgb in sky_RGB])
-        card_std = np.array([rgb.std() for rgb in card_RGB])
+        water_std = water_RGBG.std(axis=1)
+        sky_std = water_RGBG.std(axis=1)
+        card_std = water_RGBG.std(axis=1)
+        all_cov = np.cov(all_RGBG)
+        all_cov_R = np.zeros((13,13)) ; all_cov_R[:12,:12] = all_cov ; all_cov_R[12,12] = 0.01**2
         print("Calculated standard deviations per channel")
-
-        water_err = np.array([stats.sem(rgb) for rgb in water_RGB])
-        sky_err = np.array([stats.sem(rgb) for rgb in sky_RGB])
-        card_err = np.array([stats.sem(rgb) for rgb in card_RGB])
-        print("Calculated standard errors per channel")
-
-        # HydroColor
 
         # Convert to remote sensing reflectances
         R_rs = hc.R_RS(water_mean, sky_mean, card_mean)
         print("Calculated remote sensing reflectances")
+
+        Rref = 0.18
+        rho = 0.028
+        J1 = 1/np.pi * Rref * np.eye(4) * (1/card_mean)
+        J2 = -1/np.pi * Rref * rho * np.eye(4) * (1/card_mean)
+        J3 = -1 * np.eye(4) * (R_rs / card_mean)
+        JR = R_rs[:,np.newaxis] / Rref
+        J = np.concatenate([J1, J2, J3, JR], axis=1)
+        R_rs_cov = J @ all_cov_R @ J.T
+
+        # HydroColor
 
         R_rs_err = hc.R_RS_error(water_mean, sky_mean, card_mean, water_std, sky_std, card_std)
         print("Calculated error in remote sensing reflectances")
