@@ -60,8 +60,11 @@ fig, axs = plt.subplots(ncols=len(wavelengths_hist), sharex=True, sharey=True, f
 bins = np.linspace(-0.02, 0.10, 75)
 for wvl, ax in zip(wavelengths_hist, axs):
     wvl_label = label("Rrs", wvl)
-    ax.hist(data[wvl_label], bins=bins)
+    data_wvl = data[wvl_label]
+    mean, std = np.nanmean(data_wvl), np.nanstd(data_wvl)
+    ax.hist(data_wvl, bins=bins)
     ax.set_title(label("Rrs", wvl))
+    print(f"Wavelength: {wvl:.1f} nm  ;  Mean: {mean:.3f} +- {std:.3f}")
 plt.show()
 plt.close()
 
