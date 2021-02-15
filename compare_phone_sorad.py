@@ -4,6 +4,7 @@ Compare smartphone RGB RAW data to So-Rad hyperspectral data.
 To do:
     * Split So-Rad processing into its own script (process_sorad.py)
     * Proper spectral convolution
+    * Compare Ed, Lw, Rrs separately
 """
 
 import numpy as np

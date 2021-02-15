@@ -7,6 +7,11 @@ Command line inputs:
 
 Outputs:
     * None
+
+To do:
+    * Subtract offset
+    * Import Ed, calculate Lw
+    * Export results
 """
 import numpy as np
 from matplotlib import pyplot as plt
