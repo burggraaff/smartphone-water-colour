@@ -33,6 +33,10 @@ def convert_row(row):
     row_final = start + end
     return row_final
 
+# Label that matches column header
+def label(text, wvl):
+    return f"{text}_{wvl:.1f}"
+
 # Read data
 wavelengths = np.arange(320, 955, 3.3)
 print("Now reading data from", filename)
@@ -40,7 +44,7 @@ with open(filename) as file:
     data = file.readlines()
     header = data[0]
     data = data[1:]
-    cols = header.split(";")[:-1] + [f"Rrs_{wvl:.1f}" for wvl in wavelengths]
+    cols = header.split(";")[:-1] + [label("Rrs", wvl) for wvl in wavelengths]
 
     rows = [convert_row(row) for row in data]
     dtypes = ["S30" for h in header.split(";")[:-1]] + [np.float32 for wvl in wavelengths]
@@ -49,8 +53,20 @@ with open(filename) as file:
 
 print("Finished reading data")
 
+# Plot histograms at multiple wavelengths
+wavelengths_hist = [353.0, 402.5, 501.5, 600.5, 702.8, 801.8, 900.8]
+fig, axs = plt.subplots(ncols=len(wavelengths_hist), sharex=True, sharey=True, figsize=(10, 2))
+
+bins = np.linspace(-0.02, 0.10, 75)
+for wvl, ax in zip(wavelengths_hist, axs):
+    wvl_label = label("Rrs", wvl)
+    ax.hist(data[wvl_label], bins=bins)
+    ax.set_title(label("Rrs", wvl))
+plt.show()
+plt.close()
+
 # Plot sample of data
-Rrs = np.array([[row[f"Rrs_{wvl:.1f}"] for wvl in wavelengths] for row in data[::100]]).T
+Rrs = np.array([[row[label("Rrs", wvl)] for wvl in wavelengths] for row in data[::100]]).T
 
 plt.figure(figsize=(6,3), tight_layout=True)
 plt.plot(wavelengths, Rrs, c="k", alpha=0.1)
