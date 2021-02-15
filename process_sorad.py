@@ -1,9 +1,24 @@
+"""
+Process data from the PML So-Rad-mounted TriOS.
+
+Command line inputs:
+    * Folder containing the So-Rad data file.
+        Example: "water-colour-data\Balaton_20190703\SoRad"
+
+Outputs:
+    * None
+"""
+
 import numpy as np
 from matplotlib import pyplot as plt
 from astropy import table
 from sys import argv
+from pathlib import Path
 
-folder = argv[1]
+folder = Path(argv[1])
+print("Input folder:", folder.absolute())
+
+filename = folder/"So-Rad_Rrs_Balaton2019.csv"
 
 wavelengths = np.arange(320, 955, 3.3)
 
@@ -14,7 +29,8 @@ def convert_row(row):
     row_final = start + end
     return row_final
 
-with open(f"{folder}/So-Rad_Rrs_Balaton2019.csv") as file:
+print("Now reading data from", filename)
+with open(filename) as file:
     data = file.readlines()
     header = data[0]
     data = data[1:]
@@ -25,6 +41,7 @@ with open(f"{folder}/So-Rad_Rrs_Balaton2019.csv") as file:
 
     data = table.Table(rows=rows, names=cols, dtype=dtypes)
 
+print("Finished reading data")
 
 Rrs = np.array([[row[f"Rrs_{wvl:.1f}"] for wvl in wavelengths] for row in data[::100]]).T
 
@@ -36,4 +53,6 @@ plt.xlim(320, 955)
 plt.ylim(0, 0.1)
 plt.yticks(np.arange(0, 0.12, 0.02))
 plt.grid(ls="--")
+plt.title("Example R_rs spectra")
 plt.show()
+plt.close()
