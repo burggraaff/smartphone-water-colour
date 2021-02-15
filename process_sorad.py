@@ -8,20 +8,19 @@ Command line inputs:
 Outputs:
     * None
 """
-
 import numpy as np
 from matplotlib import pyplot as plt
 from astropy import table
 from sys import argv
 from pathlib import Path
 
+# Get filenames
 folder = Path(argv[1])
 print("Input folder:", folder.absolute())
 
 filename = folder/"So-Rad_Rrs_Balaton2019.csv"
 
-wavelengths = np.arange(320, 955, 3.3)
-
+# Function that converts a row of text to an array
 def convert_row(row):
     row_split = row.split(";")
     start = row_split[:-1]
@@ -29,6 +28,8 @@ def convert_row(row):
     row_final = start + end
     return row_final
 
+# Read data
+wavelengths = np.arange(320, 955, 3.3)
 print("Now reading data from", filename)
 with open(filename) as file:
     data = file.readlines()
@@ -43,6 +44,7 @@ with open(filename) as file:
 
 print("Finished reading data")
 
+# Plot sample of data
 Rrs = np.array([[row[f"Rrs_{wvl:.1f}"] for wvl in wavelengths] for row in data[::100]]).T
 
 plt.figure(figsize=(6,3), tight_layout=True)
