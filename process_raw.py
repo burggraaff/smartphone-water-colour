@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Oct 12 18:22:30 2020
-
-@author: Burggraaff
-"""
-
 """
 Process three images (water, sky, grey card), calibrated using SPECTACLE, to
 calculate the remote sensing reflectance in the RGB channels, following the

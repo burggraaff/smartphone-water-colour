@@ -1,13 +1,9 @@
 """
-Process three images (water, sky, grey card), calibrated using SPECTACLE, to
-calculate the remote sensing reflectance in the RGB channels, following the
-HydroColor protocol.
+Compare smartphone RGB RAW data to So-Rad hyperspectral data.
 
-Requires the following SPECTACLE calibrations:
-    - Metadata
-    - Bias
-    - Flat-field
-    - Spectral response
+To do:
+    * Split So-Rad processing into its own script (process_sorad.py)
+    * Proper spectral convolution
 """
 
 import numpy as np

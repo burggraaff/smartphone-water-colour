@@ -1,3 +1,7 @@
+"""
+Process TriOS data.
+"""
+
 import numpy as np
 from matplotlib import pyplot as plt
 from astropy import table

@@ -1,13 +1,8 @@
 """
-Process three images (water, sky, grey card), calibrated using SPECTACLE, to
-calculate the remote sensing reflectance in the RGB channels, following the
-HydroColor protocol.
+Compare RGB RAW data to TriOS hyperspectral data.
 
-Requires the following SPECTACLE calibrations:
-    - Metadata
-    - Bias
-    - Flat-field
-    - Spectral response
+To do:
+    * Go over entirely
 """
 
 import numpy as np

@@ -1,3 +1,10 @@
+"""
+Process data taken with a Lee-mode HyperPro.
+
+To do:
+    * Convert Lu to Lw
+"""
+
 import numpy as np
 from matplotlib import pyplot as plt
 from sys import argv
