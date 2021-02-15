@@ -28,9 +28,9 @@ filename = folder/"So-Rad_Rrs_Balaton2019.csv"
 # Function that converts a row of text to an array
 def convert_row(row):
     row_split = row.split(";")
-    start = row_split[:-1]
-    end = np.array(row_split[-1].split(","), dtype=np.float32).tolist()
-    row_final = start + end
+    metadata = row_split[:-1]  # GPS data, alt/az, rho, offset
+    radiometry = np.array(row_split[-1].split(","), dtype=np.float32).tolist()
+    row_final = metadata + radiometry
     return row_final
 
 # Label that matches column header
