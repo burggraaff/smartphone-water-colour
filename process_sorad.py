@@ -77,8 +77,7 @@ data_rrs = read_data(filename_Rrs, nr_columns_as_float=2)
 data = table.join(data_ed, data_ls)
 data = table.join(data, data_lt)
 data = table.join(data, data_rrs)
-
-Rrs_columns = [label("Rrs", wvl) for wvl in wavelengths]
+labels = ["Ed", "Ls", "Lt", "Rrs"]
 
 print("Finished reading data")
 
@@ -96,29 +95,36 @@ def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702
     plt.close()
 
 # Plot sample of data
-def plot_sample(data_plot, sample_cols=Rrs_columns, sample_rows=100):
+def plot_sample(data_plot, sample_quantity, sample_rows=100, ylabel=""):
+    sample_cols = [label(sample_quantity, wvl) for wvl in wavelengths]
     data_sub = data_plot[sample_cols][::sample_rows]
     data_sub = np.array([data_sub[col].data for col in data_sub.colnames])  # Iteration over data_sub.columns does not work
 
     plt.figure(figsize=(6,3), tight_layout=True)
     plt.plot(wavelengths, data_sub, c="k", alpha=0.1)
     plt.xlabel("Wavelength [nm]")
-    plt.ylabel("Remote sensing reflectance [sr$^{-1}$]")
+    plt.ylabel(ylabel)
     plt.xlim(320, 955)
-    plt.ylim(0, 0.1)
-    plt.yticks(np.arange(0, 0.12, 0.02))
+    plt.ylim(ymin=0)
     plt.grid(ls="--")
-    plt.title("Example R_rs spectra")
+    plt.title(f"Example {sample_quantity} spectra (1:{sample_rows})")
     plt.show()
     plt.close()
 
+# Plot Ed, Lt, Ls
+plot_sample(data, "Ed", ylabel="$E_d$ [W nm$^{-1}$ m$^{-2}$]")
+plot_sample(data, "Lt", ylabel="$L_t$ [W nm$^{-1}$ m$^{-2}$ sr$^{-1}$]")
+plot_sample(data, "Ls", ylabel="$L_s$ [W nm$^{-1}$ m$^{-2}$ sr$^{-1}$]")
+
+# Plot Rrs
 print("Before offset subtraction:")
 plot_histograms(data)
-plot_sample(data)
+plot_sample(data, "Rrs", ylabel="$R_{rs}$ [sr$^{-1}$]")
 
+Rrs_columns = [label("Rrs", wvl) for wvl in wavelengths]
 for col in Rrs_columns:
     data[col] -= data["offset"]
 
 print("After offset subtraction:")
 plot_histograms(data)
-plot_sample(data)
+plot_sample(data, "Rrs", ylabel="$R_{rs}$ [sr$^{-1}$]")
