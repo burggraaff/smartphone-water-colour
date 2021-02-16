@@ -9,7 +9,6 @@ Outputs:
     * None
 
 To do:
-    * Import Ed, calculate Lw
     * Export results
 """
 import numpy as np
@@ -22,7 +21,12 @@ from pathlib import Path
 folder = Path(argv[1])
 print("Input folder:", folder.absolute())
 
-filename = folder/"So-Rad_Rrs_Balaton2019.csv"
+filename_Ed = folder/"So-Rad_Ed_Balaton2019.csv"
+filename_Ls = folder/"So-Rad_Ls_Balaton2019.csv"
+filename_Lt = folder/"So-Rad_Lt_Balaton2019.csv"
+filename_Rrs = folder/"So-Rad_Rrs_Balaton2019.csv"
+
+wavelengths = np.arange(320, 955, 3.3)
 
 # Function that converts a row of text to an array
 def convert_row(row):
@@ -36,21 +40,45 @@ def convert_row(row):
 def label(text, wvl):
     return f"{text}_{wvl:.1f}"
 
+# Function to read data
+def read_data(filename, nr_columns_as_float=0):
+    """
+    Read a So-Rad data file from `filename`
+
+    nr_columns_as_float is an integer that controls how many columns in the header
+    (i.e. not the spectrum itself) should be cast to floats, not strings.
+    Example: for Rrs, this should be 2: rho and offset
+    """
+    datatype = filename.stem.split("_")[1]  # Ed, Rrs, etc.
+    data_columns = [label(datatype, wvl) for wvl in wavelengths]
+    print("Now reading data from", filename)
+    with open(filename) as file:
+        data = file.readlines()
+        header, data = data[0], data[1:]
+        header_columns = header.split(";")[:-1]
+        columns = header_columns + data_columns
+
+        rows = [convert_row(row) for row in data]
+        # Convert header columns, except the last `nr_columns_as_float`, to strings
+        # Convert everything else (spectrum + last header columns) to floats
+        dtypes = ["S30"] * (len(header_columns) - nr_columns_as_float) + [np.float32] * (len(wavelengths) + nr_columns_as_float)
+
+        data = table.Table(rows=rows, names=columns, dtype=dtypes)
+
+    return data
+
 # Read data
-wavelengths = np.arange(320, 955, 3.3)
+data_ed = read_data(filename_Ed)
+data_ls = read_data(filename_Ls)
+data_lt = read_data(filename_Lt)
+data_rrs = read_data(filename_Rrs, nr_columns_as_float=2)
+
+# Join tables into one
+data = table.join(data_ed, data_ls)
+data = table.join(data, data_lt)
+data = table.join(data, data_rrs)
+
 Rrs_columns = [label("Rrs", wvl) for wvl in wavelengths]
-print("Now reading data from", filename)
-with open(filename) as file:
-    data = file.readlines()
-    header = data[0]
-    data = data[1:]
-    cols = header.split(";")[:-1] + Rrs_columns
-
-    rows = [convert_row(row) for row in data]
-    # rho, offset, spectrum as floats, keep rest as strings
-    dtypes = ["S30" for h in header.split(";")[:-3]] + [np.float32] * (len(wavelengths) + 2)
-
-    data = table.Table(rows=rows, names=cols, dtype=dtypes)
 
 print("Finished reading data")
 
