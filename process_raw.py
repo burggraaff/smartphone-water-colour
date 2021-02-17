@@ -8,6 +8,10 @@ Requires the following SPECTACLE calibrations:
     - Bias
     - Flat-field
     - Spectral response
+
+Command-line inputs:
+    * SPECTACLE calibration folder
+    * Any number of folders containing data
 """
 
 import numpy as np

@@ -1,6 +1,14 @@
 """
 Compare smartphone RGB RAW data to So-Rad hyperspectral data.
 
+Command-line inputs:
+    * SPECTACLE calibration folder
+    * Smartphone data file
+    * SoRad data file
+
+Example:
+    %run compare_phone_sorad.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton_20190703/Ferry/ water-colour-data/Balaton_20190703/SoRad/So-Rad_Balaton2019.csv
+
 To do:
     * Split So-Rad processing into its own script (process_sorad.py)
     * Proper spectral convolution
