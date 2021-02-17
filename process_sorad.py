@@ -117,7 +117,7 @@ def plot_sample(data_plot, sample_quantity, sample_rows=100, ylabel="", saveto=N
     plt.xlim(320, 955)
     plt.ylim(ymin=0)
     plt.grid(ls="--")
-    plt.title(f"Example {sample_quantity} spectra ({len(data_sub)}/{len(data_plot)})")
+    plt.title(f"Example {sample_quantity} spectra ({data_sub.shape[1]}/{len(data_plot)})")
     if saveto:
         plt.savefig(saveto, bbox_inches="tight")
     plt.show()
