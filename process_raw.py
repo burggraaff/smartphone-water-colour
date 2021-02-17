@@ -153,4 +153,5 @@ for folder_main in folders:
         UTC = hc.UTC_timestamp(water_exif)
 
         # Write the result to file
-        hc.write_R_rs(UTC, R_rs, R_rs_err, saveto=data_path.parent / (data_path.stem + "_raw.csv"))
+        saveto = data_path.with_name(data_path.stem + "_raw.csv")
+        hc.write_R_rs(UTC, R_rs, R_rs_err, saveto=saveto)
