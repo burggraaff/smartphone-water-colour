@@ -87,6 +87,10 @@ len_orig = len(data)
 data.remove_rows(remove)
 print(f"Removed {len_orig - len(data)}/{len_orig} rows flagged as invalid.")
 
+# Write data to file
+filename_result = folder/"So-Rad_Balaton2019.csv"
+data.write(filename_result, format="ascii.fast_csv")
+
 # Plot histograms at multiple wavelengths
 def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702.8, 801.8, 900.8], bins=np.linspace(-0.02, 0.10, 75)):
     fig, axs = plt.subplots(ncols=len(wavelengths_hist), sharex=True, sharey=True, figsize=(10, 2))
