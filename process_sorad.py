@@ -79,7 +79,7 @@ data = table.join(data, data_lt)
 data = table.join(data, data_rrs)
 labels = ["Ed", "Ls", "Lt", "Rrs"]
 
-print("Finished reading data")
+
 
 # Plot histograms at multiple wavelengths
 def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702.8, 801.8, 900.8], bins=np.linspace(-0.02, 0.10, 75)):
@@ -95,7 +95,7 @@ def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702
     plt.close()
 
 # Plot sample of data
-def plot_sample(data_plot, sample_quantity, sample_rows=100, ylabel=""):
+def plot_sample(data_plot, sample_quantity, sample_rows=100, ylabel="", saveto=None):
     sample_cols = [label(sample_quantity, wvl) for wvl in wavelengths]
     data_sub = data_plot[sample_cols][::sample_rows]
     data_sub = np.array([data_sub[col].data for col in data_sub.colnames])  # Iteration over data_sub.columns does not work
@@ -107,14 +107,16 @@ def plot_sample(data_plot, sample_quantity, sample_rows=100, ylabel=""):
     plt.xlim(320, 955)
     plt.ylim(ymin=0)
     plt.grid(ls="--")
-    plt.title(f"Example {sample_quantity} spectra (1:{sample_rows})")
+    plt.title(f"Example {sample_quantity} spectra ({len(data_sub)}/{len(data_plot)})")
+    if saveto:
+        plt.savefig(saveto, bbox_inches="tight")
     plt.show()
     plt.close()
 
 # Plot Ed, Lt, Ls
-plot_sample(data, "Ed", ylabel="$E_d$ [W nm$^{-1}$ m$^{-2}$]")
-plot_sample(data, "Lt", ylabel="$L_t$ [W nm$^{-1}$ m$^{-2}$ sr$^{-1}$]")
-plot_sample(data, "Ls", ylabel="$L_s$ [W nm$^{-1}$ m$^{-2}$ sr$^{-1}$]")
+plot_sample(data, "Ed", ylabel="$E_d$ [W nm$^{-1}$ m$^{-2}$]", saveto=filename_Ed.with_suffix(".pdf"))
+plot_sample(data, "Lt", ylabel="$L_t$ [W nm$^{-1}$ m$^{-2}$ sr$^{-1}$]", saveto=filename_Lt.with_suffix(".pdf"))
+plot_sample(data, "Ls", ylabel="$L_s$ [W nm$^{-1}$ m$^{-2}$ sr$^{-1}$]", saveto=filename_Ls.with_suffix(".pdf"))
 
 # Plot Rrs
 print("Before offset subtraction:")
@@ -127,4 +129,4 @@ for col in Rrs_columns:
 
 print("After offset subtraction:")
 plot_histograms(data)
-plot_sample(data, "Rrs", ylabel="$R_{rs}$ [sr$^{-1}$]")
+plot_sample(data, "Rrs", ylabel="$R_{rs}$ [sr$^{-1}$]", saveto=filename_Rrs.with_suffix(".pdf"))
