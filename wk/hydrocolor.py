@@ -208,6 +208,12 @@ def UTC_timestamp(water_exif):
 
 
 def write_R_rs(timestamp, R_rs, R_rs_err, saveto):
-    result = table.Table(rows=[[timestamp.timestamp(), timestamp.isoformat(), *R_rs, *R_rs_err]], names=["UTC", "UTC (ISO)", "R_rs (R)", "R_rs (G)", "R_rs (B)", "R_rs_err (R)", "R_rs_err (G)", "R_rs_err (B)"])
+    header_rrs = ["R_rs (R)", "R_rs (G)", "R_rs (B)"]
+    header_rrs_err = ["R_rs_err (R)", "R_rs_err (G)", "R_rs_err (B)"]
+    if len(R_rs) == 4:
+        header_rrs.append("R_rs (G2)")
+        header_rrs_err.append("R_rs_err (G2)")
+
+    result = table.Table(rows=[[timestamp.timestamp(), timestamp.isoformat(), *R_rs, *R_rs_err]], names=["UTC", "UTC (ISO)", *header_rrs, *header_rrs_err])
     result.write(saveto, format="ascii.fast_csv")
     print(f"Saved results to `{saveto}`")

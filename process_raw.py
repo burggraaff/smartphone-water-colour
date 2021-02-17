@@ -134,6 +134,10 @@ for folder_main in folders:
 
         # WACODI
 
+        # Convert RGBG2 to RGB
+        water_mean, sky_mean, card_mean = water_mean[:3], sky_mean[:3], card_mean[:3]
+        water_std, sky_std, card_std = water_std[:3], sky_std[:3], card_std[:3]
+
         # Convert RGB to XYZ
         water_XYZ, sky_XYZ, card_XYZ = camera.convert_to_XYZ(water_mean, sky_mean, card_mean)
         water_XYZ_err, sky_XYZ_err, card_XYZ_err = wa.convert_errors_to_XYZ(camera.XYZ_matrix, water_std, sky_std, card_std)
