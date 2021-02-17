@@ -72,14 +72,20 @@ data_ed = read_data(filename_Ed)
 data_ls = read_data(filename_Ls)
 data_lt = read_data(filename_Lt)
 data_rrs = read_data(filename_Rrs, nr_columns_as_float=2)
+print("Finished reading data")
 
 # Join tables into one
 data = table.join(data_ed, data_ls)
 data = table.join(data, data_lt)
 data = table.join(data, data_rrs)
 labels = ["Ed", "Ls", "Lt", "Rrs"]
+print("Joined data tables")
 
-
+# Remove invalid data
+remove = np.where(data["valid"] == "0")
+len_orig = len(data)
+data.remove_rows(remove)
+print(f"Removed {len_orig - len(data)}/{len_orig} rows flagged as invalid.")
 
 # Plot histograms at multiple wavelengths
 def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702.8, 801.8, 900.8], bins=np.linspace(-0.02, 0.10, 75)):
