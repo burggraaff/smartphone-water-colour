@@ -6,10 +6,8 @@ Command line inputs:
         Example: "water-colour-data\Balaton_20190703\SoRad"
 
 Outputs:
-    * None
-
-To do:
-    * Export results
+    * File containing Ed, Ls, Lt, Rrs
+        Example: "water-colour-data\Balaton_20190703\SoRad\So-Rad_Balaton2019.csv"
 """
 import numpy as np
 from matplotlib import pyplot as plt
