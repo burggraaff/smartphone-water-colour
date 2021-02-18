@@ -85,6 +85,9 @@ for row in table_phone:
 
     Rrs = np.array([table_sorad[f"Rrs_{wvl:.1f}"][closest] for wvl in wavelengths])
 
+    # Convert ":" to - in the filename when saving
+    saveto = f"results/sorad_comparison/{phone_name}_{phone_time}.pdf".replace(":", "-")
+
     plt.figure(figsize=(3.3,3.3), tight_layout=True)
     plt.plot(wavelengths, Rrs, c="k")
     for j, c in enumerate("RGB"):
@@ -96,7 +99,7 @@ for row in table_phone:
     plt.ylim(0, 0.15)
     plt.ylabel("$R_{rs}$ [sr$^{-1}$]")
     plt.title(f"{phone_name}\n{phone_time}")
-    plt.savefig(f"SoRad_comparison/{phone_name}_{phone_time}.pdf")
+    plt.savefig(saveto)
     plt.show()
     plt.close()
 
@@ -125,5 +128,5 @@ plt.grid(True, ls="--")
 plt.xlabel("SoRad $R_{rs}$ [sr$^{-1}$]")
 plt.ylabel(phone_name + " $R_{rs}$ [sr$^{-1}$]")
 plt.title(f"$r$ = {r:.2f}     RMS = {rms:.2f} sr$" + "^{-1}$")
-plt.savefig(f"comparison_SoRad_X_{phone_name}.pdf")
+plt.savefig(f"results/comparison_So-Rad_X_{phone_name}.pdf")
 plt.show()
