@@ -88,8 +88,8 @@ for row in table_phone:
     plt.figure(figsize=(3.3,3.3), tight_layout=True)
     plt.plot(wavelengths, Rrs, c="k")
     for j, c in enumerate("RGB"):
-        plt.errorbar(RGB_wavelengths[j], row[f"R_rs ({c})"], xerr=effective_bandwidths[j]/2, yerr=row[f"R_rs_err ({c})"], fmt="o", c=c)
-        plt.errorbar(RGB_wavelengths[j], table_sorad[closest][f"Rrs_avg ({c})"], xerr=effective_bandwidths[j]/2, yerr=0, fmt="^", c=c)
+        plt.errorbar(RGB_wavelengths[j], row[f"R_rs ({c})"], xerr=effective_bandwidths[j]/2, yerr=row[f"R_rs_err ({c})"], fmt="o", c=c.lower())
+        plt.errorbar(RGB_wavelengths[j], table_sorad[closest][f"Rrs_avg ({c})"], xerr=effective_bandwidths[j]/2, yerr=0, fmt="^", c=c.lower())
     plt.grid(True, ls="--")
     plt.xlim(200, 900)
     plt.xlabel("Wavelength [nm]")
@@ -116,7 +116,7 @@ r = np.corrcoef(Rrs_phone, Rrs_sorad_averaged)[0, 1]
 max_val = 0
 plt.figure(figsize=(5,5), tight_layout=True)
 for j,c in enumerate("RGB"):
-    plt.errorbar(data_sorad[f"Rrs_avg ({c})"], data_phone[f"R_rs ({c})"], xerr=0, yerr=data_phone[f"R_rs_err ({c})"], color=c, fmt="o")
+    plt.errorbar(data_sorad[f"Rrs_avg ({c})"], data_phone[f"R_rs ({c})"], xerr=0, yerr=data_phone[f"R_rs_err ({c})"], color=c.lower(), fmt="o")
     max_val = max(max_val, data_phone[f"R_rs ({c})"].max(), data_sorad[f"Rrs_avg ({c})"].max())
 plt.plot([-1, 1], [-1, 1], c='k', ls="--")
 plt.xlim(0, 1.05*max_val)
