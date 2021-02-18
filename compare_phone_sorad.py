@@ -43,30 +43,9 @@ RGB_responses_normalised = RGB_responses / RGB_responses.max(axis=1)[:,np.newaxi
 effective_bandwidths = np.trapz(RGB_responses_normalised, x=wavelengths_phone, axis=1)
 
 table_phone = table.Table.read(path_phone)
+table_sorad = table.Table.read(path_sorad)
 
 wavelengths = np.arange(320, 955, 3.3)
-
-def convert_row(row):
-    row_split = row.split(";")
-    start = row_split[:-1]
-    end = np.array(row_split[-1].split(","), dtype=np.float32).tolist()
-    row_final = start + end
-    return row_final
-
-with open(path_sorad) as file:
-    data = file.readlines()
-    header = data[0]
-    data = data[1:]
-    cols = header.split(";")[:-1] + [f"Rrs_{wvl:.1f}" for wvl in wavelengths]
-
-    rows = [convert_row(row) for row in data]
-    dtypes = ["S30" for h in header.split(";")[:-3]] + [np.float32, np.float32] + [np.float32 for wvl in wavelengths]
-
-    table_sorad = table.Table(rows=rows, names=cols, dtype=dtypes)
-
-    # Subtract offset
-    for wvl in wavelengths:
-        table_sorad[f"Rrs_{wvl:.1f}"] = table_sorad[f"Rrs_{wvl:.1f}"] - table_sorad["offset"]
 
 sorad_datetime = [datetime.fromisoformat(DT) for DT in table_sorad["trigger_id"]]
 sorad_timestamps = [dt.timestamp() for dt in sorad_datetime]
