@@ -32,15 +32,15 @@ camera = load_camera(path_calibration)
 print(f"Loaded Camera object:\n{camera}")
 
 # Find the effective wavelength corresponding to the RGB bands
-spectral_response = calibrate.load_spectral_response(path_calibration)
+camera._load_spectral_response()
+spectral_response = camera.spectral_response
 wavelengths_phone = spectral_response[0]
 RGB_responses = spectral_response[1:4]
 RGB_wavelengths = spectral.effective_wavelengths(wavelengths_phone, RGB_responses)
 
-# SPECTACLE function for effective bandwidth is currently somewhat broken so we
-# do it ourselves
-RGB_responses_normalised = RGB_responses / RGB_responses.max(axis=1)[:,np.newaxis]
-effective_bandwidths = np.trapz(RGB_responses_normalised, x=wavelengths_phone, axis=1)
+# Effective spectral bandwidths
+camera.load_spectral_bands()
+effective_bandwidths = camera.spectral_bands
 
 table_phone = table.Table.read(path_phone)
 table_sorad = table.Table.read(path_sorad)
