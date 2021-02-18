@@ -2,7 +2,7 @@
 Combine RGB results into a single table.
 
 Command-line inputs:
-    * pattern: Path pattern to look for, e.g. "raw"
+    * pattern: Path pattern to look for, e.g. "iPhone_SE_raw.csv"
     * folders: Any number of paths to folders containing data
 """
 
