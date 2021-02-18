@@ -81,7 +81,7 @@ for row in table_phone:
     sorad_time = datetime.fromtimestamp(table_sorad[closest]["UTC"]).isoformat()
     print("----")
     print(f"Phone time: {phone_time} ; SoRad time: {sorad_time} ; Difference: {time_diff:.1f} seconds")
-    print(f"Valid: {table_sorad[closest]['valid']} ; offset: {table_sorad[closest]['offset']}")
+    print(f"Valid: {table_sorad[closest]['valid']}")
 
     Rrs = np.array([table_sorad[f"Rrs_{wvl:.1f}"][closest] for wvl in wavelengths])
 
