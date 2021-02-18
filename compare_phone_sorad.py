@@ -116,6 +116,7 @@ Rrs_sorad_averaged = np.hstack([data_sorad["Rrs_avg (R)"].data, data_sorad["Rrs_
 rms = RMS(Rrs_phone - Rrs_sorad_averaged)
 r = np.corrcoef(Rrs_phone, Rrs_sorad_averaged)[0, 1]
 
+# Correlation plot: Rrs (SoRad) vs Rrs (smartphone)
 max_val = 0
 plt.figure(figsize=(5,5), tight_layout=True)
 for j,c in enumerate("RGB"):
@@ -129,4 +130,24 @@ plt.xlabel("SoRad $R_{rs}$ [sr$^{-1}$]")
 plt.ylabel(phone_name + " $R_{rs}$ [sr$^{-1}$]")
 plt.title(f"$r$ = {r:.2f}     RMS = {rms:.2f} sr$" + "^{-1}$")
 plt.savefig(f"results/comparison_So-Rad_X_{phone_name}.pdf")
+plt.show()
+
+# Correlation plot: Rrs G/B (SoRad) vs Rrs G/B (smartphone)
+GB_sorad = data_sorad["Rrs_avg (G)"]/data_sorad["Rrs_avg (B)"]
+GB_phone = data_phone["R_rs (G)"]/data_phone["R_rs (B)"]
+
+rms = RMS(GB_phone - GB_sorad)
+r = np.corrcoef(GB_phone, GB_sorad)[0, 1]
+
+plt.figure(figsize=(5,5), tight_layout=True)
+plt.errorbar(GB_sorad, GB_phone, color="k", fmt="o")
+max_val = max(max_val, GB_phone.max(), GB_sorad.max())
+plt.plot([-1, 5], [-1, 5], c='k', ls="--")
+plt.xlim(0, 1.05*max_val)
+plt.ylim(0, 1.05*max_val)
+plt.grid(True, ls="--")
+plt.xlabel("SoRad $R_{rs}$ G/B")
+plt.ylabel(phone_name + " $R_{rs}$ G/B")
+plt.title(f"$r$ = {r:.2f}     RMS = {rms:.2f}")
+plt.savefig(f"results/comparison_So-Rad_X_{phone_name}_GB.pdf")
 plt.show()
