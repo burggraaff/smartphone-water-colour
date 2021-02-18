@@ -7,7 +7,7 @@ Command-line inputs:
     * SoRad data file
 
 Example:
-    %run compare_phone_sorad.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton_20190703/Ferry/ water-colour-data/Balaton_20190703/SoRad/So-Rad_Balaton2019.csv
+    %run compare_phone_sorad.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/combined_iPhone_SE_raw.csv water-colour-data/Balaton_20190703/SoRad/So-Rad_Balaton2019.csv
 
 To do:
     * Split So-Rad processing into its own script (process_sorad.py)
