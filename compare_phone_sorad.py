@@ -64,8 +64,6 @@ def average_row(row):
 
     return RGB_averaged
 
-table_sorad = table_sorad[26000:27500]
-
 RGB_averaged_all = np.array([average_row(row) for row in table_sorad])
 RGB_averaged_table = table.Table(data=RGB_averaged_all, names=["Rrs_avg (R)", "Rrs_avg (G)", "Rrs_avg (B)"])
 table_sorad = table.hstack([table_sorad, RGB_averaged_table])
