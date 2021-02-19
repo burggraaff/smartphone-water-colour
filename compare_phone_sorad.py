@@ -18,7 +18,7 @@ To do:
 import numpy as np
 from sys import argv
 from matplotlib import pyplot as plt
-from spectacle import io, calibrate, spectral, load_camera
+from spectacle import io, spectral, load_camera
 from spectacle.general import RMS
 from astropy import table
 from datetime import datetime
