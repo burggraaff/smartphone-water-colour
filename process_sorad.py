@@ -22,7 +22,7 @@ print("Input folder:", folder.absolute())
 filename_Ed = folder/"Ed_2019-07-03.csv"
 filename_Ls = folder/"Ls_2019-07-03.csv"
 filename_Lt = folder/"Lt_2019-07-03.csv"
-filename_Rrs = folder/"Rrs_fres_2019-07-03.csv"
+filename_Rrs = folder/"Rrs_finger_2019-07-03.csv"
 filename_meta = folder/"Meta_2019-07-03.csv"
 filename_qc = folder/"QCmask_2019-07-03.csv"
 
@@ -58,7 +58,7 @@ data = table.hstack([data_meta, data_qc, data_ed, data_ls, data_lt, data_rrs])
 print("Joined data tables")
 
 # Remove invalid data
-remove = np.where((data["Q_ratio"] == 0.0))
+remove = np.where(data["Q_rad_finger"] == 0.0)
 len_orig = len(data)
 data.remove_rows(remove)
 print(f"Removed {len_orig - len(data)}/{len_orig} rows flagged as invalid.")
@@ -106,13 +106,13 @@ plot_sample(data, "Ls", ylabel="$L_s$ [W nm$^{-1}$ m$^{-2}$ sr$^{-1}$]", saveto=
 
 # Plot Rrs
 # print("Before offset subtraction:")
-plot_histograms(data)
-plot_sample(data, "Rrs", ylabel="$R_{rs}$ [sr$^{-1}$]")
+# plot_histograms(data)
+# plot_sample(data, "Rrs", ylabel="$R_{rs}$ [sr$^{-1}$]")
 
 # Rrs_columns = [label("Rrs", wvl) for wvl in wavelengths]
 # for col in Rrs_columns:
 #     data[col] -= data["offset"]
 
 # print("After offset subtraction:")
-# plot_histograms(data)
-# plot_sample(data, "Rrs", ylabel="$R_{rs}$ [sr$^{-1}$]", saveto=filename_Rrs.with_suffix(".pdf"))
+plot_histograms(data)
+plot_sample(data, "Rrs", ylabel="$R_{rs}$ [sr$^{-1}$]", saveto=filename_Rrs.with_suffix(".pdf"))
