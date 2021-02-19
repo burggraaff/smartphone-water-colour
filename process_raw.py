@@ -112,6 +112,7 @@ for folder_main in folders:
         R_rs = hc.R_RS(water_mean, sky_mean, card_mean)
         print("Calculated remote sensing reflectances")
 
+        # Covariances
         Rref = 0.18
         rho = 0.028
         J1 = 1/np.pi * Rref * np.eye(4) * (1/card_mean)
@@ -132,22 +133,22 @@ for folder_main in folders:
         # Plot the result
         hc.plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err)
 
-        # WACODI
+        # # WACODI
 
-        # Convert RGBG2 to RGB
-        water_mean, sky_mean, card_mean = water_mean[:3], sky_mean[:3], card_mean[:3]
-        water_std, sky_std, card_std = water_std[:3], sky_std[:3], card_std[:3]
+        # # Convert RGBG2 to RGB
+        # water_mean, sky_mean, card_mean = water_mean[:3], sky_mean[:3], card_mean[:3]
+        # water_std, sky_std, card_std = water_std[:3], sky_std[:3], card_std[:3]
 
-        # Convert RGB to XYZ
-        water_XYZ, sky_XYZ, card_XYZ = camera.convert_to_XYZ(water_mean, sky_mean, card_mean)
-        water_XYZ_err, sky_XYZ_err, card_XYZ_err = wa.convert_errors_to_XYZ(camera.XYZ_matrix, water_std, sky_std, card_std)
+        # # Convert RGB to XYZ
+        # water_XYZ, sky_XYZ, card_XYZ = camera.convert_to_XYZ(water_mean, sky_mean, card_mean)
+        # water_XYZ_err, sky_XYZ_err, card_XYZ_err = wa.convert_errors_to_XYZ(camera.XYZ_matrix, water_std, sky_std, card_std)
 
-        # Calculate xy chromaticity
-        water_xy, sky_xy, card_xy = wa.convert_XYZ_to_xy(water_XYZ, sky_XYZ, card_XYZ)
+        # # Calculate xy chromaticity
+        # water_xy, sky_xy, card_xy = wa.convert_XYZ_to_xy(water_XYZ, sky_XYZ, card_XYZ)
 
-        # Calculate hue angle
-        water_hue, sky_hue, card_hue = wa.convert_xy_to_hue_angle(water_xy, sky_xy, card_xy)
-        water_hue_err, sky_hue_err, card_hue_err = [wa.convert_XYZ_error_to_hue_angle(XYZ_data, XYZ_error) for XYZ_data, XYZ_error in zip([water_XYZ, sky_XYZ, card_XYZ], [water_XYZ_err, sky_XYZ_err, card_XYZ_err])]
+        # # Calculate hue angle
+        # water_hue, sky_hue, card_hue = wa.convert_xy_to_hue_angle(water_xy, sky_xy, card_xy)
+        # water_hue_err, sky_hue_err, card_hue_err = [wa.convert_XYZ_error_to_hue_angle(XYZ_data, XYZ_error) for XYZ_data, XYZ_error in zip([water_XYZ, sky_XYZ, card_XYZ], [water_XYZ_err, sky_XYZ_err, card_XYZ_err])]
 
         # Create a timestamp from EXIF (assume time zone UTC+2)
         UTC = hc.UTC_timestamp(water_exif)
