@@ -207,13 +207,16 @@ def UTC_timestamp(water_exif):
     return UTC
 
 
-def write_R_rs(timestamp, R_rs, R_rs_err, saveto):
-    header_rrs = ["R_rs (R)", "R_rs (G)", "R_rs (B)"]
-    header_rrs_err = ["R_rs_err (R)", "R_rs_err (G)", "R_rs_err (B)"]
-    if len(R_rs) == 4:
-        header_rrs.append("R_rs (G2)")
-        header_rrs_err.append("R_rs_err (G2)")
+def write_results(saveto, timestamp, water, water_err, sky, sky_err, grey, grey_err, Rrs, Rrs_err):
+    assert len(water) == len(water_err) == len(sky) == len(sky_err) == len(grey) == len(grey_err) == len(Rrs) == len(Rrs_err), "Not all input arrays have the same length"
+    header = ["Lu {c}", "Lu_err {c}", "Ls {c}", "Ls_err {c}", "Ld {c}", "Ld_err {c}", "Rrs {c}", "Rrs_err {c}"]
+    colours = "RGB" if len(water) == 3 else [*"RGB", "G2"]
+    header_full = [[s.format(c=c) for c in colours] for s in header]
+    header = ["UTC", "UTC (ISO)"] + [item for sublist in header_full for item in sublist]
 
-    result = table.Table(rows=[[timestamp.timestamp(), timestamp.isoformat(), *R_rs, *R_rs_err]], names=["UTC", "UTC (ISO)", *header_rrs, *header_rrs_err])
+    data = [[timestamp.timestamp(), timestamp.isoformat(), *water, *water_err, *sky, *sky_err, *grey, *grey_err, *Rrs, *Rrs_err]]
+
+    result = table.Table(rows=data, names=header)
+
     result.write(saveto, format="ascii.fast_csv")
     print(f"Saved results to `{saveto}`")
