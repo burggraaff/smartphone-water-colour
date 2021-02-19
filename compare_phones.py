@@ -46,7 +46,7 @@ max_val = 0
 
 plt.figure(figsize=(5,5), tight_layout=True)
 for c in "RGB":
-    plt.errorbar(data_phone1[f"R_rs ({c})"], data_phone2[f"R_rs ({c})"], xerr=data_phone1[f"R_rs_err ({c})"], yerr=data_phone2[f"R_rs_err ({c})"], color=c, fmt="o")
+    plt.errorbar(data_phone1[f"R_rs ({c})"], data_phone2[f"R_rs ({c})"], xerr=data_phone1[f"R_rs_err ({c})"], yerr=data_phone2[f"R_rs_err ({c})"], color=c.lower(), fmt="o")
     max_val = max(max_val, data_phone1[f"R_rs ({c})"].max(), data_phone2[f"R_rs ({c})"].max())
 plt.plot([-1, 1], [-1, 1], c='k', ls="--")
 plt.xlim(0, 1.05*max_val)
