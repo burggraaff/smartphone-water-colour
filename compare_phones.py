@@ -54,7 +54,7 @@ plt.ylim(0, 1.05*max_val)
 plt.grid(True, ls="--")
 plt.xlabel(phone1_name + " $R_{rs}$ [sr$^{-1}$]")
 plt.ylabel(phone2_name + " $R_{rs}$ [sr$^{-1}$]")
-plt.savefig(f"comparison_{phone1_name}_X_{phone2_name}.pdf")
+plt.savefig(f"results/comparison_{phone1_name}_X_{phone2_name}.pdf")
 plt.show()
 
 differences_RGB = table.hstack([data_phone1[f"R_rs ({c})"] - data_phone2[f"R_rs ({c})"] for c in "RGB"])
