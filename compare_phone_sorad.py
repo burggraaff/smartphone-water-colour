@@ -91,7 +91,7 @@ for row in table_phone:
     plt.figure(figsize=(3.3,3.3), tight_layout=True)
     plt.plot(wavelengths, Rrs, c="k")
     for j, c in enumerate("RGB"):
-        plt.errorbar(RGB_wavelengths[j], row[f"R_rs ({c})"], xerr=effective_bandwidths[j]/2, yerr=row[f"R_rs_err ({c})"], fmt="o", c=c.lower())
+        plt.errorbar(RGB_wavelengths[j], row[f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=row[f"Rrs_err {c}"], fmt="o", c=c.lower())
         plt.errorbar(RGB_wavelengths[j], table_sorad[closest][f"Rrs_avg ({c})"], xerr=effective_bandwidths[j]/2, yerr=0, fmt="^", c=c.lower())
     plt.grid(True, ls="--")
     plt.xlim(200, 900)
@@ -111,7 +111,7 @@ data_sorad = table.vstack(data_sorad)
 
 sorad_wavelengths_RGB = [wavelengths[np.abs(wavelengths-wvl).argmin()] for wvl in RGB_wavelengths]
 
-Rrs_phone = np.hstack([data_phone["R_rs (R)"].data, data_phone["R_rs (G)"].data, data_phone["R_rs (B)"].data])
+Rrs_phone = np.hstack([data_phone["Rrs R"].data, data_phone["Rrs G"].data, data_phone["Rrs B"].data])
 Rrs_sorad_averaged = np.hstack([data_sorad["Rrs_avg (R)"].data, data_sorad["Rrs_avg (G)"].data, data_sorad["Rrs_avg (B)"].data])
 rms = RMS(Rrs_phone - Rrs_sorad_averaged)
 r = np.corrcoef(Rrs_phone, Rrs_sorad_averaged)[0, 1]
@@ -120,8 +120,8 @@ r = np.corrcoef(Rrs_phone, Rrs_sorad_averaged)[0, 1]
 max_val = 0
 plt.figure(figsize=(5,5), tight_layout=True)
 for j,c in enumerate("RGB"):
-    plt.errorbar(data_sorad[f"Rrs_avg ({c})"], data_phone[f"R_rs ({c})"], xerr=0, yerr=data_phone[f"R_rs_err ({c})"], color=c.lower(), fmt="o")
-    max_val = max(max_val, data_phone[f"R_rs ({c})"].max(), data_sorad[f"Rrs_avg ({c})"].max())
+    plt.errorbar(data_sorad[f"Rrs_avg ({c})"], data_phone[f"Rrs {c}"], xerr=0, yerr=data_phone[f"Rrs_err {c}"], color=c.lower(), fmt="o")
+    max_val = max(max_val, data_phone[f"Rrs {c}"].max(), data_sorad[f"Rrs_avg ({c})"].max())
 plt.plot([-1, 1], [-1, 1], c='k', ls="--")
 plt.xlim(0, 1.05*max_val)
 plt.ylim(0, 1.05*max_val)
@@ -134,7 +134,7 @@ plt.show()
 
 # Correlation plot: Rrs G/B (SoRad) vs Rrs G/B (smartphone)
 GB_sorad = data_sorad["Rrs_avg (G)"]/data_sorad["Rrs_avg (B)"]
-GB_phone = data_phone["R_rs (G)"]/data_phone["R_rs (B)"]
+GB_phone = data_phone["Rrs G"]/data_phone["Rrs B"]
 
 rms = RMS(GB_phone - GB_sorad)
 r = np.corrcoef(GB_phone, GB_sorad)[0, 1]
