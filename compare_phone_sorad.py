@@ -51,22 +51,21 @@ sorad_datetime = [datetime.fromisoformat(DT) for DT in table_sorad["trigger_id"]
 sorad_timestamps = [dt.timestamp() for dt in sorad_datetime]
 table_sorad.add_column(table.Column(data=sorad_timestamps, name="UTC"))
 
-def average_row(row):
-    Rrs = np.array([row[f"Rrs_{wvl:.1f}"] for wvl in wavelengths])
-    RGB_averaged = []
+# Spectral convolution
+# Convolve Rrs itself for now because of fingerprinting
+for key in ["Ed", "Ls", "Lt", "Rrs"]:
+    cols = [col for col in table_sorad.keys() if key in col]  # Find the relevant keys
+    wavelengths = np.array([float(col.split("_")[1]) for col in cols])  # Data wavelengths
+    data = np.array(table_sorad[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
 
-    for response, c in zip(RGB_responses, "RGB"):
-        response_interpolated = np.interp(wavelengths, wavelengths_phone, response, left=0, right=0)
-        not_nan = np.where(~np.isnan(Rrs))
-        Rrs_avg = np.average(Rrs[not_nan], weights=response_interpolated[not_nan])
+    data_convolved = camera.convolve_multi(wavelengths, data).T  # Apply spectral convolution
 
-        RGB_averaged.append(Rrs_avg)
+    # Put convolved data in a table
+    keys_convolved = [f"{key}_avg {band}" for band in [*"RGB", "G2"]]
+    table_convolved = table.Table(data=data_convolved, names=keys_convolved)
 
-    return RGB_averaged
-
-RGB_averaged_all = np.array([average_row(row) for row in table_sorad])
-RGB_averaged_table = table.Table(data=RGB_averaged_all, names=["Rrs_avg (R)", "Rrs_avg (G)", "Rrs_avg (B)"])
-table_sorad = table.hstack([table_sorad, RGB_averaged_table])
+    # Merge convolved data table with original data table
+    table_sorad = table.hstack([table_sorad, table_convolved])
 
 data_phone = []
 data_sorad = []
@@ -92,7 +91,7 @@ for row in table_phone:
     plt.plot(wavelengths, Rrs, c="k")
     for j, c in enumerate("RGB"):
         plt.errorbar(RGB_wavelengths[j], row[f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=row[f"Rrs_err {c}"], fmt="o", c=c.lower())
-        plt.errorbar(RGB_wavelengths[j], table_sorad[closest][f"Rrs_avg ({c})"], xerr=effective_bandwidths[j]/2, yerr=0, fmt="^", c=c.lower())
+        plt.errorbar(RGB_wavelengths[j], table_sorad[closest][f"Rrs_avg {c}"], xerr=effective_bandwidths[j]/2, yerr=0, fmt="^", c=c.lower())
     plt.grid(True, ls="--")
     plt.xlim(200, 900)
     plt.xlabel("Wavelength [nm]")
@@ -112,7 +111,7 @@ data_sorad = table.vstack(data_sorad)
 sorad_wavelengths_RGB = [wavelengths[np.abs(wavelengths-wvl).argmin()] for wvl in RGB_wavelengths]
 
 Rrs_phone = np.hstack([data_phone["Rrs R"].data, data_phone["Rrs G"].data, data_phone["Rrs B"].data])
-Rrs_sorad_averaged = np.hstack([data_sorad["Rrs_avg (R)"].data, data_sorad["Rrs_avg (G)"].data, data_sorad["Rrs_avg (B)"].data])
+Rrs_sorad_averaged = np.hstack([data_sorad["Rrs_avg R"].data, data_sorad["Rrs_avg G"].data, data_sorad["Rrs_avg B"].data])
 rms = RMS(Rrs_phone - Rrs_sorad_averaged)
 r = np.corrcoef(Rrs_phone, Rrs_sorad_averaged)[0, 1]
 
@@ -120,8 +119,8 @@ r = np.corrcoef(Rrs_phone, Rrs_sorad_averaged)[0, 1]
 max_val = 0
 plt.figure(figsize=(5,5), tight_layout=True)
 for j,c in enumerate("RGB"):
-    plt.errorbar(data_sorad[f"Rrs_avg ({c})"], data_phone[f"Rrs {c}"], xerr=0, yerr=data_phone[f"Rrs_err {c}"], color=c.lower(), fmt="o")
-    max_val = max(max_val, data_phone[f"Rrs {c}"].max(), data_sorad[f"Rrs_avg ({c})"].max())
+    plt.errorbar(data_sorad[f"Rrs_avg {c}"], data_phone[f"Rrs {c}"], xerr=0, yerr=data_phone[f"Rrs_err {c}"], color=c.lower(), fmt="o")
+    max_val = max(max_val, data_phone[f"Rrs {c}"].max(), data_sorad[f"Rrs_avg {c}"].max())
 plt.plot([-1, 1], [-1, 1], c='k', ls="--")
 plt.xlim(0, 1.05*max_val)
 plt.ylim(0, 1.05*max_val)
@@ -133,7 +132,7 @@ plt.savefig(f"results/comparison_So-Rad_X_{phone_name}.pdf")
 plt.show()
 
 # Correlation plot: Rrs G/B (SoRad) vs Rrs G/B (smartphone)
-GB_sorad = data_sorad["Rrs_avg (G)"]/data_sorad["Rrs_avg (B)"]
+GB_sorad = data_sorad["Rrs_avg G"]/data_sorad["Rrs_avg B"]
 GB_phone = data_phone["Rrs G"]/data_phone["Rrs B"]
 
 rms = RMS(GB_phone - GB_sorad)
