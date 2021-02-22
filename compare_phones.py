@@ -42,22 +42,29 @@ for row in table_phone1:
 data_phone1 = table.vstack(data_phone1)
 data_phone2 = table.vstack(data_phone2)
 
-max_val = 0
+parameters = ["Lu", "Ls", "Ld", "Rrs"]
+labels = ["$L_u$ [ADU]", "$L_{sky}$ [ADU]", "$L_d$ [ADU]", "$R_{rs}$ [sr$^{-1}$]"]
 
-plt.figure(figsize=(5,5), tight_layout=True)
-for c in "RGB":
-    plt.errorbar(data_phone1[f"R_rs ({c})"], data_phone2[f"R_rs ({c})"], xerr=data_phone1[f"R_rs_err ({c})"], yerr=data_phone2[f"R_rs_err ({c})"], color=c.lower(), fmt="o")
-    max_val = max(max_val, data_phone1[f"R_rs ({c})"].max(), data_phone2[f"R_rs ({c})"].max())
-plt.plot([-1, 1], [-1, 1], c='k', ls="--")
-plt.xlim(0, 1.05*max_val)
-plt.ylim(0, 1.05*max_val)
-plt.grid(True, ls="--")
-plt.xlabel(phone1_name + " $R_{rs}$ [sr$^{-1}$]")
-plt.ylabel(phone2_name + " $R_{rs}$ [sr$^{-1}$]")
-plt.savefig(f"results/comparison_{phone1_name}_X_{phone2_name}.pdf")
-plt.show()
+for param, label in zip(parameters, labels):
+    max_val = 0
 
-differences_RGB = table.hstack([data_phone1[f"R_rs ({c})"] - data_phone2[f"R_rs ({c})"] for c in "RGB"])
-RMS_RGB = [RMS(differences_RGB[f"R_rs ({c})"]) for c in "RGB"]
-differences_all = np.ravel([differences_RGB[f"R_rs ({c})"].data for c in "RGB"])
-RMS_all = RMS(differences_all)
+    plt.figure(figsize=(4,4), tight_layout=True)
+    colours = [*"RGB", "G2"]
+    plot_colours = "rgbg"
+    for c, pc in zip(colours, plot_colours):
+        plt.errorbar(data_phone1[f"{param} {c}"], data_phone2[f"{param} {c}"], xerr=data_phone1[f"{param}_err {c}"], yerr=data_phone2[f"{param}_err {c}"], color=pc, fmt="o")
+        max_val = max(max_val, data_phone1[f"{param} {c}"].max(), data_phone2[f"{param} {c}"].max())
+
+    plt.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
+    plt.xlim(0, 1.05*max_val)
+    plt.ylim(0, 1.05*max_val)
+    plt.grid(True, ls="--")
+    plt.xlabel(f"{phone1_name} {label}")
+    plt.ylabel(f"{phone2_name} {label}")
+    plt.savefig(f"results/comparison_{phone1_name}_X_{phone2_name}_{param}.pdf")
+    plt.show()
+
+    differences_RGB = table.hstack([data_phone1[f"{param} {c}"] - data_phone2[f"{param} {c}"] for c in colours])
+    RMS_RGB = [RMS(differences_RGB[f"{param} {c}"]) for c in colours]
+    differences_all = np.ravel([differences_RGB[f"{param} {c}"].data for c in colours])
+    RMS_all = RMS(differences_all)
