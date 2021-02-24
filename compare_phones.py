@@ -13,6 +13,7 @@ from spectacle import io
 from spectacle.general import RMS
 from astropy import table
 from datetime import datetime
+from wk import hydrocolor as hc
 
 # Get the data folder from the command line
 path_phone1, path_phone2 = io.path_from_input(argv)
@@ -46,25 +47,9 @@ parameters = ["Lu", "Ls", "Ld", "Rrs"]
 labels = ["$L_u$ [ADU nm$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$]", "$L_d$ [ADU nm$^{-1}$]", "$R_{rs}$ [sr$^{-1}$]"]
 
 for param, label in zip(parameters, labels):
-    max_val = 0
+    hc.correlation_plot_RGB(data_phone1, data_phone2, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{phone1_name} {label}", ylabel=f"{phone2_name} {label}", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_{param}.pdf")
 
-    plt.figure(figsize=(4,4), tight_layout=True)
-    colours = [*"RGB", "G2"]
-    plot_colours = "rgbg"
-    for c, pc in zip(colours, plot_colours):
-        plt.errorbar(data_phone1[f"{param} {c}"], data_phone2[f"{param} {c}"], xerr=data_phone1[f"{param}_err {c}"], yerr=data_phone2[f"{param}_err {c}"], color=pc, fmt="o")
-        max_val = max(max_val, data_phone1[f"{param} {c}"].max(), data_phone2[f"{param} {c}"].max())
-
-    plt.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
-    plt.xlim(0, 1.05*max_val)
-    plt.ylim(0, 1.05*max_val)
-    plt.grid(True, ls="--")
-    plt.xlabel(f"{phone1_name} {label}")
-    plt.ylabel(f"{phone2_name} {label}")
-    plt.savefig(f"results/comparison_{phone1_name}_X_{phone2_name}_{param}.pdf")
-    plt.show()
-
-    differences_RGB = table.hstack([data_phone1[f"{param} {c}"] - data_phone2[f"{param} {c}"] for c in colours])
-    RMS_RGB = [RMS(differences_RGB[f"{param} {c}"]) for c in colours]
-    differences_all = np.ravel([differences_RGB[f"{param} {c}"].data for c in colours])
+    differences_RGB = table.hstack([data_phone1[f"{param} {c}"] - data_phone2[f"{param} {c}"] for c in hc.colours])
+    RMS_RGB = [RMS(differences_RGB[f"{param} {c}"]) for c in hc.colours]
+    differences_all = np.ravel([differences_RGB[f"{param} {c}"].data for c in hc.colours])
     RMS_all = RMS(differences_all)

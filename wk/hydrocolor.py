@@ -8,6 +8,8 @@ from matplotlib import pyplot as plt
 from datetime import datetime, timedelta
 from astropy import table
 
+colours = ["R", "G", "B", "G2"]  # Smartphone bands
+
 
 def R_RS(L_u, L_s, L_d, rho=0.028, R_ref=0.18):
     return (L_u - rho * L_s) / ((np.pi / R_ref) * L_d)
@@ -189,6 +191,47 @@ def plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=None
     plt.grid(ls="--")
     if saveto is not None:
         plt.savefig(saveto, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+
+def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", title="", saveto=None):
+    """
+    Make a correlation plot between two tables `x` and `y`. Use the labels
+    `xdatalabel` and `ydatalabel`, which are assumed to have RGB/RGBG2 versions.
+    For example, if `xlabel` == `f"Rrs {c}"` then the columns "Rrs R", "RRs G",
+    "Rrs B", and "Rrs G2" (if available) will be used.
+    """
+    plot_colours = "rgbg"  # Plot colours must be lowercase
+    max_val = 0.  # Maximum value on x/y axes
+
+    plt.figure(figsize=(4,4), tight_layout=True)
+
+    # Loop over the RGBG2 bands and plot the relevant data points
+    for c, pc in zip(colours, plot_colours):
+        xdata = x[xdatalabel.format(c=c)]
+        ydata = y[ydatalabel.format(c=c)]
+        xerr = x[xerrlabel.format(c=c)] if xerrlabel else None
+        yerr = y[yerrlabel.format(c=c)] if yerrlabel else None
+        plt.errorbar(xdata, ydata, xerr=xerr, yerr=yerr, color=pc, fmt="o")
+        max_val = max(max_val, np.nanmax(xdata), np.nanmax(ydata))
+
+    # Plot the x=y line
+    plt.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
+
+    # Plot settings
+    plt.xlim(0, 1.05*max_val)
+    plt.ylim(0, 1.05*max_val)
+    plt.grid(True, ls="--")
+
+    # Labels
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+
+    # Save, show, close plot
+    if saveto:
+        plt.savefig(saveto)
     plt.show()
     plt.close()
 

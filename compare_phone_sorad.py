@@ -22,6 +22,7 @@ from spectacle import io, spectral, load_camera
 from spectacle.general import RMS
 from astropy import table
 from datetime import datetime
+from wk import hydrocolor as hc
 
 # Get the data folder from the command line
 path_calibration, path_phone, path_sorad = io.path_from_input(argv)
@@ -115,21 +116,11 @@ Rrs_sorad_averaged = np.hstack([data_sorad["Rrs_avg R"].data, data_sorad["Rrs_av
 rms = RMS(Rrs_phone - Rrs_sorad_averaged)
 r = np.corrcoef(Rrs_phone, Rrs_sorad_averaged)[0, 1]
 
-# Correlation plot: Rrs (SoRad) vs Rrs (smartphone)
-max_val = 0
-plt.figure(figsize=(5,5), tight_layout=True)
-for j,c in enumerate("RGB"):
-    plt.errorbar(data_sorad[f"Rrs_avg {c}"], data_phone[f"Rrs {c}"], xerr=0, yerr=data_phone[f"Rrs_err {c}"], color=c.lower(), fmt="o")
-    max_val = max(max_val, data_phone[f"Rrs {c}"].max(), data_sorad[f"Rrs_avg {c}"].max())
-plt.plot([-1, 1], [-1, 1], c='k', ls="--")
-plt.xlim(0, 1.05*max_val)
-plt.ylim(0, 1.05*max_val)
-plt.grid(True, ls="--")
-plt.xlabel("SoRad $R_{rs}$ [sr$^{-1}$]")
-plt.ylabel(phone_name + " $R_{rs}$ [sr$^{-1}$]")
-plt.title(f"$r$ = {r:.2f}     RMS = {rms:.2f} sr$" + "^{-1}$")
-plt.savefig(f"results/comparison_So-Rad_X_{phone_name}.pdf")
-plt.show()
+parameters = ["Ls", "Rrs"]
+labels = ["$L_s$ [ADU nm$^{-1}$]", "$R_{rs}$ [sr$^{-1}$]"]
+
+for param, label in zip(parameters, labels):
+    hc.correlation_plot_RGB(data_sorad, data_phone, param+"_avg {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"SoRad {label}", ylabel=f"{phone_name} {label}", title=f"$r$ = {r:.2f}     RMS = {rms:.2f} sr$" + "^{-1}$", saveto=f"results/comparison_So-Rad_X_{phone_name}_{param}.pdf")
 
 # Correlation plot: Rrs G/B (SoRad) vs Rrs G/B (smartphone)
 GB_sorad = data_sorad["Rrs_avg G"]/data_sorad["Rrs_avg B"]
@@ -140,7 +131,7 @@ r = np.corrcoef(GB_phone, GB_sorad)[0, 1]
 
 plt.figure(figsize=(5,5), tight_layout=True)
 plt.errorbar(GB_sorad, GB_phone, color="k", fmt="o")
-max_val = max(max_val, GB_phone.max(), GB_sorad.max())
+max_val = max(0, GB_phone.max(), GB_sorad.max())
 plt.plot([-1, 5], [-1, 5], c='k', ls="--")
 plt.xlim(0, 1.05*max_val)
 plt.ylim(0, 1.05*max_val)
