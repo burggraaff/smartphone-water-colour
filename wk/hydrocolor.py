@@ -195,7 +195,7 @@ def plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=None
     plt.close()
 
 
-def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", title="", saveto=None):
+def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", title="", equal_aspect=True, saveto=None):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
     `xdatalabel` and `ydatalabel`, which are assumed to have RGB/RGBG2 versions.
@@ -203,7 +203,8 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
     "Rrs B", and "Rrs G2" (if available) will be used.
     """
     plot_colours = "rgbg"  # Plot colours must be lowercase
-    max_val = 0.  # Maximum value on x/y axes
+    xmax = 0.  # Maximum on x axis
+    ymax = 0.  # Maximum on y axis
 
     plt.figure(figsize=(4,4), tight_layout=True)
 
@@ -214,14 +215,17 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
         xerr = x[xerrlabel.format(c=c)] if xerrlabel else None
         yerr = y[yerrlabel.format(c=c)] if yerrlabel else None
         plt.errorbar(xdata, ydata, xerr=xerr, yerr=yerr, color=pc, fmt="o")
-        max_val = max(max_val, np.nanmax(xdata), np.nanmax(ydata))
+        xmax = max(xmax, np.nanmax(xdata))
+        ymax = max(ymax, np.nanmax(ydata))
 
     # Plot the x=y line
     plt.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
 
     # Plot settings
-    plt.xlim(0, 1.05*max_val)
-    plt.ylim(0, 1.05*max_val)
+    if equal_aspect:
+        xmax = ymax = max(xmax, ymax)
+    plt.xlim(0, 1.05*xmax)
+    plt.ylim(0, 1.05*ymax)
     plt.grid(True, ls="--")
 
     # Labels
