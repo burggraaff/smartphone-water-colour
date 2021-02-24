@@ -9,7 +9,7 @@ Command-line inputs:
 import numpy as np
 from sys import argv
 from matplotlib import pyplot as plt
-from spectacle import io, calibrate, spectral
+from spectacle import io
 from spectacle.general import RMS
 from astropy import table
 from datetime import datetime

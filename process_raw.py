@@ -16,12 +16,8 @@ Command-line inputs:
 
 import numpy as np
 from sys import argv
-from matplotlib import pyplot as plt
 from spectacle import io, load_camera
-from astropy import table
-from datetime import datetime, timedelta
 from os import walk
-from scipy import stats
 
 from wk import hydrocolor as hc, wacodi as wa
 

@@ -8,10 +8,8 @@ Command-line inputs:
 
 import numpy as np
 from sys import argv
-from matplotlib import pyplot as plt
 from spectacle import io
 from astropy import table
-from datetime import datetime
 from os import walk
 
 # Get the data folder from the command line
