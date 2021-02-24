@@ -43,7 +43,7 @@ data_phone1 = table.vstack(data_phone1)
 data_phone2 = table.vstack(data_phone2)
 
 parameters = ["Lu", "Ls", "Ld", "Rrs"]
-labels = ["$L_u$ [ADU]", "$L_{sky}$ [ADU]", "$L_d$ [ADU]", "$R_{rs}$ [sr$^{-1}$]"]
+labels = ["$L_u$ [ADU nm$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$]", "$L_d$ [ADU nm$^{-1}$]", "$R_{rs}$ [sr$^{-1}$]"]
 
 for param, label in zip(parameters, labels):
     max_val = 0
