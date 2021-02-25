@@ -54,7 +54,7 @@ table_sorad.add_column(table.Column(data=sorad_timestamps, name="UTC"))
 
 # Spectral convolution
 # Convolve Rrs itself for now because of fingerprinting
-for key in ["Ed", "Ls", "Lt", "Rrs"]:
+for key in ["Ed", "Lsky", "Lu", "Rrs"]:
     cols = [col for col in table_sorad.keys() if key in col]  # Find the relevant keys
     wavelengths = np.array([float(col.split("_")[1]) for col in cols])  # Data wavelengths
     data = np.array(table_sorad[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
@@ -116,12 +116,13 @@ Rrs_sorad_averaged = np.hstack([data_sorad["Rrs_avg R"].data, data_sorad["Rrs_av
 rms = RMS(Rrs_phone - Rrs_sorad_averaged)
 r = np.corrcoef(Rrs_phone, Rrs_sorad_averaged)[0, 1]
 
-parameters = ["Ls", "Rrs"]
-labels = ["$L_s$ [ADU nm$^{-1}$]", "$R_{rs}$ [sr$^{-1}$]"]
+parameters = ["Lu", "Lsky", "Ed", "Rrs"]
+labels_phone = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$^{-1}$]", "$E_d$ [ADU nm$^{-1}$]", "$R_{rs}$ [sr$^{-1}$]"]
+labels_reference = ["$L_u$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$E_d$ [W m$^{-2}$ nm$^{-1}$]", "$R_{rs}$ [sr$^{-1}$]"]
 
-for param, label in zip(parameters, labels):
+for param, label_phone, label_reference in zip(parameters, labels_phone, labels_reference):
     aspect = (param == "Rrs")
-    hc.correlation_plot_RGB(data_sorad, data_phone, param+"_avg {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"SoRad {label}", ylabel=f"{phone_name} {label}", title=f"$r$ = {r:.2f}     RMS = {rms:.2f} sr$" + "^{-1}$", equal_aspect=aspect, saveto=f"results/comparison_So-Rad_X_{phone_name}_{param}.pdf")
+    hc.correlation_plot_RGB(data_sorad, data_phone, param+"_avg {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"SoRad {label_reference}", ylabel=f"{phone_name} {label_phone}", title=f"$r$ = {r:.2f}     RMS = {rms:.2f} sr$" + "^{-1}$", equal_aspect=aspect, saveto=f"results/comparison_So-Rad_X_{phone_name}_{param}.pdf")
 
 # Correlation plot: Rrs G/B (SoRad) vs Rrs G/B (smartphone)
 GB_sorad = data_sorad["Rrs_avg G"]/data_sorad["Rrs_avg B"]
