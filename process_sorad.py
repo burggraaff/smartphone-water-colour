@@ -41,6 +41,7 @@ def read_data(filename, rename=None):
     datatype = rename if rename else filename.stem.split("_")[0]  # Ed, Rrs, etc.
     data_columns = [label(datatype, wvl) for wvl in wavelengths]
     data = np.loadtxt(filename, delimiter=",")
+    data /= 1000.  # Conversion from mW to W
     data = table.Table(data=data, names=data_columns)
 
     return data
@@ -69,7 +70,7 @@ filename_result = folder/"So-Rad_Balaton2019.csv"
 data.write(filename_result, format="ascii.fast_csv")
 
 # Plot histograms at multiple wavelengths
-def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702.8, 801.8, 900.8], bins=np.linspace(-0.02, 0.10, 75)):
+def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702.8, 801.8, 900.8], bins=np.linspace(-1e-6, 5e-5, 15)):
     fig, axs = plt.subplots(ncols=len(wavelengths_hist), sharex=True, sharey=True, figsize=(10, 2))
     for wvl, ax in zip(wavelengths_hist, axs):
         wvl_label = label("Rrs", wvl)
