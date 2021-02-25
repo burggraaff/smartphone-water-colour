@@ -33,11 +33,12 @@ def label(text, wvl):
     return f"{text}_{wvl:.1f}"
 
 # Function to read data
-def read_data(filename):
+def read_data(filename, rename=None):
     """
     Read a So-Rad data file from `filename`
+    If `rename` is given, rename columns to that, e.g. from `Ls` to `Lsky`
     """
-    datatype = filename.stem.split("_")[0]  # Ed, Rrs, etc.
+    datatype = rename if rename else filename.stem.split("_")[0]  # Ed, Rrs, etc.
     data_columns = [label(datatype, wvl) for wvl in wavelengths]
     data = np.loadtxt(filename, delimiter=",")
     data = table.Table(data=data, names=data_columns)
@@ -46,8 +47,8 @@ def read_data(filename):
 
 # Read data
 data_ed = read_data(filename_Ed)
-data_ls = read_data(filename_Ls)
-data_lt = read_data(filename_Lt)
+data_ls = read_data(filename_Ls, rename="Lsky")
+data_lt = read_data(filename_Lt, rename="Lu")
 data_rrs = read_data(filename_Rrs)
 data_meta = table.Table.read(filename_meta)
 data_qc = table.Table.read(filename_qc)
@@ -101,8 +102,8 @@ def plot_sample(data_plot, sample_quantity, sample_rows=10, ylabel="", saveto=No
 
 # Plot Ed, Lt, Ls
 plot_sample(data, "Ed", ylabel="$E_d$ [W nm$^{-1}$ m$^{-2}$]", saveto=filename_Ed.with_suffix(".pdf"))
-plot_sample(data, "Lt", ylabel="$L_t$ [W nm$^{-1}$ m$^{-2}$ sr$^{-1}$]", saveto=filename_Lt.with_suffix(".pdf"))
-plot_sample(data, "Ls", ylabel="$L_s$ [W nm$^{-1}$ m$^{-2}$ sr$^{-1}$]", saveto=filename_Ls.with_suffix(".pdf"))
+plot_sample(data, "Lu", ylabel="$L_u$ [W nm$^{-1}$ m$^{-2}$ sr$^{-1}$]", saveto=filename_Lt.with_suffix(".pdf"))
+plot_sample(data, "Lsky", ylabel="$L_{sky}$ [W nm$^{-1}$ m$^{-2}$ sr$^{-1}$]", saveto=filename_Ls.with_suffix(".pdf"))
 
 # Plot Rrs
 # print("Before offset subtraction:")
