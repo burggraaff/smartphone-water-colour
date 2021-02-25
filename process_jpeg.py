@@ -1,24 +1,27 @@
 """
-Process three images (water, sky, grey card), using JPEG data, to
+Process three images (water, sky, grey card), in JPEG format, to
 calculate the remote sensing reflectance in the RGB channels, following the
 HydroColor protocol.
+
+Requires the following SPECTACLE calibrations:
+    - Metadata
+    - Spectral response
+
+Command-line inputs:
+    * SPECTACLE calibration folder
+    * Any number of folders containing data
 """
 
 import numpy as np
 from sys import argv
-from matplotlib import pyplot as plt
 from spectacle import io, load_camera
-from astropy import table
-from datetime import datetime, timedelta
 from os import walk
 
-from wk import hydrocolor as hc
+from wk import hydrocolor as hc, wacodi as wa
 
 # Get the data folder from the command line
 calibration_folder, *folders = io.path_from_input(argv)
 pattern = calibration_folder.stem
-
-conversion_to_utc = timedelta(hours=2)
 
 # Get Camera object
 camera = load_camera(calibration_folder)
@@ -29,7 +32,7 @@ print(f"Loaded Camera object:\n{camera}")
 
 # Load effective spectral bandwidths
 camera.load_spectral_bands()
-effective_bandwidths = camera.spectral_bands[:3]
+effective_bandwidths = camera.spectral_bands[:3]  # No G2 band in JPEG data
 
 # Find the effective wavelength corresponding to the RGB bands
 RGB_wavelengths = hc.effective_wavelength(calibration_folder)
@@ -57,14 +60,6 @@ for folder_main in folders:
         sky_cut = sky_jpeg[central_slice]
         card_cut = card_jpeg[central_slice]
         print(f"Selected central {2*box_size}x{2*box_size} pixels")
-
-        # Select the central pixels in the JPEG images
-        central_x, central_y = water_jpeg.shape[0]//2, water_jpeg.shape[1]//2
-        central_slice = np.s_[central_x-box_size:central_x+box_size+1, central_y-box_size:central_y+box_size+1, :]
-        water_jpeg_cut = water_jpeg[central_slice]
-        sky_jpeg_cut = sky_jpeg[central_slice]
-        card_jpeg_cut = card_jpeg[central_slice]
-        print(f"Selected central {2*box_size}x{2*box_size} pixels in the JPEG data")
 
         # Combined histograms of different data reduction steps
         water_all = [water_jpeg, water_cut]
