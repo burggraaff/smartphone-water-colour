@@ -59,3 +59,24 @@ for param, label in zip(parameters, labels):
     title = f"{title_r} {title_RMS}"
 
     hc.correlation_plot_RGB(data_phone1, data_phone2, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{phone1_name} {label}", ylabel=f"{phone2_name} {label}", title=title, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_{param}.pdf")
+
+
+# Correlation plot for all radiances combined
+def get_radiances(data):
+    radiance_RGB = [np.ravel([data[f"{param} {c}"].data for param in parameters[:3]]) for c in hc.colours]
+    radiance_RGB_err = [np.ravel([data[f"{param}_err {c}"].data for param in parameters[:3]]) for c in hc.colours]
+    cols = [f"L {c}" for c in hc.colours] + [f"L_err {c}" for c in hc.colours]
+    radiance = np.concatenate([radiance_RGB, radiance_RGB_err]).T
+
+    radiance = table.Table(data=radiance, names=cols)
+    return radiance
+
+radiance_phone1 = get_radiances(data_phone1)
+radiance_phone2 = get_radiances(data_phone2)
+
+r = np.corrcoef(np.ravel([radiance_phone1[f"L {c}"].data for c in hc.colours]), np.ravel([radiance_phone2[f"L {c}"].data for c in hc.colours]))[0, 1]
+
+title_r = f"$r$ = {r:.2f}"
+
+label = "$L$ [ADU nm$^{-1}$ sr$^{-1}$]"
+hc.correlation_plot_RGB(radiance_phone1, radiance_phone2, "L {c}", "L {c}", xerrlabel="L_err {c}", yerrlabel="L_err {c}", xlabel=f"{phone1_name} {label}", ylabel=f"{phone2_name} {label}", title=title_r, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_L.pdf")
