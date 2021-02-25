@@ -61,7 +61,7 @@ for key in ["Ed", "Lsky", "Lu", "Rrs"]:
     data_convolved = camera.convolve_multi(wavelengths, data).T  # Apply spectral convolution
 
     # Put convolved data in a table
-    keys_convolved = [f"{key}_avg {band}" for band in [*"RGB", "G2"]]
+    keys_convolved = [f"{key} {band}" for band in [*"RGB", "G2"]]
     table_convolved = table.Table(data=data_convolved, names=keys_convolved)
 
     # Merge convolved data table with original data table
@@ -91,7 +91,7 @@ for row in table_phone:
     plt.plot(wavelengths, Rrs, c="k")
     for j, c in enumerate("RGB"):
         plt.errorbar(RGB_wavelengths[j], row[f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=row[f"Rrs_err {c}"], fmt="o", c=c.lower())
-        plt.errorbar(RGB_wavelengths[j], table_sorad[closest][f"Rrs_avg {c}"], xerr=effective_bandwidths[j]/2, yerr=0, fmt="^", c=c.lower())
+        plt.errorbar(RGB_wavelengths[j], table_sorad[closest][f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=0, fmt="^", c=c.lower())
     plt.grid(True, ls="--")
     plt.xlim(200, 900)
     plt.xlabel("Wavelength [nm]")
@@ -111,7 +111,7 @@ data_sorad = table.vstack(data_sorad)
 sorad_wavelengths_RGB = [wavelengths[np.abs(wavelengths-wvl).argmin()] for wvl in RGB_wavelengths]
 
 Rrs_phone = np.hstack([data_phone["Rrs R"].data, data_phone["Rrs G"].data, data_phone["Rrs B"].data])
-Rrs_sorad_averaged = np.hstack([data_sorad["Rrs_avg R"].data, data_sorad["Rrs_avg G"].data, data_sorad["Rrs_avg B"].data])
+Rrs_sorad_averaged = np.hstack([data_sorad["Rrs R"].data, data_sorad["Rrs G"].data, data_sorad["Rrs B"].data])
 rms = RMS(Rrs_phone - Rrs_sorad_averaged)
 r = np.corrcoef(Rrs_phone, Rrs_sorad_averaged)[0, 1]
 
@@ -121,10 +121,10 @@ labels_reference = ["$L_u$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [W m$^{
 
 for param, label_phone, label_reference in zip(parameters, labels_phone, labels_reference):
     aspect = (param == "Rrs")
-    hc.correlation_plot_RGB(data_sorad, data_phone, param+"_avg {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"SoRad {label_reference}", ylabel=f"{phone_name} {label_phone}", title=f"$r$ = {r:.2f}     RMSE = {rms:.3f} sr$" + "^{-1}$", equal_aspect=aspect, saveto=f"results/comparison_So-Rad_X_{phone_name}_{param}.pdf")
+    hc.correlation_plot_RGB(data_sorad, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"SoRad {label_reference}", ylabel=f"{phone_name} {label_phone}", title=f"$r$ = {r:.2f}     RMSE = {rms:.3f} sr$" + "^{-1}$", equal_aspect=aspect, saveto=f"results/comparison_So-Rad_X_{phone_name}_{param}.pdf")
 
 # Correlation plot: Rrs G/B (SoRad) vs Rrs G/B (smartphone)
-GB_sorad = data_sorad["Rrs_avg G"]/data_sorad["Rrs_avg B"]
+GB_sorad = data_sorad["Rrs G"]/data_sorad["Rrs B"]
 GB_phone = data_phone["Rrs G"]/data_phone["Rrs B"]
 
 rms = RMS(GB_phone - GB_sorad)
