@@ -10,9 +10,9 @@ Example:
     %run compare_phone_sorad.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/combined_iPhone_SE_raw.csv water-colour-data/Balaton_20190703/SoRad/So-Rad_Balaton2019.csv
 
 To do:
-    * Split So-Rad processing into its own script (process_sorad.py)
-    * Proper spectral convolution
-    * Compare Ed, Lw, Rrs separately
+    * Convert to generic smartphone-reference comparison
+    * Add "raw" or "jpeg" in saveto filenames
+    * Allow RGB or RGBG2
 """
 
 import numpy as np
