@@ -256,14 +256,14 @@ def UTC_timestamp(water_exif):
 
 def write_results(saveto, timestamp, water, water_err, sky, sky_err, grey, grey_err, Rrs, Rrs_err, Rref=0.18):
     assert len(water) == len(water_err) == len(sky) == len(sky_err) == len(grey) == len(grey_err) == len(Rrs) == len(Rrs_err), "Not all input arrays have the same length"
-    header = ["Lu {c}", "Lu_err {c}", "Lsky {c}", "Lsky_err {c}", "Ed {c}", "Ed_err {c}", "Rrs {c}", "Rrs_err {c}"]
+    header = ["Lu {c}", "Lu_err {c}", "Lsky {c}", "Lsky_err {c}", "Ld {c}", "Ld_err {c}", "Ed {c}", "Ed_err {c}", "Rrs {c}", "Rrs_err {c}"]
     colours = "RGB" if len(water) == 3 else [*"RGB", "G2"]
     header_full = [[s.format(c=c) for c in colours] for s in header]
     header = ["UTC", "UTC (ISO)"] + [item for sublist in header_full for item in sublist]
 
     Ed = np.pi / Rref * grey
     Ed_err = np.pi / Rref * grey_err
-    data = [[timestamp.timestamp(), timestamp.isoformat(), *water, *water_err, *sky, *sky_err, *Ed, *Ed_err, *Rrs, *Rrs_err]]
+    data = [[timestamp.timestamp(), timestamp.isoformat(), *water, *water_err, *sky, *sky_err, *grey, *grey_err, *Ed, *Ed_err, *Rrs, *Rrs_err]]
 
     result = table.Table(rows=data, names=header)
 
