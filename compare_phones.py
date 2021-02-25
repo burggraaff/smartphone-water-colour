@@ -47,9 +47,15 @@ parameters = ["Lu", "Lsky", "Ed", "Rrs"]
 labels = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$^{-1}$]", "$E_d$ [ADU nm$^{-1}$]", "$R_{rs}$ [sr$^{-1}$]"]
 
 for param, label in zip(parameters, labels):
-    hc.correlation_plot_RGB(data_phone1, data_phone2, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{phone1_name} {label}", ylabel=f"{phone2_name} {label}", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_{param}.pdf")
-
     differences_RGB = table.hstack([data_phone1[f"{param} {c}"] - data_phone2[f"{param} {c}"] for c in hc.colours])
     RMS_RGB = [RMS(differences_RGB[f"{param} {c}"]) for c in hc.colours]
     differences_all = np.ravel([differences_RGB[f"{param} {c}"].data for c in hc.colours])
     RMS_all = RMS(differences_all)
+
+    r = np.corrcoef(np.ravel([data_phone1[f"{param} {c}"].data for c in hc.colours]), np.ravel([data_phone2[f"{param} {c}"].data for c in hc.colours]))[0, 1]
+
+    title_r = f"$r$ = {r:.2f}"
+    title_RMS = f"    RMSE = {RMS_all:.3f} sr$" + "^{-1}$" if param == "Rrs" else ""
+    title = f"{title_r} {title_RMS}"
+
+    hc.correlation_plot_RGB(data_phone1, data_phone2, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{phone1_name} {label}", ylabel=f"{phone2_name} {label}", title=title, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_{param}.pdf")

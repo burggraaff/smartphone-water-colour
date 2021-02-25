@@ -122,7 +122,7 @@ labels_reference = ["$L_u$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [W m$^{
 
 for param, label_phone, label_reference in zip(parameters, labels_phone, labels_reference):
     aspect = (param == "Rrs")
-    hc.correlation_plot_RGB(data_sorad, data_phone, param+"_avg {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"SoRad {label_reference}", ylabel=f"{phone_name} {label_phone}", title=f"$r$ = {r:.2f}     RMS = {rms:.2f} sr$" + "^{-1}$", equal_aspect=aspect, saveto=f"results/comparison_So-Rad_X_{phone_name}_{param}.pdf")
+    hc.correlation_plot_RGB(data_sorad, data_phone, param+"_avg {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"SoRad {label_reference}", ylabel=f"{phone_name} {label_phone}", title=f"$r$ = {r:.2f}     RMSE = {rms:.3f} sr$" + "^{-1}$", equal_aspect=aspect, saveto=f"results/comparison_So-Rad_X_{phone_name}_{param}.pdf")
 
 # Correlation plot: Rrs G/B (SoRad) vs Rrs G/B (smartphone)
 GB_sorad = data_sorad["Rrs_avg G"]/data_sorad["Rrs_avg B"]
