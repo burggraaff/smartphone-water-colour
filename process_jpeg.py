@@ -68,7 +68,7 @@ for folder_main in folders:
 
         hc.histogram_jpeg(water_all, sky_all, card_all, saveto=data_path/"statistics_jpeg.pdf")
 
-        # Convert to remote sensing reflectances
+        # Calculate mean values
         water_mean = water_cut.mean(axis=(0,1))
         sky_mean = sky_cut.mean(axis=(0,1))
         card_mean = card_cut.mean(axis=(0,1))
@@ -79,6 +79,9 @@ for folder_main in folders:
         card_std = card_cut.std(axis=(0,1))
         print("Calculated standard deviations per channel")
 
+        # HydroColor
+
+        # Convert to remote sensing reflectances
         R_rs = hc.R_RS(water_mean, sky_mean, card_mean)
         print("Calculated remote sensing reflectances")
 
@@ -95,4 +98,5 @@ for folder_main in folders:
         UTC = hc.UTC_timestamp(water_exif)
 
         # Write the result to file
-        hc.write_R_rs(UTC, R_rs, R_rs_err, saveto=data_path.parent / (data_path.stem + "_jpeg.csv"))
+        saveto = data_path.with_name(data_path.stem + "_jpeg.csv")
+        hc.write_results(saveto, UTC, water_mean, water_std, sky_mean, sky_std, card_mean, card_std, R_rs, R_rs_err)
