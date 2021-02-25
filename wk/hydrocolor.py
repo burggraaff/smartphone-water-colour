@@ -210,8 +210,15 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
 
     # Loop over the RGBG2 bands and plot the relevant data points
     for c, pc in zip(colours, plot_colours):
-        xdata = x[xdatalabel.format(c=c)]
-        ydata = y[ydatalabel.format(c=c)]
+        try:
+            xdata = x[xdatalabel.format(c=c)]
+            ydata = y[ydatalabel.format(c=c)]
+        except KeyError as e:
+            # If a key was not found, print which key it was, and continue
+            # For JPEG data, we want to skip the non-existent key
+            # If something else is wrong, the user is alerted
+            print("The following KeyError was raised but will be ignored:", e)
+            continue
         xerr = x[xerrlabel.format(c=c)] if xerrlabel else None
         yerr = y[yerrlabel.format(c=c)] if yerrlabel else None
         plt.errorbar(xdata, ydata, xerr=xerr, yerr=yerr, color=pc, fmt="o")

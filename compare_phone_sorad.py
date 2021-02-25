@@ -12,7 +12,6 @@ Example:
 To do:
     * Convert to generic smartphone-reference comparison
     * Add "raw" or "jpeg" in saveto filenames
-    * Allow RGB or RGBG2
 """
 
 import numpy as np
