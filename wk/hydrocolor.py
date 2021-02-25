@@ -3,6 +3,7 @@ Module with functions etc for HydroColor
 """
 
 from spectacle import io, analyse, calibrate, spectral
+from spectacle.general import RMS
 import numpy as np
 from matplotlib import pyplot as plt
 from datetime import datetime, timedelta
@@ -177,6 +178,53 @@ def effective_bandwidth(calibration_folder):
     effective_bandwidths = np.trapz(RGB_responses_normalised, x=wavelengths, axis=1)
 
     return effective_bandwidths
+
+
+def _loop_RGBG2_or_RGB(data1, data2, param):
+    """
+    Return RGBG2 if each data table has keys corresponding to each of those bands.
+    Otherwise, return only RGB.
+    """
+    loop_colours = colours
+    # We can't do `data1.keys() + data2.keys()` because we must check each individually
+    if all("G2" not in key for key in data1.keys()) or all("G2" not in key for key in data2.keys()):
+        loop_colours = colours[:3]
+
+    return loop_colours
+
+
+def RMS_RGB(data1, data2, param):
+    """
+    Calculate the RMS difference in a given parameter `param`, e.g. Rrs, between two
+    Astropy data tables. Assumes the same key structure in each table, namely
+    `{param} {c}` where c is R, G, B, and optionally G2.
+    Returns the RMS difference overall and per band.
+    """
+    loop_colours = _loop_RGBG2_or_RGB(data1, data2, param)
+
+    differences_RGB = table.hstack([data1[f"{param} {c}"] - data2[f"{param} {c}"] for c in loop_colours])
+    RMS_RGB = [RMS(differences_RGB[key]) for key in differences_RGB.keys()]
+    differences_all = np.ravel([differences_RGB[key].data for key in differences_RGB.keys()])
+    RMS_all = RMS(differences_all)
+
+    return RMS_all, RMS_RGB
+
+
+def correlation_RGB(data1, data2, param):
+    """
+    Calculate the correlation coefficient r in a given parameter `param`, e.g. Rrs, between two
+    Astropy data tables. Assumes the same key structure in each table, namely
+    `{param} {c}` where c is R, G, B, and optionally G2.
+    Returns the coefficient overall and per band.
+    """
+    loop_colours = _loop_RGBG2_or_RGB(data1, data2, param)
+
+    r_RGB = [np.corrcoef(data1[f"{param} {c}"], data2[f"{param} {c}"])[0,1] for c in loop_colours]
+    data1_combined = np.ravel([data1[f"{param} {c}"] for c in loop_colours])
+    data2_combined = np.ravel([data2[f"{param} {c}"] for c in loop_colours])
+    r_all = np.corrcoef(data1_combined, data2_combined)[0,1]
+
+    return r_all, r_RGB
 
 
 def plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=None):

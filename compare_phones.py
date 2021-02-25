@@ -47,14 +47,10 @@ parameters = ["Lu", "Lsky", "Ld", "Ed", "Rrs"]
 labels = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_d$ [ADU nm$^{-1}$ sr$^{-1}$]", "$E_d$ [ADU nm$^{-1}$]", "$R_{rs}$ [sr$^{-1}$]"]
 
 for param, label in zip(parameters, labels):
-    differences_RGB = table.hstack([data_phone1[f"{param} {c}"] - data_phone2[f"{param} {c}"] for c in hc.colours])
-    RMS_RGB = [RMS(differences_RGB[f"{param} {c}"]) for c in hc.colours]
-    differences_all = np.ravel([differences_RGB[f"{param} {c}"].data for c in hc.colours])
-    RMS_all = RMS(differences_all)
+    RMS_all, RMS_RGB = hc.RMS_RGB(data_phone1, data_phone2, param)
+    r_all, r_RGB = hc.correlation_RGB(data_phone1, data_phone2, param)
 
-    r = np.corrcoef(np.ravel([data_phone1[f"{param} {c}"].data for c in hc.colours]), np.ravel([data_phone2[f"{param} {c}"].data for c in hc.colours]))[0, 1]
-
-    title_r = f"$r$ = {r:.2f}"
+    title_r = f"$r$ = {r_all:.2f}"
     title_RMS = f"    RMSE = {RMS_all:.3f} sr$" + "^{-1}$" if param == "Rrs" else ""
     title = f"{title_r} {title_RMS}"
 
