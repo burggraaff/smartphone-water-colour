@@ -33,7 +33,7 @@ def label(text, wvl):
     return f"{text}_{wvl:.1f}"
 
 # Function to read data
-def read_data(filename, rename=None):
+def read_data(filename, rename=None, normalise=True):
     """
     Read a So-Rad data file from `filename`
     If `rename` is given, rename columns to that, e.g. from `Ls` to `Lsky`
@@ -41,7 +41,8 @@ def read_data(filename, rename=None):
     datatype = rename if rename else filename.stem.split("_")[0]  # Ed, Rrs, etc.
     data_columns = [label(datatype, wvl) for wvl in wavelengths]
     data = np.loadtxt(filename, delimiter=",")
-    data /= 1000.  # Conversion from mW to W
+    if normalise:
+        data /= 1000.  # Conversion from mW to W
     data = table.Table(data=data, names=data_columns)
 
     return data
@@ -50,7 +51,7 @@ def read_data(filename, rename=None):
 data_ed = read_data(filename_Ed)
 data_ls = read_data(filename_Ls, rename="Lsky")
 data_lt = read_data(filename_Lt, rename="Lu")
-data_rrs = read_data(filename_Rrs)
+data_rrs = read_data(filename_Rrs, normalise=False)
 data_meta = table.Table.read(filename_meta)
 data_qc = table.Table.read(filename_qc)
 print("Finished reading data")
@@ -70,7 +71,7 @@ filename_result = folder/"So-Rad_Balaton2019.csv"
 data.write(filename_result, format="ascii.fast_csv")
 
 # Plot histograms at multiple wavelengths
-def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702.8, 801.8, 900.8], bins=np.linspace(-1e-6, 5e-5, 15)):
+def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702.8, 801.8, 900.8], bins=np.linspace(-0.01, 0.05, 15)):
     fig, axs = plt.subplots(ncols=len(wavelengths_hist), sharex=True, sharey=True, figsize=(10, 2))
     for wvl, ax in zip(wavelengths_hist, axs):
         wvl_label = label("Rrs", wvl)
