@@ -25,7 +25,6 @@ from wk import hydrocolor as hc
 
 # Get the data folder from the command line
 path_calibration, path_phone, path_sorad = io.path_from_input(argv)
-phone_name = " ".join(path_phone.stem.split("_")[1:-1])
 
 # Get Camera object
 camera = load_camera(path_calibration)
@@ -85,7 +84,7 @@ for row in table_phone:
     Rrs = np.array([table_sorad[f"Rrs_{wvl:.1f}"][closest] for wvl in wavelengths])
 
     # Convert ":" to - in the filename when saving
-    saveto = f"results/sorad_comparison/{phone_name}_{phone_time}.pdf".replace(":", "-")
+    saveto = f"results/sorad_comparison/{camera.name}_{phone_time}.pdf".replace(":", "-")
 
     plt.figure(figsize=(3.3,3.3), tight_layout=True)
     plt.plot(wavelengths, Rrs, c="k")
@@ -97,7 +96,7 @@ for row in table_phone:
     plt.xlabel("Wavelength [nm]")
     plt.ylim(0, 0.15)
     plt.ylabel("$R_{rs}$ [sr$^{-1}$]")
-    plt.title(f"{phone_name}\n{phone_time}")
+    plt.title(f"{camera.name}\n{phone_time}")
     plt.savefig(saveto)
     plt.show()
     plt.close()
@@ -124,7 +123,7 @@ for param, label_phone, label_reference in zip(parameters, labels_phone, labels_
     title_RMS = f"    RMSE = {RMS_all:.3f} sr$" + "^{-1}$" if param == "Rrs" else ""
     title = f"{title_r} {title_RMS}"
 
-    hc.correlation_plot_RGB(data_sorad, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"SoRad {label_reference}", ylabel=f"{phone_name} {label_phone}", title=title, equal_aspect=aspect, saveto=f"results/comparison_So-Rad_X_{phone_name}_{param}.pdf")
+    hc.correlation_plot_RGB(data_sorad, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"SoRad {label_reference}", ylabel=f"{camera.name} {label_phone}", title=title, equal_aspect=aspect, saveto=f"results/comparison_So-Rad_X_{camera.name}_{param}.pdf")
 
 # Correlation plot: Rrs G/B (SoRad) vs Rrs G/B (smartphone)
 GB_sorad = data_sorad["Rrs G"]/data_sorad["Rrs B"]
@@ -141,7 +140,7 @@ plt.xlim(0, 1.05*max_val)
 plt.ylim(0, 1.05*max_val)
 plt.grid(True, ls="--")
 plt.xlabel("SoRad $R_{rs}$ G/B")
-plt.ylabel(phone_name + " $R_{rs}$ G/B")
+plt.ylabel(camera.name + " $R_{rs}$ G/B")
 plt.title(f"$r$ = {r:.2f}     RMS = {rms:.2f}")
-plt.savefig(f"results/comparison_So-Rad_X_{phone_name}_GB.pdf")
+plt.savefig(f"results/comparison_So-Rad_X_{camera.name}_GB.pdf")
 plt.show()
