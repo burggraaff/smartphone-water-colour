@@ -10,7 +10,6 @@ import numpy as np
 from sys import argv
 from matplotlib import pyplot as plt
 from spectacle import io
-from spectacle.general import RMS
 from astropy import table
 from datetime import datetime
 from wk import hydrocolor as hc
@@ -70,9 +69,8 @@ def get_radiances(data):
 radiance_phone1 = get_radiances(data_phone1)
 radiance_phone2 = get_radiances(data_phone2)
 
-r = np.corrcoef(np.ravel([radiance_phone1[f"L {c}"].data for c in hc.colours]), np.ravel([radiance_phone2[f"L {c}"].data for c in hc.colours]))[0, 1]
-
-title_r = f"$r$ = {r:.2f}"
+r_all, r_RGB = hc.correlation_RGB(radiance_phone1, radiance_phone2, "L")
+title_r = f"$r$ = {r_all:.2f}"
 
 label = "$L$ [ADU nm$^{-1}$ sr$^{-1}$]"
 hc.correlation_plot_RGB(radiance_phone1, radiance_phone2, "L {c}", "L {c}", xerrlabel="L_err {c}", yerrlabel="L_err {c}", xlabel=f"{phone1_name} {label}", ylabel=f"{phone2_name} {label}", title=title_r, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_L.pdf")
