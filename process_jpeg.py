@@ -68,6 +68,11 @@ for folder_main in folders:
 
         hc.histogram_jpeg(water_all, sky_all, card_all, saveto=data_path/"statistics_jpeg.pdf")
 
+        # Divide by the spectral bandwidths to normalise to ADU nm^-1
+        water_cut = water_cut / effective_bandwidths
+        sky_cut = sky_cut / effective_bandwidths
+        card_cut = card_cut / effective_bandwidths
+
         # Calculate mean values
         water_mean = water_cut.mean(axis=(0,1))
         sky_mean = sky_cut.mean(axis=(0,1))
