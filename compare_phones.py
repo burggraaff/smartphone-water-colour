@@ -46,6 +46,8 @@ parameters = ["Lu", "Lsky", "Ld", "Ed", "Rrs"]
 labels = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_d$ [ADU nm$^{-1}$ sr$^{-1}$]", "$E_d$ [ADU nm$^{-1}$]", "$R_{rs}$ [sr$^{-1}$]"]
 
 for param, label in zip(parameters, labels):
+    aspect = (param == "Rrs")
+
     RMS_all, RMS_RGB = hc.RMS_RGB(data_phone1, data_phone2, param)
     r_all, r_RGB = hc.correlation_RGB(data_phone1, data_phone2, param)
 
@@ -53,7 +55,7 @@ for param, label in zip(parameters, labels):
     title_RMS = f"    RMSE = {RMS_all:.3f} sr$" + "^{-1}$" if param == "Rrs" else ""
     title = f"{title_r} {title_RMS}"
 
-    hc.correlation_plot_RGB(data_phone1, data_phone2, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{phone1_name} {label}", ylabel=f"{phone2_name} {label}", title=title, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_{param}.pdf")
+    hc.correlation_plot_RGB(data_phone1, data_phone2, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{phone1_name} {label}", ylabel=f"{phone2_name} {label}", title=title, equal_aspect=aspect, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_{param}.pdf")
 
 
 # Correlation plot for all radiances combined
@@ -73,4 +75,4 @@ r_all, r_RGB = hc.correlation_RGB(radiance_phone1, radiance_phone2, "L")
 title_r = f"$r$ = {r_all:.2f}"
 
 label = "$L$ [ADU nm$^{-1}$ sr$^{-1}$]"
-hc.correlation_plot_RGB(radiance_phone1, radiance_phone2, "L {c}", "L {c}", xerrlabel="L_err {c}", yerrlabel="L_err {c}", xlabel=f"{phone1_name} {label}", ylabel=f"{phone2_name} {label}", title=title_r, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_L.pdf")
+hc.correlation_plot_RGB(radiance_phone1, radiance_phone2, "L {c}", "L {c}", xerrlabel="L_err {c}", yerrlabel="L_err {c}", xlabel=f"{phone1_name} {label}", ylabel=f"{phone2_name} {label}", title=title_r, equal_aspect=False, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_L.pdf")
