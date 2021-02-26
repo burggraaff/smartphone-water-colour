@@ -34,3 +34,23 @@ for param, label in zip(parameters, labels):
     title = f"{title_r} {title_RMS}"
 
     hc.correlation_plot_RGB(data_raw, data_jpeg, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"RAW {label}", ylabel=f"JPEG {label}", title=title, equal_aspect=aspect, saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_{param}.pdf")
+
+
+# Correlation plot for all radiances combined
+def get_radiances(data):
+    radiance_RGB = [np.ravel([data[f"{param} {c}"].data for param in parameters[:3]]) for c in hc.colours[:3]]
+    radiance_RGB_err = [np.ravel([data[f"{param}_err {c}"].data for param in parameters[:3]]) for c in hc.colours[:3]]
+    cols = [f"L {c}" for c in hc.colours[:3]] + [f"L_err {c}" for c in hc.colours[:3]]
+    radiance = np.concatenate([radiance_RGB, radiance_RGB_err]).T
+
+    radiance = table.Table(data=radiance, names=cols)
+    return radiance
+
+radiance_RAW = get_radiances(data_raw)
+radiance_JPEG = get_radiances(data_jpeg)
+
+r_all, r_RGB = hc.correlation_RGB(radiance_RAW, radiance_JPEG, "L")
+title_r = f"$r$ = {r_all:.2f}"
+
+label = "$L$ [ADU nm$^{-1}$ sr$^{-1}$]"
+hc.correlation_plot_RGB(radiance_RAW, radiance_JPEG, "L {c}", "L {c}", xerrlabel="L_err {c}", yerrlabel="L_err {c}", xlabel=f"RAW {label}", ylabel=f"JPEG {label}", title=title_r, equal_aspect=False, saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_L.pdf")
