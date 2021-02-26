@@ -11,7 +11,6 @@ Example:
 
 To do:
     * Convert to generic smartphone-reference comparison
-    * Add "raw" or "jpeg" in saveto filenames
 """
 
 import numpy as np
@@ -25,6 +24,9 @@ from wk import hydrocolor as hc
 
 # Get the data folder from the command line
 path_calibration, path_phone, path_sorad = io.path_from_input(argv)
+
+# Find out if we're doing JPEG or RAW
+data_type = path_phone.stem.split("_")[-1]
 
 # Get Camera object
 camera = load_camera(path_calibration)
@@ -84,7 +86,7 @@ for row in table_phone:
     Rrs = np.array([table_sorad[f"Rrs_{wvl:.1f}"][closest] for wvl in wavelengths])
 
     # Convert ":" to - in the filename when saving
-    saveto = f"results/sorad_comparison/{camera.name}_{phone_time}.pdf".replace(":", "-")
+    saveto = f"results/sorad_comparison/{camera.name}_{data_type}_{phone_time}.pdf".replace(":", "-")
 
     plt.figure(figsize=(3.3,3.3), tight_layout=True)
     plt.plot(wavelengths, Rrs, c="k")
@@ -123,7 +125,7 @@ for param, label_phone, label_reference in zip(parameters, labels_phone, labels_
     title_RMS = f"    RMSE = {RMS_all:.3f} sr$" + "^{-1}$" if param == "Rrs" else ""
     title = f"{title_r} {title_RMS}"
 
-    hc.correlation_plot_RGB(data_sorad, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"SoRad {label_reference}", ylabel=f"{camera.name} {label_phone}", title=title, equal_aspect=aspect, saveto=f"results/comparison_So-Rad_X_{camera.name}_{param}.pdf")
+    hc.correlation_plot_RGB(data_sorad, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"SoRad {label_reference}", ylabel=f"{camera.name} {label_phone}", title=title, equal_aspect=aspect, saveto=f"results/comparison_So-Rad_X_{camera.name}_{data_type}_{param}.pdf")
 
 # Correlation plot: Rrs G/B (SoRad) vs Rrs G/B (smartphone)
 GB_sorad = data_sorad["Rrs G"]/data_sorad["Rrs B"]
