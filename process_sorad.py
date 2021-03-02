@@ -14,6 +14,7 @@ from matplotlib import pyplot as plt
 from astropy import table
 from sys import argv
 from pathlib import Path
+from datetime import datetime
 
 # Get filenames
 folder = Path(argv[1])
@@ -65,6 +66,12 @@ remove = np.where(data["Q_rad_finger"] == 0.0)
 len_orig = len(data)
 data.remove_rows(remove)
 print(f"Removed {len_orig - len(data)}/{len_orig} rows flagged as invalid.")
+
+# Add UTC timestamps
+sorad_datetime = [datetime.fromisoformat(DT) for DT in data["trigger_id"]]
+sorad_timestamps = [dt.timestamp() for dt in sorad_datetime]
+data.add_column(table.Column(data=sorad_timestamps, name="UTC"))
+data.sort("UTC")
 
 # Write data to file
 filename_result = folder/"So-Rad_Balaton2019.csv"

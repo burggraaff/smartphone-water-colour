@@ -48,10 +48,6 @@ table_sorad = table.Table.read(path_sorad)
 
 wavelengths = np.arange(320, 955, 3.3)
 
-sorad_datetime = [datetime.fromisoformat(DT) for DT in table_sorad["trigger_id"]]
-sorad_timestamps = [dt.timestamp() for dt in sorad_datetime]
-table_sorad.add_column(table.Column(data=sorad_timestamps, name="UTC"))
-
 # Spectral convolution
 # Convolve Rrs itself for now because of fingerprinting
 for key in ["Ed", "Lsky", "Lu", "Rrs"]:
