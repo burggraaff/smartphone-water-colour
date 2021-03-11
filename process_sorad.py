@@ -99,9 +99,9 @@ def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702
     plt.close()
 
 # Plot sample of data
-def plot_sample(data_plot, sample_quantity, sample_rows=10, ylabel="", saveto=None):
+def plot_sample(data_plot, sample_quantity, ylabel="", saveto=None):
     sample_cols = [label(sample_quantity, wvl) for wvl in wavelengths]
-    data_sub = data_plot[sample_cols][::sample_rows]
+    data_sub = data_plot[sample_cols]
     data_sub = np.array([data_sub[col].data for col in data_sub.colnames])  # Iteration over data_sub.columns does not work
 
     plt.figure(figsize=(6,3), tight_layout=True)
