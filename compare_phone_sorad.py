@@ -114,12 +114,12 @@ labels_reference = ["$L_u$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [W m$^{
 for param, label_phone, label_reference in zip(parameters, labels_phone, labels_reference):
     aspect = (param == "Rrs")
 
-    RMS_all, RMS_RGB = hc.RMS_RGB(data_phone, data_sorad, param)
+    MAD_all, MAD_RGB = hc.MAD_RGB(data_phone, data_sorad, param)
     r_all, r_RGB = hc.correlation_RGB(data_phone, data_sorad, param)
 
     title_r = f"$r$ = {r_all:.2f}"
-    title_RMS = f"    RMSE = {RMS_all:.3f} sr$" + "^{-1}$" if param == "Rrs" else ""
-    title = f"{title_r} {title_RMS}"
+    title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" if param == "Rrs" else ""
+    title = f"{title_r} {title_MAD}"
 
     hc.correlation_plot_RGB(data_sorad, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"SoRad {label_reference}", ylabel=f"{camera.name} {label_phone}", title=title, equal_aspect=aspect, saveto=f"results/comparison_So-Rad_X_{camera.name}_{data_type}_{param}.pdf")
 

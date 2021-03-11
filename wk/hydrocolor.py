@@ -193,21 +193,39 @@ def _loop_RGBG2_or_RGB(data1, data2, param):
     return loop_colours
 
 
-def RMS_RGB(data1, data2, param):
+def MAD(x, y):
     """
-    Calculate the RMS difference in a given parameter `param`, e.g. Rrs, between two
+    Median absolute deviation (sometimes MAE) between data sets x and y.
+    """
+    return np.nanmedian(np.abs(y-x))
+
+
+def _ravel_table(data, key, loop_keys):
+    """
+    Apply np.ravel to a number of columns, e.g. to combine Rrs R, Rrs G, Rrs B
+    into one array for all Rrs.
+    data is the input table.
+    key is the fixed key, e.g. "Rrs".
+    loop_keys is an interable list of keys to loop over, e.g. "RGB"
+    """
+    return np.ravel([data[f"{key} {c}"] for c in loop_keys])
+
+
+def MAD_RGB(data1, data2, param):
+    """
+    Calculate the MAD in a given parameter `param`, e.g. Rrs, between two
     Astropy data tables. Assumes the same key structure in each table, namely
     `{param} {c}` where c is R, G, B, and optionally G2.
     Returns the RMS difference overall and per band.
     """
     loop_colours = _loop_RGBG2_or_RGB(data1, data2, param)
 
-    differences_RGB = table.hstack([data1[f"{param} {c}"] - data2[f"{param} {c}"] for c in loop_colours])
-    RMS_RGB = [RMS(differences_RGB[key]) for key in differences_RGB.keys()]
-    differences_all = np.ravel([differences_RGB[key].data for key in differences_RGB.keys()])
-    RMS_all = RMS(differences_all)
+    MAD_RGB = np.array([MAD(data1[f"{param} {c}"], data2[f"{param} {c}"]) for c in loop_colours])
+    data1_combined = _ravel_table(data1, param, loop_colours)
+    data2_combined = _ravel_table(data2, param, loop_colours)
+    MAD_all = MAD(data1_combined, data2_combined)
 
-    return RMS_all, RMS_RGB
+    return MAD_all, MAD_RGB
 
 
 def correlation_RGB(data1, data2, param):
@@ -220,8 +238,8 @@ def correlation_RGB(data1, data2, param):
     loop_colours = _loop_RGBG2_or_RGB(data1, data2, param)
 
     r_RGB = [np.corrcoef(data1[f"{param} {c}"], data2[f"{param} {c}"])[0,1] for c in loop_colours]
-    data1_combined = np.ravel([data1[f"{param} {c}"] for c in loop_colours])
-    data2_combined = np.ravel([data2[f"{param} {c}"] for c in loop_colours])
+    data1_combined = _ravel_table(data1, param, loop_colours)
+    data2_combined = _ravel_table(data2, param, loop_colours)
     r_all = np.corrcoef(data1_combined, data2_combined)[0,1]
 
     return r_all, r_RGB
