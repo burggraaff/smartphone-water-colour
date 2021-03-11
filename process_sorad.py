@@ -73,6 +73,14 @@ sorad_timestamps = [dt.timestamp() for dt in sorad_datetime]
 data.add_column(table.Column(data=sorad_timestamps, name="UTC"))
 data.sort("UTC")
 
+# Remove data from after we moved to the front deck - between 09:35 and 10:17 UTC
+length_original = len(data)
+switch_time = "2019-07-03 10:00:00"
+switch_to_front_deck = datetime.fromisoformat(switch_time).timestamp()
+data.remove_rows(data["UTC"] > switch_to_front_deck)
+length_after_removal = len(data)
+print(f"Removed {length_original-length_after_removal} data points ({length_after_removal} remaining) taken after {switch_time}.")
+
 # Write data to file
 filename_result = folder/"So-Rad_Balaton2019.csv"
 data.write(filename_result, format="ascii.fast_csv")
