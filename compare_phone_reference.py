@@ -8,6 +8,11 @@ Command-line inputs:
 
 Example:
     %run compare_phone_reference.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/combined_iPhone_SE_raw.csv water-colour-data/Balaton_20190703/SoRad/So-Rad_Balaton2019.csv
+
+To do:
+    * Histograms of residuals
+    * Fit radiances
+    * Add MAPD, other deviation measures
 """
 
 import numpy as np
@@ -141,7 +146,7 @@ plt.plot([-1, 5], [-1, 5], c='k', ls="--")
 plt.xlim(0, 1.05*max_val)
 plt.ylim(0, 1.05*max_val)
 plt.grid(True, ls="--")
-plt.xlabel("{reference} $R_{rs}$ G/B")
+plt.xlabel(reference + " $R_{rs}$ G/B")
 plt.ylabel(camera.name + " $R_{rs}$ G/B")
 plt.title(f"$r$ = {r:.2f}     RMS = {rms:.2f}")
 plt.savefig(f"results/comparison_{reference}_X_{camera.name}_GB.pdf")
