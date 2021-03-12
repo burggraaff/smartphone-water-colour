@@ -123,7 +123,7 @@ labels_reference = ["$L_u$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [W m$^{
 for param, label_phone, label_reference in zip(parameters, labels_phone, labels_reference):
     aspect = (param == "Rrs")
 
-    MAD_all, MAD_RGB = hc.MAD_RGB(data_phone, data_reference, param)
+    MAD_all, MAD_RGB = hc.statistic_RGB(hc.MAD, data_phone, data_reference, param)
     r_all, r_RGB = hc.correlation_RGB(data_phone, data_reference, param)
 
     title_r = f"$r$ = {r_all:.2f}"

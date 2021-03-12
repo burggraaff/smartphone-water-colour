@@ -26,7 +26,7 @@ labels = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$^{-1}$
 for param, label in zip(parameters, labels):
     aspect = (param == "Rrs")
 
-    MAD_all, MAD_RGB = hc.MAD_RGB(data_raw, data_jpeg, param)
+    MAD_all, MAD_RGB = hc.statistic_RGB(hc.MAD, data_raw, data_jpeg, param)
     r_all, r_RGB = hc.correlation_RGB(data_raw, data_jpeg, param)
 
     title_r = f"$r$ = {r_all:.2f}"

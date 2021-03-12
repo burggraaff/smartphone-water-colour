@@ -200,6 +200,18 @@ def MAD(x, y):
     return np.nanmedian(np.abs(y-x))
 
 
+def MAPD(x, y):
+    """
+    Median absolute percentage deviation (sometimes MAPE) between data sets x and y.
+    Normalised relative to (x+y)/2 rather than just x or y.
+    Expressed in %, so already multiplied by 100.
+    """
+    normalisation = (x+y)/2  # Normalisation factors
+    MAD_relative = np.nanmedian(np.abs((y-x)/normalisation))
+    MAD_percent = MAD_relative * 100.
+    return MAD_percent
+
+
 def _ravel_table(data, key, loop_keys):
     """
     Apply np.ravel to a number of columns, e.g. to combine Rrs R, Rrs G, Rrs B
@@ -211,21 +223,22 @@ def _ravel_table(data, key, loop_keys):
     return np.ravel([data[f"{key} {c}"] for c in loop_keys])
 
 
-def MAD_RGB(data1, data2, param):
+def statistic_RGB(func, data1, data2, param):
     """
-    Calculate the MAD in a given parameter `param`, e.g. Rrs, between two
-    Astropy data tables. Assumes the same key structure in each table, namely
-    `{param} {c}` where c is R, G, B, and optionally G2.
-    Returns the RMS difference overall and per band.
+    Calculate a statistic (e.g. MAD, MAPD, RMSE) in a given parameter `param`,
+    e.g. Rrs, between two Astropy data tables. Assumes the same key structure
+    in each table, namely `{param} {c}` where c is R, G, B, and optionally G2.
+
+    Returns the statistic overall and per band.
     """
     loop_colours = _loop_RGBG2_or_RGB(data1, data2, param)
 
-    MAD_RGB = np.array([MAD(data1[f"{param} {c}"], data2[f"{param} {c}"]) for c in loop_colours])
+    stat_RGB = np.array([func(data1[f"{param} {c}"], data2[f"{param} {c}"]) for c in loop_colours])
     data1_combined = _ravel_table(data1, param, loop_colours)
     data2_combined = _ravel_table(data2, param, loop_colours)
-    MAD_all = MAD(data1_combined, data2_combined)
+    stat_all = func(data1_combined, data2_combined)
 
-    return MAD_all, MAD_RGB
+    return stat_all, stat_RGB
 
 
 def correlation_RGB(data1, data2, param):
