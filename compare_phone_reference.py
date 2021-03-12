@@ -125,7 +125,7 @@ for param, label_phone, label_reference in zip(parameters, labels_phone, labels_
     title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" if param == "Rrs" else ""
     title = f"{title_r} {title_MAD}"
 
-    hc.correlation_plot_RGB(data_reference, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"{reference} {label_reference}", ylabel=f"{camera.name} {label_phone}", title=title, equal_aspect=aspect, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
+    hc.correlation_plot_RGB(data_reference, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"{reference} {label_reference}", ylabel=f"{camera.name} ({data_type.upper()}) {label_phone}", title=title, equal_aspect=aspect, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
 
 # Correlation plot: Rrs G/B (SoRad) vs Rrs G/B (smartphone)
 GB_sorad = data_reference["Rrs G"]/data_reference["Rrs B"]
