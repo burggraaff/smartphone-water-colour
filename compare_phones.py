@@ -50,7 +50,7 @@ for param, label in zip(parameters, labels):
 
     MAD_all, MAD_RGB = hc.statistic_RGB(hc.MAD, data_phone1, data_phone2, param)
     MAPD_all, MAPD_RGB = hc.statistic_RGB(hc.MAPD, data_phone1, data_phone2, param)
-    r_all, r_RGB = hc.correlation_RGB(data_phone1, data_phone2, param)
+    r_all, r_RGB = hc.statistic_RGB(hc.correlation, data_phone1, data_phone2, param)
 
     title_r = f"$r$ = {r_all:.2f}"
     title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" + f" ({MAPD_all:.0f}%)" if param == "Rrs" else ""
@@ -72,7 +72,7 @@ def get_radiances(data):
 radiance_phone1 = get_radiances(data_phone1)
 radiance_phone2 = get_radiances(data_phone2)
 
-r_all, r_RGB = hc.correlation_RGB(radiance_phone1, radiance_phone2, "L")
+r_all, r_RGB = hc.statistic_RGB(hc.correlation, radiance_phone1, radiance_phone2, "L")
 title_r = f"$r$ = {r_all:.2f}"
 
 label = "$L$ [ADU nm$^{-1}$ sr$^{-1}$]"

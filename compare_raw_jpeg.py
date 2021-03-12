@@ -28,7 +28,7 @@ for param, label in zip(parameters, labels):
 
     MAD_all, MAD_RGB = hc.statistic_RGB(hc.MAD, data_raw, data_jpeg, param)
     MAPD_all, MAPD_RGB = hc.statistic_RGB(hc.MAPD, data_raw, data_jpeg, param)
-    r_all, r_RGB = hc.correlation_RGB(data_raw, data_jpeg, param)
+    r_all, r_RGB = hc.statistic_RGB(hc.correlation, data_raw, data_jpeg, param)
 
     title_r = f"$r$ = {r_all:.2f}"
     title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" + f" ({MAPD_all:.0f}%)" if param == "Rrs" else ""
@@ -50,7 +50,7 @@ def get_radiances(data):
 radiance_RAW = get_radiances(data_raw)
 radiance_JPEG = get_radiances(data_jpeg)
 
-r_all, r_RGB = hc.correlation_RGB(radiance_RAW, radiance_JPEG, "L")
+r_all, r_RGB = hc.statistic_RGB(hc.correlation, radiance_RAW, radiance_JPEG, "L")
 title_r = f"$r$ = {r_all:.2f}"
 
 label = "$L$ [ADU nm$^{-1}$ sr$^{-1}$]"

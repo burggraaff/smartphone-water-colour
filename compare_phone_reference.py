@@ -125,7 +125,7 @@ for param, label_phone, label_reference in zip(parameters, labels_phone, labels_
 
     MAD_all, MAD_RGB = hc.statistic_RGB(hc.MAD, data_phone, data_reference, param)
     MAPD_all, MAPD_RGB = hc.statistic_RGB(hc.MAPD, data_phone, data_reference, param)
-    r_all, r_RGB = hc.correlation_RGB(data_phone, data_reference, param)
+    r_all, r_RGB = hc.statistic_RGB(hc.correlation, data_phone, data_reference, param)
 
     title_r = f"$r$ = {r_all:.2f}"
     title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" + f" ({MAPD_all:.0f}%)" if param == "Rrs" else ""
@@ -138,7 +138,7 @@ GB_sorad = data_reference["Rrs G"]/data_reference["Rrs B"]
 GB_phone = data_phone["Rrs G"]/data_phone["Rrs B"]
 
 rms = RMS(GB_phone - GB_sorad)
-r = np.corrcoef(GB_phone, GB_sorad)[0, 1]
+r = hc.correlation(GB_phone, GB_sorad)
 
 plt.figure(figsize=(5,5), tight_layout=True)
 plt.errorbar(GB_sorad, GB_phone, color="k", fmt="o")

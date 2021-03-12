@@ -193,6 +193,10 @@ def _loop_RGBG2_or_RGB(data1, data2, param):
     return loop_colours
 
 
+# Pearson r correlation coefficient
+correlation = lambda x, y: np.corrcoef(x, y)[0, 1]
+
+
 def MAD(x, y):
     """
     Median absolute deviation (sometimes MAE) between data sets x and y.
@@ -239,23 +243,6 @@ def statistic_RGB(func, data1, data2, param):
     stat_all = func(data1_combined, data2_combined)
 
     return stat_all, stat_RGB
-
-
-def correlation_RGB(data1, data2, param):
-    """
-    Calculate the correlation coefficient r in a given parameter `param`, e.g. Rrs, between two
-    Astropy data tables. Assumes the same key structure in each table, namely
-    `{param} {c}` where c is R, G, B, and optionally G2.
-    Returns the coefficient overall and per band.
-    """
-    loop_colours = _loop_RGBG2_or_RGB(data1, data2, param)
-
-    r_RGB = [np.corrcoef(data1[f"{param} {c}"], data2[f"{param} {c}"])[0,1] for c in loop_colours]
-    data1_combined = _ravel_table(data1, param, loop_colours)
-    data2_combined = _ravel_table(data2, param, loop_colours)
-    r_all = np.corrcoef(data1_combined, data2_combined)[0,1]
-
-    return r_all, r_RGB
 
 
 def plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=None):
