@@ -116,13 +116,11 @@ data_reference = table.vstack(data_reference)
 
 sorad_wavelengths_RGB = [wavelengths[np.abs(wavelengths-wvl).argmin()] for wvl in RGB_wavelengths]
 
-parameters = ["Lu", "Lsky", "Ed", "Rrs"]
-labels_phone = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$^{-1}$]", "$E_d$ [ADU nm$^{-1}$]", "$R_{rs}$ [sr$^{-1}$]"]
-labels_reference = ["$L_u$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$E_d$ [W m$^{-2}$ nm$^{-1}$]", "$R_{rs}$ [sr$^{-1}$]"]
+parameters = ["Lu", "Lsky", "Ed"]
+labels_phone = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$^{-1}$]", "$E_d$ [ADU nm$^{-1}$]"]
+labels_reference = ["$L_u$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$E_d$ [W m$^{-2}$ nm$^{-1}$]"]
 
 for param, label_phone, label_reference in zip(parameters, labels_phone, labels_reference):
-    aspect = (param == "Rrs")
-
     MAD_all, MAD_RGB = hc.statistic_RGB(hc.MAD, data_phone, data_reference, param)
     MAPD_all, MAPD_RGB = hc.statistic_RGB(hc.MAPD, data_phone, data_reference, param)
     r_all, r_RGB = hc.statistic_RGB(hc.correlation, data_phone, data_reference, param)
@@ -131,7 +129,10 @@ for param, label_phone, label_reference in zip(parameters, labels_phone, labels_
     title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" + f" ({MAPD_all:.0f}%)" if param == "Rrs" else ""
     title = f"{title_r} {title_MAD}"
 
-    hc.correlation_plot_RGB(data_reference, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"{reference} {label_reference}", ylabel=f"{camera.name} ({data_type.upper()}) {label_phone}", title=title, equal_aspect=aspect, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
+    hc.correlation_plot_RGB(data_reference, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"{reference} {label_reference}", ylabel=f"{camera.name} ({data_type.upper()}) {label_phone}", title=title, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
+
+label_Rrs = "$R_{rs}$ [sr$^{-1}$]"
+hc.correlation_plot_RGB_equal(data_reference, data_phone, "Rrs {c}", "Rrs {c}", xerrlabel=None, yerrlabel="Rrs_err {c}", xlabel=f"{reference} {label_Rrs}", ylabel=f"{camera.name} ({data_type.upper()})\n{label_Rrs}", title=title, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs.pdf")
 
 # Correlation plot: Rrs G/B (SoRad) vs Rrs G/B (smartphone)
 GB_sorad = data_reference["Rrs G"]/data_reference["Rrs B"]

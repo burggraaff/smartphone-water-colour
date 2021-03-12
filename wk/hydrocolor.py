@@ -261,18 +261,30 @@ def plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=None
     plt.close()
 
 
-def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", title="", equal_aspect=True, saveto=None):
+def residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None):
     """
-    Make a correlation plot between two tables `x` and `y`. Use the labels
-    `xdatalabel` and `ydatalabel`, which are assumed to have RGB/RGBG2 versions.
-    For example, if `xlabel` == `f"Rrs {c}"` then the columns "Rrs R", "RRs G",
-    "Rrs B", and "Rrs G2" (if available) will be used.
+    Calculate the column-wise RGB residuals between two tables for given labels
+    `xdatalabel` and `ydatalabel` (e.g. "Rrs {c}"). If errors are included,
+    propagate them (sum of squares).
+    Returns a new table with differences.
+    """
+    result = x.copy()
+    for c in _loop_RGBG2_or_RGB(x, y, xdatalabel):
+        result[xdatalabel.format(c=c)] = y[ydatalabel.format(c=c)] - x[xdatalabel.format(c=c)]
+        if xerrlabel and yerrlabel:
+            result[xerrlabel.format(c=c)] = np.sqrt(x[xerrlabel.format(c=c)]**2 + y[yerrlabel.format(c=c)]**2)
+
+    return result
+
+
+def _correlation_plot_errorbars(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False):
+    """
+    Plot data into a correlation plot.
+    Helper function.
     """
     plot_colours = "rgbg"  # Plot colours must be lowercase
     xmax = 0.  # Maximum on x axis
     ymax = 0.  # Maximum on y axis
-
-    plt.figure(figsize=(4,4), tight_layout=True)
 
     # Loop over the RGBG2 bands and plot the relevant data points
     for c, pc in zip(colours, plot_colours):
@@ -285,20 +297,41 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
             # If something else is wrong, the user is alerted
             print("The following KeyError was raised but will be ignored:", e)
             continue
-        xerr = x[xerrlabel.format(c=c)] if xerrlabel else None
-        yerr = y[yerrlabel.format(c=c)] if yerrlabel else None
-        plt.errorbar(xdata, ydata, xerr=xerr, yerr=yerr, color=pc, fmt="o")
+        try:
+            xerr = x[xerrlabel.format(c=c)]
+        except (KeyError, AttributeError):
+            xerr = None
+        try:
+            yerr = y[yerrlabel.format(c=c)]
+        except (KeyError, AttributeError):
+            yerr = None
+        ax.errorbar(xdata, ydata, xerr=xerr, yerr=yerr, color=pc, fmt="o")
         xmax = max(xmax, np.nanmax(xdata))
         ymax = max(ymax, np.nanmax(ydata))
+
+    if setmax:
+        if equal_aspect:
+            xmax = ymax = max(xmax, ymax)
+        ax.set_xlim(0, 1.05*xmax)
+        ax.set_ylim(0, 1.05*ymax)
+
+
+def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", title="", saveto=None):
+    """
+    Make a correlation plot between two tables `x` and `y`. Use the labels
+    `xdatalabel` and `ydatalabel`, which are assumed to have RGB/RGBG2 versions.
+    For example, if `xlabel` == `f"Rrs {c}"` then the columns "Rrs R", "RRs G",
+    "Rrs B", and "Rrs G2" (if available) will be used.
+    """
+    plt.figure(figsize=(4,4), tight_layout=True)
+
+    # Plot in the one panel
+    _correlation_plot_errorbars(plt.gca(), x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel)
 
     # Plot the x=y line
     plt.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
 
     # Plot settings
-    if equal_aspect:
-        xmax = ymax = max(xmax, ymax)
-    plt.xlim(0, 1.05*xmax)
-    plt.ylim(0, 1.05*ymax)
     plt.grid(True, ls="--")
 
     # Labels
@@ -308,7 +341,46 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
 
     # Save, show, close plot
     if saveto:
-        plt.savefig(saveto)
+        plt.savefig(saveto, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+
+def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", title="", saveto=None):
+    """
+    Make a correlation plot between two tables `x` and `y`. Use the labels
+    `xdatalabel` and `ydatalabel`, which are assumed to have RGB/RGBG2 versions.
+    For example, if `xlabel` == `f"Rrs {c}"` then the columns "Rrs R", "RRs G",
+    "Rrs B", and "Rrs G2" (if available) will be used.
+    """
+    # Calculate residuals
+    residuals = residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel)
+
+    # Create figure to hold plot
+    fig, axs = plt.subplots(figsize=(4,5), nrows=2, sharex=True, gridspec_kw={"height_ratios": [3,1]})
+
+    # Plot in both panels
+    _correlation_plot_errorbars(axs[0], x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, equal_aspect=True)
+    _correlation_plot_errorbars(axs[1], x, residuals, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, setmax=False)
+
+    # Plot the x=y line (top) and horizontal (bottom)
+    axs[0].plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
+    axs[1].axhline(0, c='k', ls="--")
+
+    # Plot settings
+    for ax in axs:
+        ax.grid(True, ls="--")
+
+    # Labels
+    axs[1].set_xlabel(xlabel)
+    axs[1].set_ylabel("Difference")
+    axs[0].set_ylabel(ylabel)
+    axs[0].set_title(title)
+
+    # Save, show, close plot
+    fig.subplots_adjust(hspace=0.1)
+    if saveto:
+        plt.savefig(saveto, bbox_inches="tight")
     plt.show()
     plt.close()
 

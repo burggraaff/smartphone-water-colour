@@ -20,12 +20,10 @@ phone_name = " ".join(path_raw.stem.split("_")[1:-1])
 data_raw = table.Table.read(path_raw)
 data_jpeg = table.Table.read(path_jpeg)
 
-parameters = ["Lu", "Lsky", "Ld", "Ed", "Rrs"]
-labels = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_d$ [ADU nm$^{-1}$ sr$^{-1}$]", "$E_d$ [ADU nm$^{-1}$]", "$R_{rs}$ [sr$^{-1}$]"]
+parameters = ["Lu", "Lsky", "Ld", "Ed"]
+labels = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_d$ [ADU nm$^{-1}$ sr$^{-1}$]", "$E_d$ [ADU nm$^{-1}$]"]
 
 for param, label in zip(parameters, labels):
-    aspect = (param == "Rrs")
-
     MAD_all, MAD_RGB = hc.statistic_RGB(hc.MAD, data_raw, data_jpeg, param)
     MAPD_all, MAPD_RGB = hc.statistic_RGB(hc.MAPD, data_raw, data_jpeg, param)
     r_all, r_RGB = hc.statistic_RGB(hc.correlation, data_raw, data_jpeg, param)
@@ -34,8 +32,10 @@ for param, label in zip(parameters, labels):
     title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" + f" ({MAPD_all:.0f}%)" if param == "Rrs" else ""
     title = f"{title_r} {title_MAD}"
 
-    hc.correlation_plot_RGB(data_raw, data_jpeg, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"RAW {label}", ylabel=f"JPEG {label}", title=title, equal_aspect=aspect, saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_{param}.pdf")
+    hc.correlation_plot_RGB(data_raw, data_jpeg, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"RAW {label}", ylabel=f"JPEG {label}", title=title, saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_{param}.pdf")
 
+label_Rrs = "$R_{rs}$ [sr$^{-1}$]"
+hc.correlation_plot_RGB_equal(data_raw, data_jpeg, "Rrs {c}", "Rrs {c}", xerrlabel="Rrs_err {c}", yerrlabel="Rrs_err {c}", xlabel=f"RAW {label_Rrs}", ylabel=f"JPEG {label_Rrs}", title=title, saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_Rrs.pdf")
 
 # Correlation plot for all radiances combined
 def get_radiances(data):
@@ -54,4 +54,4 @@ r_all, r_RGB = hc.statistic_RGB(hc.correlation, radiance_RAW, radiance_JPEG, "L"
 title_r = f"$r$ = {r_all:.2f}"
 
 label = "$L$ [ADU nm$^{-1}$ sr$^{-1}$]"
-hc.correlation_plot_RGB(radiance_RAW, radiance_JPEG, "L {c}", "L {c}", xerrlabel="L_err {c}", yerrlabel="L_err {c}", xlabel=f"RAW {label}", ylabel=f"JPEG {label}", title=title_r, equal_aspect=False, saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_L.pdf")
+hc.correlation_plot_RGB(radiance_RAW, radiance_JPEG, "L {c}", "L {c}", xerrlabel="L_err {c}", yerrlabel="L_err {c}", xlabel=f"RAW {label}", ylabel=f"JPEG {label}", title=title_r, saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_L.pdf")
