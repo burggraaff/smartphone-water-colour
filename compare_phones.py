@@ -49,10 +49,11 @@ for param, label in zip(parameters, labels):
     aspect = (param == "Rrs")
 
     MAD_all, MAD_RGB = hc.statistic_RGB(hc.MAD, data_phone1, data_phone2, param)
+    MAPD_all, MAPD_RGB = hc.statistic_RGB(hc.MAPD, data_phone1, data_phone2, param)
     r_all, r_RGB = hc.correlation_RGB(data_phone1, data_phone2, param)
 
     title_r = f"$r$ = {r_all:.2f}"
-    title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" if param == "Rrs" else ""
+    title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" + f" ({MAPD_all:.0f}%)" if param == "Rrs" else ""
     title = f"{title_r} {title_MAD}"
 
     hc.correlation_plot_RGB(data_phone1, data_phone2, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{phone1_name} {label}", ylabel=f"{phone2_name} {label}", title=title, equal_aspect=aspect, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_{param}.pdf")

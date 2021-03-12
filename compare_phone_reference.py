@@ -124,10 +124,11 @@ for param, label_phone, label_reference in zip(parameters, labels_phone, labels_
     aspect = (param == "Rrs")
 
     MAD_all, MAD_RGB = hc.statistic_RGB(hc.MAD, data_phone, data_reference, param)
+    MAPD_all, MAPD_RGB = hc.statistic_RGB(hc.MAPD, data_phone, data_reference, param)
     r_all, r_RGB = hc.correlation_RGB(data_phone, data_reference, param)
 
     title_r = f"$r$ = {r_all:.2f}"
-    title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" if param == "Rrs" else ""
+    title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" + f" ({MAPD_all:.0f}%)" if param == "Rrs" else ""
     title = f"{title_r} {title_MAD}"
 
     hc.correlation_plot_RGB(data_reference, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"{reference} {label_reference}", ylabel=f"{camera.name} ({data_type.upper()}) {label_phone}", title=title, equal_aspect=aspect, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
