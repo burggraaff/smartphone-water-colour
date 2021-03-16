@@ -43,6 +43,7 @@ else:
 # Get Camera object
 camera = load_camera(path_calibration)
 print(f"Loaded Camera object:\n{camera}")
+cameralabel = f"{camera.name} ({data_type.upper()})"
 
 # Find the effective wavelength corresponding to the RGB bands
 camera._load_spectral_response()
@@ -103,7 +104,7 @@ for row in table_phone:
     plt.xlabel("Wavelength [nm]")
     plt.ylim(0, 0.15)
     plt.ylabel("$R_{rs}$ [sr$^{-1}$]")
-    plt.title(f"{camera.name}\n{phone_time}")
+    plt.title(f"{cameralabel}\n{phone_time}")
     plt.savefig(saveto)
     plt.show()
     plt.close()
@@ -121,18 +122,10 @@ labels_phone = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$
 labels_reference = ["$L_u$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$E_d$ [W m$^{-2}$ nm$^{-1}$]"]
 
 for param, label_phone, label_reference in zip(parameters, labels_phone, labels_reference):
-    MAD_all, MAD_RGB = hc.statistic_RGB(hc.MAD, data_phone, data_reference, param)
-    MAPD_all, MAPD_RGB = hc.statistic_RGB(hc.MAPD, data_phone, data_reference, param)
-    r_all, r_RGB = hc.statistic_RGB(hc.correlation, data_phone, data_reference, param)
-
-    title_r = f"$r$ = {r_all:.2f}"
-    title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" + f" ({MAPD_all:.0f}%)" if param == "Rrs" else ""
-    title = f"{title_r} {title_MAD}"
-
-    hc.correlation_plot_RGB(data_reference, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"{reference} {label_reference}", ylabel=f"{camera.name} ({data_type.upper()}) {label_phone}", title=title, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
+    hc.correlation_plot_RGB(data_reference, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"{reference} {label_reference}", ylabel=f"{cameralabel} {label_phone}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
 
 label_Rrs = "$R_{rs}$ [sr$^{-1}$]"
-hc.correlation_plot_RGB_equal(data_reference, data_phone, "Rrs {c}", "Rrs {c}", xerrlabel=None, yerrlabel="Rrs_err {c}", xlabel=f"{reference} {label_Rrs}", ylabel=f"{camera.name} ({data_type.upper()})\n{label_Rrs}", title=title, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs.pdf")
+hc.correlation_plot_RGB_equal(data_reference, data_phone, "Rrs {c}", "Rrs {c}", xerrlabel=None, yerrlabel="Rrs_err {c}", xlabel=f"{reference} {label_Rrs}", ylabel=f"{cameralabel}\n{label_Rrs}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs.pdf")
 
 # Correlation plot: Rrs G/B (SoRad) vs Rrs G/B (smartphone)
 GB_sorad = data_reference["Rrs G"]/data_reference["Rrs B"]

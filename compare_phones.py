@@ -46,18 +46,10 @@ parameters = ["Lu", "Lsky", "Ld", "Ed"]
 labels = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_d$ [ADU nm$^{-1}$ sr$^{-1}$]", "$E_d$ [ADU nm$^{-1}$]"]
 
 for param, label in zip(parameters, labels):
-    MAD_all, MAD_RGB = hc.statistic_RGB(hc.MAD, data_phone1, data_phone2, param)
-    MAPD_all, MAPD_RGB = hc.statistic_RGB(hc.MAPD, data_phone1, data_phone2, param)
-    r_all, r_RGB = hc.statistic_RGB(hc.correlation, data_phone1, data_phone2, param)
-
-    title_r = f"$r$ = {r_all:.2f}"
-    title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" + f" ({MAPD_all:.0f}%)" if param == "Rrs" else ""
-    title = f"{title_r} {title_MAD}"
-
-    hc.correlation_plot_RGB(data_phone1, data_phone2, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{phone1_name}\n{label}", ylabel=f"{phone2_name}\n{label}", title=title, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_{param}.pdf")
+    hc.correlation_plot_RGB(data_phone1, data_phone2, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{phone1_name}\n{label}", ylabel=f"{phone2_name}\n{label}", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_{param}.pdf")
 
 label_Rrs = "$R_{rs}$ [sr$^{-1}$]"
-hc.correlation_plot_RGB_equal(data_phone1, data_phone2, "Rrs {c}", "Rrs {c}", xerrlabel="Rrs_err {c}", yerrlabel="Rrs_err {c}", xlabel=f"{phone1_name} {label_Rrs}", ylabel=f"{phone2_name}\n{label_Rrs}", title=title, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_Rrs.pdf")
+hc.correlation_plot_RGB_equal(data_phone1, data_phone2, "Rrs {c}", "Rrs {c}", xerrlabel="Rrs_err {c}", yerrlabel="Rrs_err {c}", xlabel=f"{phone1_name} {label_Rrs}", ylabel=f"{phone2_name}\n{label_Rrs}", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_Rrs.pdf")
 
 # Correlation plot for all radiances combined
 def get_radiances(data):
@@ -72,8 +64,5 @@ def get_radiances(data):
 radiance_phone1 = get_radiances(data_phone1)
 radiance_phone2 = get_radiances(data_phone2)
 
-r_all, r_RGB = hc.statistic_RGB(hc.correlation, radiance_phone1, radiance_phone2, "L")
-title_r = f"$r$ = {r_all:.2f}"
-
 label = "$L$ [ADU nm$^{-1}$ sr$^{-1}$]"
-hc.correlation_plot_RGB(radiance_phone1, radiance_phone2, "L {c}", "L {c}", xerrlabel="L_err {c}", yerrlabel="L_err {c}", xlabel=f"{phone1_name} {label}", ylabel=f"{phone2_name} {label}", title=title_r, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_L.pdf")
+hc.correlation_plot_RGB(radiance_phone1, radiance_phone2, "L {c}", "L {c}", xerrlabel="L_err {c}", yerrlabel="L_err {c}", xlabel=f"{phone1_name} {label}", ylabel=f"{phone2_name} {label}", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_L.pdf")

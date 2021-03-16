@@ -224,10 +224,10 @@ def _ravel_table(data, key, loop_keys):
     key is the fixed key, e.g. "Rrs".
     loop_keys is an interable list of keys to loop over, e.g. "RGB"
     """
-    return np.ravel([data[f"{key} {c}"] for c in loop_keys])
+    return np.ravel([data[key.format(c=c)] for c in loop_keys])
 
 
-def statistic_RGB(func, data1, data2, param):
+def statistic_RGB(func, data1, data2, xdatalabel, ydatalabel):
     """
     Calculate a statistic (e.g. MAD, MAPD, RMSE) in a given parameter `param`,
     e.g. Rrs, between two Astropy data tables. Assumes the same key structure
@@ -235,11 +235,11 @@ def statistic_RGB(func, data1, data2, param):
 
     Returns the statistic overall and per band.
     """
-    loop_colours = _loop_RGBG2_or_RGB(data1, data2, param)
+    loop_colours = _loop_RGBG2_or_RGB(data1, data2, xdatalabel)
 
-    stat_RGB = np.array([func(data1[f"{param} {c}"], data2[f"{param} {c}"]) for c in loop_colours])
-    data1_combined = _ravel_table(data1, param, loop_colours)
-    data2_combined = _ravel_table(data2, param, loop_colours)
+    stat_RGB = np.array([func(data1[xdatalabel.format(c=c)], data2[ydatalabel.format(c=c)]) for c in loop_colours])
+    data1_combined = _ravel_table(data1, xdatalabel, loop_colours)
+    data2_combined = _ravel_table(data2, ydatalabel, loop_colours)
     stat_all = func(data1_combined, data2_combined)
 
     return stat_all, stat_RGB
@@ -316,13 +316,14 @@ def _correlation_plot_errorbars(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None
         ax.set_ylim(0, 1.05*ymax)
 
 
-def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", title="", saveto=None):
+def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", saveto=None):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
     `xdatalabel` and `ydatalabel`, which are assumed to have RGB/RGBG2 versions.
     For example, if `xlabel` == `f"Rrs {c}"` then the columns "Rrs R", "RRs G",
     "Rrs B", and "Rrs G2" (if available) will be used.
     """
+    # Create figure
     plt.figure(figsize=(4,4), tight_layout=True)
 
     # Plot in the one panel
@@ -334,10 +335,14 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
     # Plot settings
     plt.grid(True, ls="--")
 
+    # Get statistics for title
+    r_all, r_RGB = statistic_RGB(correlation, x, y, xdatalabel, ydatalabel)
+    title = f"$r$ = {r_all:.2f}"
+    plt.title(title)
+
     # Labels
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.title(title)
 
     # Save, show, close plot
     if saveto:
@@ -346,7 +351,7 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
     plt.close()
 
 
-def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", title="", saveto=None):
+def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", saveto=None):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
     `xdatalabel` and `ydatalabel`, which are assumed to have RGB/RGBG2 versions.
@@ -371,11 +376,20 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     for ax in axs:
         ax.grid(True, ls="--")
 
+    # Get statistics for title
+    MAD_all, MAD_RGB = statistic_RGB(MAD, x, y, xdatalabel, ydatalabel)
+    MAPD_all, MAPD_RGB = statistic_RGB(MAPD, x, y, xdatalabel, ydatalabel)
+    r_all, r_RGB = statistic_RGB(correlation, x, y, xdatalabel, ydatalabel)
+
+    title_r = f"$r$ = {r_all:.2f}"
+    title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" + f" ({MAPD_all:.0f}%)"
+    title = f"{title_r} {title_MAD}"
+    axs[0].set_title(title)
+
     # Labels
     axs[1].set_xlabel(xlabel)
     axs[1].set_ylabel("Difference")
     axs[0].set_ylabel(ylabel)
-    axs[0].set_title(title)
 
     # Save, show, close plot
     fig.subplots_adjust(hspace=0.1)
