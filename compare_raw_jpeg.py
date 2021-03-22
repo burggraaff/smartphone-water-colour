@@ -30,7 +30,7 @@ label_Rrs = "$R_{rs}$ [sr$^{-1}$]"
 hc.correlation_plot_RGB_equal(data_raw, data_jpeg, "Rrs {c}", "Rrs {c}", xerrlabel="Rrs_err {c}", yerrlabel="Rrs_err {c}", xlabel=f"{phone_name} RAW {label_Rrs}", ylabel=f"{phone_name} JPEG {label_Rrs}", saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_Rrs.pdf")
 
 # Correlation plot: Band ratios/differences
-hc.correlation_plot_bands(data_raw, data_jpeg, xlabel=f"{phone_name} RAW", ylabel=f"{phone_name} JPEG", saveto=f"results/comparison_{phone_name}RAW_X_JPEG_bands.pdf")
+hc.correlation_plot_bands(data_raw, data_jpeg, xlabel=f"{phone_name} RAW", ylabel=f"{phone_name} JPEG", saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_bands.pdf")
 
 # Correlation plot for all radiances combined
 def get_radiances(data):
