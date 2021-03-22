@@ -398,6 +398,63 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     plt.close()
 
 
+def correlation_plot_bands(x, y, datalabel="Rrs", quantity="$R_{rs}$", unit="sr$^{-1}$", xlabel="", ylabel="", saveto=None):
+    """
+    Make a correlation plot between the band ratios/differences for G-B and G-R.
+    """
+    max_ratio = 0.
+    max_diff = 0.
+    min_diff = 0.
+    fig, axs = plt.subplots(2, 2, sharex="col", sharey="col", figsize=(5,5), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
+    for j, c in enumerate("BR"):
+        ratio_x = x[f"{datalabel} G"]/x[f"{datalabel} {c}"]
+        ratio_y = y[f"{datalabel} G"]/y[f"{datalabel} {c}"]
+
+        diff_x = x[f"{datalabel} G"] - x[f"{datalabel} {c}"]
+        diff_y = y[f"{datalabel} G"] - y[f"{datalabel} {c}"]
+
+        axs[j,0].errorbar(ratio_x, ratio_y, c="k", fmt="o")
+        axs[j,1].errorbar(diff_x, diff_y, c="k", fmt="o")
+
+        max_ratio = max(np.nanmax(ratio_x), np.nanmax(ratio_y), max_ratio)
+        max_diff = max(np.nanmax(diff_x), np.nanmax(diff_y), max_diff)
+        min_diff = min(np.nanmin(diff_x), np.nanmin(diff_y), min_diff)
+
+        axs[j,0].set_xlim(0, 1.1*max_ratio)
+        axs[j,0].set_ylim(0, 1.1*max_ratio)
+        axs[j,1].set_xlim(1.1*min_diff, 1.1*max_diff)
+        axs[j,1].set_ylim(1.1*min_diff, 1.1*max_diff)
+
+    for ax in axs.ravel():
+        ax.grid(True, ls="--")
+        ax.plot([-1, 5], [-1, 5], c='k', ls="--")
+        ax.set_aspect("equal")
+        ax.locator_params(axis="both", nbins=4)
+
+    for ax in axs[:,1]:
+        ax.tick_params(axis="y", left=False, labelleft=False, right=True, labelright=True)
+        ax.yaxis.set_label_position("right")
+
+    for ax in axs[0]:
+        ax.tick_params(axis="x", bottom=False, labelbottom=False, top=True, labeltop=True)
+        ax.xaxis.set_label_position("top")
+
+    axs[0,0].set_xlabel(f"{xlabel} {quantity} $G / B$")
+    axs[0,0].set_ylabel(f"{ylabel}\n{quantity} $G / B$")
+    axs[1,0].set_xlabel(f"{xlabel} {quantity} $G / R$")
+    axs[1,0].set_ylabel(f"{ylabel}\n{quantity} $G / R$")
+
+    axs[0,1].set_xlabel(f"{xlabel} {quantity} $G - B$ [{unit}]")
+    axs[0,1].set_ylabel(f"{ylabel}\n{quantity} $G - B$ [{unit}]")
+    axs[1,1].set_xlabel(f"{xlabel} {quantity} $G - R$ [{unit}]")
+    axs[1,1].set_ylabel(f"{ylabel}\n{quantity} $G - R$ [{unit}]")
+
+    if saveto:
+        plt.savefig(saveto, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+
 conversion_to_utc = timedelta(hours=2)
 def UTC_timestamp(water_exif):
     try:

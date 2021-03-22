@@ -127,22 +127,5 @@ for param, label_phone, label_reference in zip(parameters, labels_phone, labels_
 label_Rrs = "$R_{rs}$ [sr$^{-1}$]"
 hc.correlation_plot_RGB_equal(data_reference, data_phone, "Rrs {c}", "Rrs {c}", xerrlabel=None, yerrlabel="Rrs_err {c}", xlabel=f"{reference} {label_Rrs}", ylabel=f"{cameralabel}\n{label_Rrs}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs.pdf")
 
-# Correlation plot: Rrs G/B (SoRad) vs Rrs G/B (smartphone)
-GB_sorad = data_reference["Rrs G"]/data_reference["Rrs B"]
-GB_phone = data_phone["Rrs G"]/data_phone["Rrs B"]
-
-rms = RMS(GB_phone - GB_sorad)
-r = hc.correlation(GB_phone, GB_sorad)
-
-plt.figure(figsize=(5,5), tight_layout=True)
-plt.errorbar(GB_sorad, GB_phone, color="k", fmt="o")
-max_val = max(0, GB_phone.max(), GB_sorad.max())
-plt.plot([-1, 5], [-1, 5], c='k', ls="--")
-plt.xlim(0, 1.05*max_val)
-plt.ylim(0, 1.05*max_val)
-plt.grid(True, ls="--")
-plt.xlabel(reference + " $R_{rs}$ G/B")
-plt.ylabel(camera.name + " $R_{rs}$ G/B")
-plt.title(f"$r$ = {r:.2f}     RMS = {rms:.2f}")
-plt.savefig(f"results/comparison_{reference}_X_{camera.name}_GB.pdf")
-plt.show()
+# Correlation plot: Band ratios/differences
+hc.correlation_plot_bands(data_reference, data_phone, xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_bands.pdf")
