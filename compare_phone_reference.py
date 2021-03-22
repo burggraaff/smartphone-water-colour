@@ -96,9 +96,9 @@ for row in table_phone:
 
     plt.figure(figsize=(3.3,3.3), tight_layout=True)
     plt.plot(wavelengths, Rrs, c="k")
-    for j, c in enumerate("RGB"):
-        plt.errorbar(RGB_wavelengths[j], row[f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=row[f"Rrs_err {c}"], fmt="o", c=c.lower())
-        plt.errorbar(RGB_wavelengths[j], table_reference[closest][f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=0, fmt="^", c=c.lower())
+    for j, (c, pc) in enumerate(zip("RGB", hc.plot_colours)):
+        plt.errorbar(RGB_wavelengths[j], row[f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=row[f"Rrs_err {c}"], fmt="o", c=pc)
+        plt.errorbar(RGB_wavelengths[j], table_reference[closest][f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=0, fmt="^", c=pc)
     plt.grid(True, ls="--")
     plt.xlim(200, 900)
     plt.xlabel("Wavelength [nm]")
