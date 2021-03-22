@@ -51,6 +51,9 @@ for param, label in zip(parameters, labels):
 label_Rrs = "$R_{rs}$ [sr$^{-1}$]"
 hc.correlation_plot_RGB_equal(data_phone1, data_phone2, "Rrs {c}", "Rrs {c}", xerrlabel="Rrs_err {c}", yerrlabel="Rrs_err {c}", xlabel=f"{phone1_name} {label_Rrs}", ylabel=f"{phone2_name}\n{label_Rrs}", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_Rrs.pdf")
 
+# Correlation plot: Band ratios/differences
+hc.correlation_plot_bands(data_phone1, data_phone2, xlabel=phone1_name, ylabel=phone2_name, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_bands.pdf")
+
 # Correlation plot for all radiances combined
 def get_radiances(data):
     radiance_RGB = [np.ravel([data[f"{param} {c}"].data for param in parameters[:3]]) for c in hc.colours]
