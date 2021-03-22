@@ -46,4 +46,4 @@ radiance_RAW = get_radiances(data_raw)
 radiance_JPEG = get_radiances(data_jpeg)
 
 label = "$L$ [ADU nm$^{-1}$ sr$^{-1}$]"
-hc.correlation_plot_RGB(radiance_RAW, radiance_JPEG, "L {c}", "L {c}", xerrlabel="L_err {c}", yerrlabel="L_err {c}", xlabel=f"RAW {label}", ylabel=f"JPEG {label}", saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_L.pdf")
+hc.correlation_plot_RGB(radiance_RAW, radiance_JPEG, "L {c}", "L {c}", xerrlabel="L_err {c}", yerrlabel="L_err {c}", xlabel=f"{phone_name} RAW {label}", ylabel=f"{phone_name} JPEG {label}", saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_L.pdf")
