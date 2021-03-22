@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from astropy import table
 
 colours = ["R", "G", "B", "G2"]  # Smartphone bands
-
+plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255], [0,158/255,115/255]]  # Plot colours from Okabe-Ito
 
 def R_RS(L_u, L_s, L_d, rho=0.028, R_ref=0.18):
     return (L_u - rho * L_s) / ((np.pi / R_ref) * L_d)
@@ -282,7 +282,6 @@ def _correlation_plot_errorbars(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None
     Plot data into a correlation plot.
     Helper function.
     """
-    plot_colours = "rgbg"  # Plot colours must be lowercase
     xmax = 0.  # Maximum on x axis
     ymax = 0.  # Maximum on y axis
 
