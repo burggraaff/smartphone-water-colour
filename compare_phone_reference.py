@@ -83,6 +83,7 @@ if reference != "So-Rad":
     for band in hc.colours:
         table_reference[f"Rrs {band}"] = (table_reference[f"Lu {band}"] - 0.028*table_reference[f"Lsky {band}"])/table_reference[f"Ed {band}"]
 
+# Lists to store separate data rows - are converted to tables later
 data_phone = []
 data_reference = []
 
@@ -90,24 +91,43 @@ data_reference = []
 for row in table_phone:
     # Find close matches in time
     time_differences = np.abs(table_reference["UTC"] - row["UTC"])
-    close_enough = np.where(time_differences <= max_time_diff)
+    close_enough = np.where(time_differences <= max_time_diff)[0]
     closest = time_differences.argmin()
     min_time_diff = time_differences[closest]
     if min_time_diff > max_time_diff:  # If no close enough matches are found, skip this observation
         continue
     phone_time = datetime.fromtimestamp(row['UTC']).isoformat()
     reference_time = datetime.fromtimestamp(table_reference[closest]["UTC"]).isoformat()
-    print("----")
-    print(f"Phone time: {phone_time} ; {reference} time: {reference_time} ; Closest: {min_time_diff:.1f} seconds")
 
-    # Calculate the median Rrs within the matching observations, and uncertainty on this spectrum
-    Rrs = np.array([np.nanmedian(table_reference[f"Rrs_{wvl:.1f}"][close_enough]) for wvl in wavelengths])
-    Rrs_err = np.array([np.nanstd(table_reference[f"Rrs_{wvl:.1f}"][close_enough]) for wvl in wavelengths])
+    # Calculate the median Lu/Lsky/Ed/Rrs within the matching observations, and uncertainty on this spectrum
+    row_reference = table.Table(table_reference[closest])
+    for key in ["Ed", "Lu", "Lsky", "Rrs"]:
+        # Average over the "close enough" rows
+        keys = [f"{key}_{wvl:.1f}" for wvl in wavelengths] + [f"{key} {c}" for c in hc.colours]
+        keys_err = [f"{key}_err_{wvl:.1f}" for wvl in wavelengths] + [f"{key}_err {c}" for c in hc.colours]
+
+        row_reference[keys][0] = [np.nanmedian(table_reference[k][close_enough]) for k in keys]
+        uncertainties = np.array([np.nanstd(table_reference[k][close_enough]) for k in keys])
+        row_uncertainties = table.Table(data=uncertainties, names=keys_err)
+        row_reference = table.hstack([row_reference, row_uncertainties])
+
+    # Add some metadata that may be used to identify the quality of the match
+    metadata = table.Table(names=["nr_matches", "closest_match"], data=np.array([len(close_enough), closest]))
+    row_reference = table.hstack([metadata, row_reference])
+    print("----")
+    print(f"Phone time: {phone_time} ; {reference} time: {reference_time}")
+    print(f"Number of matches: {row_reference['nr_matches'][0]}; Closest match: {row_reference['closest_match'][0]} s difference")
+
+    # Store matched rows in lists
+    data_phone.append(row)
+    data_reference.append(row_reference)
 
     # Convert ":" to - in the filename when saving
     saveto = f"results/{ref_small}_comparison/{camera.name}_{data_type}_{phone_time}.pdf".replace(":", "-")
 
     # Plot the spectrum for comparison
+    Rrs = np.array([row_reference[f"Rrs_{wvl:.1f}"][0] for wvl in wavelengths])
+    Rrs_err = np.array([row_reference[f"Rrs_err_{wvl:.1f}"][0] for wvl in wavelengths])
     plt.figure(figsize=(3.3,3.3), tight_layout=True)
     plt.plot(wavelengths, Rrs, c="k")
     plt.fill_between(wavelengths, Rrs-Rrs_err, Rrs+Rrs_err, facecolor="0.3")
@@ -123,9 +143,6 @@ for row in table_phone:
     plt.savefig(saveto)
     plt.show()
     plt.close()
-
-    data_phone.append(row)
-    data_reference.append(table_reference[closest])
 
 data_phone = table.vstack(data_phone)
 data_reference = table.vstack(data_reference)
