@@ -133,7 +133,7 @@ for row in table_phone:
     plt.fill_between(wavelengths, Rrs-Rrs_err, Rrs+Rrs_err, facecolor="0.3")
     for j, (c, pc) in enumerate(zip("RGB", hc.plot_colours)):
         plt.errorbar(RGB_wavelengths[j], row[f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=row[f"Rrs_err {c}"], fmt="o", c=pc)
-        plt.errorbar(RGB_wavelengths[j], table_reference[closest][f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=0, fmt="^", c=pc)
+        plt.errorbar(RGB_wavelengths[j], row_reference[f"Rrs {c}"][0], xerr=effective_bandwidths[j]/2, yerr=row_reference[f"Rrs_err {c}"][0], fmt="^", c=pc)
     plt.grid(True, ls="--")
     plt.xlim(300, 900)
     plt.xlabel("Wavelength [nm]")
@@ -154,10 +154,10 @@ labels_phone = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$
 labels_reference = ["$L_u$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$E_d$ [W m$^{-2}$ nm$^{-1}$]"]
 
 for param, label_phone, label_reference in zip(parameters, labels_phone, labels_reference):
-    hc.correlation_plot_RGB(data_reference, data_phone, param+" {c}", param+" {c}", xerrlabel=None, yerrlabel=param+"_err {c}", xlabel=f"{reference} {label_reference}", ylabel=f"{cameralabel} {label_phone}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
+    hc.correlation_plot_RGB(data_reference, data_phone, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{reference} {label_reference}", ylabel=f"{cameralabel} {label_phone}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
 
 label_Rrs = "$R_{rs}$ [sr$^{-1}$]"
-hc.correlation_plot_RGB_equal(data_reference, data_phone, "Rrs {c}", "Rrs {c}", xerrlabel=None, yerrlabel="Rrs_err {c}", xlabel=f"{reference} {label_Rrs}", ylabel=f"{cameralabel}\n{label_Rrs}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs.pdf")
+hc.correlation_plot_RGB_equal(data_reference, data_phone, "Rrs {c}", "Rrs {c}", xerrlabel="Rrs_err {c}", yerrlabel="Rrs_err {c}", xlabel=f"{reference} {label_Rrs}", ylabel=f"{cameralabel}\n{label_Rrs}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs.pdf")
 
 # Correlation plot: Band ratios/differences
 hc.correlation_plot_bands(data_reference, data_phone, xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_bands.pdf")
