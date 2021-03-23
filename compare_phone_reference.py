@@ -24,6 +24,9 @@ from astropy import table
 from datetime import datetime
 from wk import hydrocolor as hc
 
+# Time limit for inclusion
+max_time_diff = 60*5  # 5 minutes
+
 # Get the data folder from the command line
 path_calibration, path_phone, path_reference = io.path_from_input(argv)
 
@@ -86,13 +89,13 @@ data_reference = []
 for row in table_phone:
     time_differences = np.abs(table_reference["UTC"] - row["UTC"])
     closest = time_differences.argmin()
-    time_diff = time_differences[closest]
-    if time_diff > 1000:
+    min_time_diff = time_differences[closest]
+    if min_time_diff > max_time_diff:
         continue
     phone_time = datetime.fromtimestamp(row['UTC']).isoformat()
     reference_time = datetime.fromtimestamp(table_reference[closest]["UTC"]).isoformat()
     print("----")
-    print(f"Phone time: {phone_time} ; {reference} time: {reference_time} ; Difference: {time_diff:.1f} seconds")
+    print(f"Phone time: {phone_time} ; {reference} time: {reference_time} ; Closest: {min_time_diff:.1f} seconds")
 
     Rrs = np.array([table_reference[f"Rrs_{wvl:.1f}"][closest] for wvl in wavelengths])
 
