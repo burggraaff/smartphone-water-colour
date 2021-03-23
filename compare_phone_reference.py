@@ -85,9 +85,9 @@ for row in table_phone:
     if time_diff > 1000:
         continue
     phone_time = datetime.fromtimestamp(row['UTC']).isoformat()
-    sorad_time = datetime.fromtimestamp(table_reference[closest]["UTC"]).isoformat()
+    reference_time = datetime.fromtimestamp(table_reference[closest]["UTC"]).isoformat()
     print("----")
-    print(f"Phone time: {phone_time} ; {reference} time: {sorad_time} ; Difference: {time_diff:.1f} seconds")
+    print(f"Phone time: {phone_time} ; {reference} time: {reference_time} ; Difference: {time_diff:.1f} seconds")
 
     Rrs = np.array([table_reference[f"Rrs_{wvl:.1f}"][closest] for wvl in wavelengths])
 
