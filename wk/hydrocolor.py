@@ -455,8 +455,7 @@ def correlation_plot_bands(x, y, datalabel="Rrs", quantity="$R_{rs}$", unit="sr$
     plt.close()
 
 
-conversion_to_utc = timedelta(hours=2)
-def UTC_timestamp(water_exif):
+def UTC_timestamp(water_exif, conversion_to_utc=timedelta(hours=2)):
     try:
         timestamp = water_exif["EXIF DateTimeOriginal"].values
     except KeyError:
