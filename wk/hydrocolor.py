@@ -408,14 +408,23 @@ def correlation_plot_bands(x, y, datalabel="Rrs", quantity="$R_{rs}$", unit="sr$
     min_diff = 0.
     fig, axs = plt.subplots(2, 2, sharex="col", sharey="col", figsize=(5,5), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
     for j, c in enumerate("BR"):
-        ratio_x = x[f"{datalabel} G"]/x[f"{datalabel} {c}"]
-        ratio_y = y[f"{datalabel} G"]/y[f"{datalabel} {c}"]
+        label_G = f"{datalabel} G"
+        label_G_err = f"{datalabel}_err G"
+        label_c = f"{datalabel} {c}"
+        label_c_err = f"{datalabel}_err {c}"
 
-        diff_x = x[f"{datalabel} G"] - x[f"{datalabel} {c}"]
-        diff_y = y[f"{datalabel} G"] - y[f"{datalabel} {c}"]
+        ratio_x = x[label_G]/x[label_c]
+        ratio_y = y[label_G]/y[label_c]
+        ratio_err_x = ratio_x * np.sqrt(x[label_G_err]**2/x[label_G]**2 + x[label_c_err]**2/x[label_c]**2)
+        ratio_err_y = ratio_y * np.sqrt(y[label_G_err]**2/y[label_G]**2 + y[label_c_err]**2/y[label_c]**2)
 
-        axs[j,0].errorbar(ratio_x, ratio_y, c="k", fmt="o")
-        axs[j,1].errorbar(diff_x, diff_y, c="k", fmt="o")
+        diff_x = x[label_G] - x[label_c]
+        diff_y = y[label_G] - y[label_c]
+        diff_err_x = np.sqrt(x[label_G_err]**2 + x[label_c_err]**2)
+        diff_err_y = np.sqrt(y[label_G_err]**2 + y[label_c_err]**2)
+
+        axs[j,0].errorbar(ratio_x, ratio_y, xerr=ratio_err_x, yerr=ratio_err_y, c="k", fmt="o")
+        axs[j,1].errorbar(diff_x, diff_y, xerr=diff_err_x, yerr=diff_err_y, c="k", fmt="o")
 
         max_ratio = max(np.nanmax(ratio_x), np.nanmax(ratio_y), max_ratio)
         max_diff = max(np.nanmax(diff_x), np.nanmax(diff_y), max_diff)
