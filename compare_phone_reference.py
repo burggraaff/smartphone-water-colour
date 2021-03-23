@@ -69,11 +69,16 @@ for key in ["Ed", "Lsky", "Lu", "Rrs"]:
     data_convolved = camera.convolve_multi(wavelengths, data).T  # Apply spectral convolution
 
     # Put convolved data in a table
-    keys_convolved = [f"{key} {band}" for band in [*"RGB", "G2"]]
+    keys_convolved = [f"{key} {band}" for band in hc.colours]
     table_convolved = table.Table(data=data_convolved, names=keys_convolved)
 
     # Merge convolved data table with original data table
     table_reference = table.hstack([table_reference, table_convolved])
+
+# For non-SoRad systems, don't convolve Rrs directly
+if reference != "So-Rad":
+    for band in hc.colours:
+        table_reference[f"Rrs {band}"] = (table_reference[f"Lu {band}"] - 0.028*table_reference[f"Lsky {band}"])/table_reference[f"Ed {band}"]
 
 data_phone = []
 data_reference = []
