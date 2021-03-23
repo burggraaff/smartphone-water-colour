@@ -115,7 +115,7 @@ for row in table_phone:
         plt.errorbar(RGB_wavelengths[j], row[f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=row[f"Rrs_err {c}"], fmt="o", c=pc)
         plt.errorbar(RGB_wavelengths[j], table_reference[closest][f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=0, fmt="^", c=pc)
     plt.grid(True, ls="--")
-    plt.xlim(200, 900)
+    plt.xlim(300, 900)
     plt.xlabel("Wavelength [nm]")
     plt.ylim(0, 0.15)
     plt.ylabel("$R_{rs}$ [sr$^{-1}$]")
