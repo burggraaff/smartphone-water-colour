@@ -150,14 +150,20 @@ data_reference = table.vstack(data_reference)
 sorad_wavelengths_RGB = [wavelengths[np.abs(wavelengths-wvl).argmin()] for wvl in RGB_wavelengths]
 
 parameters = ["Lu", "Lsky", "Ed"]
-labels_phone = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$^{-1}$]", "$E_d$ [ADU nm$^{-1}$]"]
-labels_reference = ["$L_u$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "$E_d$ [W m$^{-2}$ nm$^{-1}$]"]
+labels = ["$L_u$", "$L_{sky}$", "$E_d$"]
+units_phone = ["[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$]"]
+units_reference = ["[W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "[W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "[W m$^{-2}$ nm$^{-1}$]"]
 
-for param, label_phone, label_reference in zip(parameters, labels_phone, labels_reference):
-    hc.correlation_plot_RGB(data_reference, data_phone, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{reference} {label_reference}", ylabel=f"{cameralabel} {label_phone}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
+for param, label, unit_phone, unit_reference in zip(parameters, labels, units_phone, units_reference):
+    hc.correlation_plot_RGB(data_reference, data_phone, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{reference} {label} {unit_reference}", ylabel=f"{cameralabel} {label} {unit_phone}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
 
-label_Rrs = "$R_{rs}$ [sr$^{-1}$]"
-hc.correlation_plot_RGB_equal(data_reference, data_phone, "Rrs {c}", "Rrs {c}", xerrlabel="Rrs_err {c}", yerrlabel="Rrs_err {c}", xlabel=f"{reference} {label_Rrs}", ylabel=f"{cameralabel}\n{label_Rrs}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs.pdf")
+    hc.comparison_histogram(data_reference, data_phone, param+" {c}", xlabel=reference, ylabel=cameralabel, quantity=label, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}_hist.pdf")
+
+label_Rrs = "$R_{rs}$"
+unit_Rrs = "[sr$^{-1}$]"
+hc.correlation_plot_RGB_equal(data_reference, data_phone, "Rrs {c}", "Rrs {c}", xerrlabel="Rrs_err {c}", yerrlabel="Rrs_err {c}", xlabel=f"{reference} {label_Rrs} {unit_Rrs}", ylabel=f"{cameralabel}\n{label_Rrs} {unit_Rrs}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs.pdf")
+
+hc.comparison_histogram(data_reference, data_phone, "Rrs {c}", xlabel=reference, ylabel=cameralabel, quantity=label, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs_hist.pdf")
 
 # Correlation plot: Band ratios/differences
 hc.correlation_plot_bands(data_reference, data_phone, xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_bands.pdf")

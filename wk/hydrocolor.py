@@ -217,7 +217,7 @@ def MAPD(x, y):
     return MAD_percent
 
 
-def _ravel_table(data, key, loop_keys):
+def ravel_table(data, key, loop_keys):
     """
     Apply np.ravel to a number of columns, e.g. to combine Rrs R, Rrs G, Rrs B
     into one array for all Rrs.
@@ -239,8 +239,8 @@ def statistic_RGB(func, data1, data2, xdatalabel, ydatalabel):
     loop_colours = _loop_RGBG2_or_RGB(data1, data2, xdatalabel)
 
     stat_RGB = np.array([func(data1[xdatalabel.format(c=c)], data2[ydatalabel.format(c=c)]) for c in loop_colours])
-    data1_combined = _ravel_table(data1, xdatalabel, loop_colours)
-    data2_combined = _ravel_table(data2, ydatalabel, loop_colours)
+    data1_combined = ravel_table(data1, xdatalabel, loop_colours)
+    data2_combined = ravel_table(data2, ydatalabel, loop_colours)
     stat_all = func(data1_combined, data2_combined)
 
     return stat_all, stat_RGB
@@ -458,6 +458,35 @@ def correlation_plot_bands(x, y, datalabel="Rrs", quantity="$R_{rs}$", unit="sr$
     axs[0,1].set_ylabel(f"{ylabel}\n{quantity} $G - B$ [{unit}]")
     axs[1,1].set_xlabel(f"{xlabel} {quantity} $G - R$ [{unit}]")
     axs[1,1].set_ylabel(f"{ylabel}\n{quantity} $G - R$ [{unit}]")
+
+    if saveto:
+        plt.savefig(saveto, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+
+def comparison_histogram(x_table, y_table, param="Rrs {c}", xlabel="", ylabel="", quantity="", saveto=None):
+    """
+    Make a histogram of the ratio and difference in a given `param` for `x` and `y`
+    """
+    loop_colours = _loop_RGBG2_or_RGB(x_table, y_table, param)
+    x = ravel_table(x_table, param, loop_colours)
+    y = ravel_table(y_table, param, loop_colours)
+
+    ratio = y/x
+    diff = y-x
+
+    fig, axs = plt.subplots(ncols=2, sharey=True, figsize=(5,2), gridspec_kw={"hspace": 0.1, "wspace": 0.1}, constrained_layout=True)
+    axs[0].hist(ratio, bins=10, facecolor="k")
+    axs[1].hist(diff, bins=10, facecolor="k")
+
+    fig.suptitle(f"{quantity}: {xlabel} vs {ylabel}")
+    axs[0].set_xlabel("Ratio")
+    axs[1].set_xlabel("Difference")
+    axs[0].set_ylabel("Frequency")
+
+    for ax, q in zip(axs, [ratio, diff]):
+        ax.set_title(f"$\mu$ = {np.nanmean(q):.3f}   $\sigma$ = {np.nanstd(q):.3f}")
 
     if saveto:
         plt.savefig(saveto, bbox_inches="tight")

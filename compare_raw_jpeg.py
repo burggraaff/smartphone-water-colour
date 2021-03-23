@@ -21,13 +21,19 @@ data_raw = table.Table.read(path_raw)
 data_jpeg = table.Table.read(path_jpeg)
 
 parameters = ["Lu", "Lsky", "Ld", "Ed"]
-labels = ["$L_u$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_{sky}$ [ADU nm$^{-1}$ sr$^{-1}$]", "$L_d$ [ADU nm$^{-1}$ sr$^{-1}$]", "$E_d$ [ADU nm$^{-1}$]"]
+labels = ["$L_u$", "$L_{sky}$", "$L_d$", "$E_d$"]
+units = ["[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$]"]
 
-for param, label in zip(parameters, labels):
-    hc.correlation_plot_RGB(data_raw, data_jpeg, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{phone_name} RAW {label}", ylabel=f"{phone_name} JPEG {label}", saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_{param}.pdf")
+for param, label, unit in zip(parameters, labels, units):
+    hc.correlation_plot_RGB(data_raw, data_jpeg, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{phone_name} RAW {label} {unit}", ylabel=f"{phone_name} JPEG {label} {unit}", saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_{param}.pdf")
 
-label_Rrs = "$R_{rs}$ [sr$^{-1}$]"
-hc.correlation_plot_RGB_equal(data_raw, data_jpeg, "Rrs {c}", "Rrs {c}", xerrlabel="Rrs_err {c}", yerrlabel="Rrs_err {c}", xlabel=f"{phone_name} RAW {label_Rrs}", ylabel=f"{phone_name} JPEG {label_Rrs}", saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_Rrs.pdf")
+    hc.comparison_histogram(data_raw, data_jpeg, param+" {c}", xlabel=f"{phone_name} RAW", ylabel=f"{phone_name} JPEG", quantity=label, saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_{param}_hist.pdf")
+
+label_Rrs = "$R_{rs}$"
+unit_Rrs = "[sr$^{-1}$]"
+hc.correlation_plot_RGB_equal(data_raw, data_jpeg, "Rrs {c}", "Rrs {c}", xerrlabel="Rrs_err {c}", yerrlabel="Rrs_err {c}", xlabel=f"{phone_name} RAW {label_Rrs} {unit_Rrs}", ylabel=f"{phone_name} JPEG {label_Rrs} {unit_Rrs}", saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_Rrs.pdf")
+
+hc.comparison_histogram(data_raw, data_jpeg, "Rrs {c}", xlabel=f"{phone_name} RAW", ylabel=f"{phone_name} JPEG", quantity=label, saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_Rrs_hist.pdf")
 
 # Correlation plot: Band ratios/differences
 hc.correlation_plot_bands(data_raw, data_jpeg, xlabel=f"{phone_name} RAW", ylabel=f"{phone_name} JPEG", saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_bands.pdf")
@@ -45,5 +51,8 @@ def get_radiances(data):
 radiance_RAW = get_radiances(data_raw)
 radiance_JPEG = get_radiances(data_jpeg)
 
-label = "$L$ [ADU nm$^{-1}$ sr$^{-1}$]"
-hc.correlation_plot_RGB(radiance_RAW, radiance_JPEG, "L {c}", "L {c}", xerrlabel="L_err {c}", yerrlabel="L_err {c}", xlabel=f"{phone_name} RAW {label}", ylabel=f"{phone_name} JPEG {label}", saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_L.pdf")
+label = "$L$"
+unit = "[ADU nm$^{-1}$ sr$^{-1}$]"
+hc.correlation_plot_RGB(radiance_RAW, radiance_JPEG, "L {c}", "L {c}", xerrlabel="L_err {c}", yerrlabel="L_err {c}", xlabel=f"{phone_name} RAW {label} {unit}", ylabel=f"{phone_name} JPEG {label} {unit}", saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_L.pdf")
+
+hc.comparison_histogram(radiance_RAW, radiance_JPEG, "L {c}", xlabel=f"{phone_name} RAW", ylabel=f"{phone_name} JPEG", quantity=label, saveto=f"results/comparison_{phone_name}_RAW_X_JPEG_L_hist.pdf")
