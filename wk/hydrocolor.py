@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from datetime import datetime, timedelta
 from astropy import table
+from scipy.stats import linregress
 
 colours = ["R", "G", "B", "G2"]  # Smartphone bands
 plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255], [0,158/255,115/255]]  # Plot colours from Okabe-Ito
