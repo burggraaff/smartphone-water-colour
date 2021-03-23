@@ -86,24 +86,31 @@ if reference != "So-Rad":
 data_phone = []
 data_reference = []
 
+# Match observations between the data sets
 for row in table_phone:
+    # Find close matches in time
     time_differences = np.abs(table_reference["UTC"] - row["UTC"])
+    close_enough = np.where(time_differences <= max_time_diff)
     closest = time_differences.argmin()
     min_time_diff = time_differences[closest]
-    if min_time_diff > max_time_diff:
+    if min_time_diff > max_time_diff:  # If no close enough matches are found, skip this observation
         continue
     phone_time = datetime.fromtimestamp(row['UTC']).isoformat()
     reference_time = datetime.fromtimestamp(table_reference[closest]["UTC"]).isoformat()
     print("----")
     print(f"Phone time: {phone_time} ; {reference} time: {reference_time} ; Closest: {min_time_diff:.1f} seconds")
 
-    Rrs = np.array([table_reference[f"Rrs_{wvl:.1f}"][closest] for wvl in wavelengths])
+    # Calculate the median Rrs within the matching observations, and uncertainty on this spectrum
+    Rrs = np.array([np.nanmedian(table_reference[f"Rrs_{wvl:.1f}"][close_enough]) for wvl in wavelengths])
+    Rrs_err = np.array([np.nanstd(table_reference[f"Rrs_{wvl:.1f}"][close_enough]) for wvl in wavelengths])
 
     # Convert ":" to - in the filename when saving
     saveto = f"results/{ref_small}_comparison/{camera.name}_{data_type}_{phone_time}.pdf".replace(":", "-")
 
+    # Plot the spectrum for comparison
     plt.figure(figsize=(3.3,3.3), tight_layout=True)
     plt.plot(wavelengths, Rrs, c="k")
+    plt.fill_between(wavelengths, Rrs-Rrs_err, Rrs+Rrs_err, facecolor="0.3")
     for j, (c, pc) in enumerate(zip("RGB", hc.plot_colours)):
         plt.errorbar(RGB_wavelengths[j], row[f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=row[f"Rrs_err {c}"], fmt="o", c=pc)
         plt.errorbar(RGB_wavelengths[j], table_reference[closest][f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=0, fmt="^", c=pc)
