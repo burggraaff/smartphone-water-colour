@@ -75,6 +75,9 @@ def load_wisp_data(wisp_filename, rho=0.028):
 
     data_table.sort("UTC")
 
+    # Remove duplicate entries (from pressing "save" multiple times)
+    data_table = table.unique(data_table)
+
     return data_table
 
 
