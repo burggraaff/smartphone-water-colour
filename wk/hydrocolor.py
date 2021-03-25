@@ -98,7 +98,7 @@ def histogram_raw(water_data, sky_data, card_data, saveto, camera=None):
                     data_RGBG = camera.demosaick(data)
 
                 data_RGB = RGBG2_to_RGB(data_RGBG)[0]
-                for j, c in enumerate("rgb"):
+                for j, c in enumerate(plot_colours[:3]):
                     ax.hist(data_RGB[j].ravel(), bins=bins, color=c, histtype="step")
 
             ax.set_xlim(xmin, xmax)
@@ -131,7 +131,7 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto):
 
         for ax, data in zip(ax_col, [water, sky, card]):
             ax.hist(data.ravel(), bins=bins, color="k")
-            for j, c in enumerate("rgb"):
+            for j, c in enumerate(plot_colours[:3]):
                 ax.hist(data[...,j].ravel(), bins=bins, color=c, histtype="step")
             ax.set_xlim(0, 255)
             ax.grid(True, ls="--", alpha=0.7)
@@ -248,7 +248,7 @@ def statistic_RGB(func, data1, data2, xdatalabel, ydatalabel):
 
 def plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=None):
     plt.figure(figsize=(4,3))
-    for j, c in enumerate("rgb"):
+    for j, c in enumerate(plot_colours[:3]):
         plt.errorbar(RGB_wavelengths[j], R_rs[j], xerr=effective_bandwidths[j]/2, yerr=R_rs_err[j], c=c, fmt="o")
     plt.xlabel("Wavelength [nm]")
     plt.ylabel("Remote sensing reflectance [sr$^{-1}$]")
@@ -510,8 +510,8 @@ def UTC_timestamp(water_exif, conversion_to_utc=timedelta(hours=2)):
 def write_results(saveto, timestamp, water, water_err, sky, sky_err, grey, grey_err, Rrs, Rrs_err, Rref=0.18):
     assert len(water) == len(water_err) == len(sky) == len(sky_err) == len(grey) == len(grey_err) == len(Rrs) == len(Rrs_err), "Not all input arrays have the same length"
     header = ["Lu {c}", "Lu_err {c}", "Lsky {c}", "Lsky_err {c}", "Ld {c}", "Ld_err {c}", "Ed {c}", "Ed_err {c}", "Rrs {c}", "Rrs_err {c}"]
-    colours = "RGB" if len(water) == 3 else [*"RGB", "G2"]
-    header_full = [[s.format(c=c) for c in colours] for s in header]
+    colours_here = "RGB" if len(water) == 3 else colours
+    header_full = [[s.format(c=c) for c in colours_here] for s in header]
     header = ["UTC", "UTC (ISO)"] + [item for sublist in header_full for item in sublist]
 
     Ed = np.pi / Rref * grey
