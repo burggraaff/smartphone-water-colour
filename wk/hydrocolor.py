@@ -27,6 +27,22 @@ def R_RS_error(L_u, L_s, L_d, L_u_err, L_s_err, L_d_err, rho=0.028, R_ref=0.18):
     return R_rs_err
 
 
+def data_type_RGB(filename):
+    """
+    Find out if a given filename has RAW, JPEG, or linearised JPEG data.
+    """
+    name = filename.stem
+    if "raw" in name:
+        return "RAW"
+    elif "jpeg" in name:
+        if "linear" in name:
+            return "JPEG (Linear)"
+        else:
+            return "JPEG"
+    else:
+        raise ValueError(f"File `{filename}` does not match known patterns ('raw', 'jpeg', 'jpeg_linear').")
+
+
 def generate_paths(data_path, extension=".dng"):
     """
     Generate the paths to the water, sky, and greycard images

@@ -31,7 +31,7 @@ max_time_diff = 60*5  # 5 minutes
 path_calibration, path_phone, path_reference = io.path_from_input(argv)
 
 # Find out if we're doing JPEG or RAW
-data_type = path_phone.stem.split("_")[-1]
+data_type = hc.data_type_RGB(path_phone)
 
 # Find out what reference sensor we're using
 if "So-Rad" in path_reference.stem:
@@ -46,7 +46,7 @@ else:
 # Get Camera object
 camera = load_camera(path_calibration)
 print(f"Loaded Camera object:\n{camera}")
-cameralabel = f"{camera.name} ({data_type.upper()})"
+cameralabel = f"{camera.name} {data_type}"
 
 # Find the effective wavelength corresponding to the RGB bands
 camera._load_spectral_response()
@@ -166,4 +166,4 @@ hc.correlation_plot_RGB_equal(data_reference, data_phone, "Rrs {c}", "Rrs {c}", 
 hc.comparison_histogram(data_reference, data_phone, "Rrs {c}", xlabel=reference, ylabel=cameralabel, quantity=label, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs_hist.pdf")
 
 # Correlation plot: Band ratios/differences
-hc.correlation_plot_bands(data_reference, data_phone, xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_bands.pdf")
+hc.correlation_plot_bands(data_reference, data_phone, xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_bands.pdf")
