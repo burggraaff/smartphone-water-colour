@@ -123,17 +123,17 @@ def histogram_raw(water_data, sky_data, card_data, saveto, camera=None):
     print(f"Saved statistics plot to `{saveto}`")
 
 
-def histogram_jpeg(water_data, sky_data, card_data, saveto):
+def histogram_jpeg(water_data, sky_data, card_data, saveto, normalisation=255):
     fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(9,4), gridspec_kw={"hspace": 0.04, "wspace": 0.04}, sharex="col", sharey="col")
 
     for ax_col, water, sky, card in zip(axs.T[1:], water_data, sky_data, card_data):
-        bins = np.linspace(0, 255, 50)
+        bins = np.linspace(0, normalisation, 50)
 
         for ax, data in zip(ax_col, [water, sky, card]):
             ax.hist(data.ravel(), bins=bins, color="k")
             for j, c in enumerate(plot_colours[:3]):
                 ax.hist(data[...,j].ravel(), bins=bins, color=c, histtype="step")
-            ax.set_xlim(0, 255)
+            ax.set_xlim(0, normalisation)
             ax.grid(True, ls="--", alpha=0.7)
 
     for ax, image in zip(axs[:,0], [water_data[0], sky_data[0], card_data[0]]):
