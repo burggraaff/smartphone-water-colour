@@ -40,6 +40,9 @@ if "So-Rad" in path_reference.stem:
 elif "wisp" in path_reference.stem:
     reference = "WISP-3"
     ref_small = "wisp"
+elif "TriOS" in path_reference.stem:
+    reference = "TriOS"
+    ref_small = "trios"
 else:
     raise ValueError(f"Unknown reference sensor for file {path_reference}")
 
@@ -78,8 +81,8 @@ for key in ["Ed", "Lsky", "Lu", "Rrs"]:
     # Merge convolved data table with original data table
     table_reference = table.hstack([table_reference, table_convolved])
 
-# For non-SoRad systems, don't convolve Rrs directly
-if reference != "So-Rad":
+# For the WISP-3, where we have Lu, Lsky, and Ed, don't convolve Rrs directly
+if reference == "WISP-3":
     for band in hc.colours:
         table_reference[f"Rrs {band}"] = (table_reference[f"Lu {band}"] - 0.028*table_reference[f"Lsky {band}"])/table_reference[f"Ed {band}"]
 

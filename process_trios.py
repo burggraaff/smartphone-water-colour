@@ -1,25 +1,81 @@
 """
-Process TriOS data.
-"""
+Process data from the Stirling TriOS.
 
+Command line inputs:
+    * Folder containing the TriOS data file.
+        Example: "water-colour-data\Data_Monocle2019_L5All.csv"
+
+Outputs:
+    * File containing Ed, Ls, Lt, Rrs
+        Example: "water-colour-data\Data_Monocle2019_L5All_table.csv"
+"""
 import numpy as np
 from matplotlib import pyplot as plt
 from astropy import table
 from sys import argv
+from pathlib import Path
+from datetime import datetime
 
-filename = argv[1]
+# Get filenames
+filename = Path(argv[1])
+print("Input file:", filename.absolute())
+saveto = filename.parent / (filename.stem + "_TriOS_table.csv")
 
-data = table.Table.read(filename, format="ascii.csv")
 
-wavelengths = np.arange(323.3, 953.7, 3.3)
-Rrs = np.array([data[f"Rrs_{wvl:.1f}"][1236] for wvl in wavelengths])
+# Label that matches column header
+def label(text, wvl):
+    return f"{text}_{wvl:.1f}"
 
-plt.figure(figsize=(3,3), tight_layout=True)
-plt.plot(wavelengths, Rrs)
-plt.xlabel("Wavelength [nm]")
-plt.ylabel("Remote sensing reflectance [sr$^{-1}$]")
-plt.xlim(390, 700)
-plt.ylim(0, 0.05)
-plt.yticks([0, 0.01, 0.02, 0.03, 0.04, 0.05])
-plt.grid(ls="--")
-plt.show()
+# Read data
+data = table.Table.read(filename)
+print("Finished reading data")
+
+# Add UTC timestamps
+data_datetime = [datetime.fromisoformat(DT) for DT in data["DateTime"]]
+data_timestamps = [dt.timestamp() for dt in data_datetime]
+data.add_column(table.Column(data=data_timestamps, name="UTC"))
+data.sort("UTC")
+
+# Remove unused columns
+data.remove_columns(["EdPAR", "EdDevice"])
+
+# Add dummy Ed, Lu, Lsky columns
+Rrs_columns = [key for key in data.keys() if "Rrs_" in key]
+wavelengths = np.array([float(key[4:]) for key in Rrs_columns])
+dummy_columns = [[table.Column(data=-np.ones_like(data[Rrs_key]), name=Rrs_key.replace("Rrs", param)) for Rrs_key in Rrs_columns] for param in ["Ed", "Lu", "Lsky"]]
+dummy_columns = table.Table([x for y in dummy_columns for x in y])
+data = table.hstack([data, dummy_columns])
+print("Added dummy radiance columns")
+
+# Remove data not taken on 2019-07-03
+length_original = len(data)
+remove_indices = np.where(["2019-07-03" not in timestamp for timestamp in data["DateTime"]])
+data.remove_rows(remove_indices)
+length_after_removal = len(data)
+print(f"Removed {length_original-length_after_removal} data points ({length_after_removal} remaining) not taken on 2019-07-03.")
+
+# Write data to file
+data.write(saveto, format="ascii.fast_csv")
+
+# Plot sample of data
+def plot_sample(data_plot, sample_quantity, ylabel="", saveto=None):
+    sample_cols = [label(sample_quantity, wvl) for wvl in wavelengths]
+    data_sub = data_plot[sample_cols]
+    data_sub = np.array([data_sub[col].data for col in data_sub.colnames])  # Iteration over data_sub.columns does not work
+
+    plt.figure(figsize=(6,3), tight_layout=True)
+    plt.plot(wavelengths, data_sub, c="k", alpha=0.1)
+    plt.xlabel("Wavelength [nm]")
+    plt.ylabel(ylabel)
+    plt.xlim(320, 955)
+    plt.ylim(ymin=0)
+    plt.grid(ls="--")
+    plt.title(f"Example {sample_quantity} spectra ({data_sub.shape[1]}/{len(data_plot)})")
+    if saveto:
+        plt.savefig(saveto, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+# Plot Rrs
+filename_Rrs = f"results/{filename.stem}.pdf"
+plot_sample(data, "Rrs", ylabel="$R_{rs}$ [sr$^{-1}$]", saveto=filename_Rrs)
