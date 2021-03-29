@@ -152,7 +152,11 @@ for folder_main in folders:
         # water_hue_err, sky_hue_err, card_hue_err = [wa.convert_XYZ_error_to_hue_angle(XYZ_data, XYZ_error) for XYZ_data, XYZ_error in zip([water_XYZ, sky_XYZ, card_XYZ], [water_XYZ_err, sky_XYZ_err, card_XYZ_err])]
 
         # Create a timestamp from EXIF (assume time zone UTC+2)
-        UTC = hc.UTC_timestamp(water_exif)
+        # Time zone: UTC+2 for Balaton data, UTC for NZ data
+        if folder_main.stem == "NZ":
+            UTC = hc.UTC_timestamp(water_exif, conversion_to_utc=hc.timedelta(hours=0))
+        else:
+            UTC = hc.UTC_timestamp(water_exif)
 
         # Write the result to file
         saveto = data_path.with_name(data_path.stem + "_raw.csv")
