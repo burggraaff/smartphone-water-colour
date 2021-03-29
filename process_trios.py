@@ -47,13 +47,6 @@ dummy_columns = table.Table([x for y in dummy_columns for x in y])
 data = table.hstack([data, dummy_columns])
 print("Added dummy radiance columns")
 
-# Remove data not taken on 2019-07-03
-length_original = len(data)
-remove_indices = np.where(["2019-07-03" not in timestamp for timestamp in data["DateTime"]])
-data.remove_rows(remove_indices)
-length_after_removal = len(data)
-print(f"Removed {length_original-length_after_removal} data points ({length_after_removal} remaining) not taken on 2019-07-03.")
-
 # Write data to file
 data.write(saveto, format="ascii.fast_csv")
 
