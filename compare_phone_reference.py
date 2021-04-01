@@ -115,7 +115,7 @@ for row in table_phone:
         row_reference = table.hstack([row_reference, row_uncertainties])
 
     # Add some metadata that may be used to identify the quality of the match
-    metadata = table.Table(names=["nr_matches", "closest_match"], data=np.array([len(close_enough), closest]))
+    metadata = table.Table(names=["nr_matches", "closest_match"], data=np.array([len(close_enough), time_differences[closest]]))
     row_reference = table.hstack([metadata, row_reference])
     print("----")
     print(f"Phone time: {phone_time} ; {reference} time: {reference_time}")
@@ -166,7 +166,7 @@ label_Rrs = "$R_{rs}$"
 unit_Rrs = "[sr$^{-1}$]"
 hc.correlation_plot_RGB_equal(data_reference, data_phone, "Rrs {c}", "Rrs {c}", xerrlabel="Rrs_err {c}", yerrlabel="Rrs_err {c}", xlabel=f"{reference} {label_Rrs} {unit_Rrs}", ylabel=f"{cameralabel}\n{label_Rrs} {unit_Rrs}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs.pdf")
 
-hc.comparison_histogram(data_reference, data_phone, "Rrs {c}", xlabel=reference, ylabel=cameralabel, quantity=label, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs_hist.pdf")
+hc.comparison_histogram(data_reference, data_phone, "Rrs {c}", xlabel=reference, ylabel=cameralabel, quantity=label_Rrs, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs_hist.pdf")
 
 # Correlation plot: Band ratios/differences
 hc.correlation_plot_bands(data_reference, data_phone, xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_bands.pdf")
