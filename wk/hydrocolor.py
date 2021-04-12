@@ -371,7 +371,7 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
     `xdatalabel` and `ydatalabel`, which are assumed to have RGB/RGBG2 versions.
-    For example, if `xlabel` == `f"Rrs {c}"` then the columns "Rrs R", "RRs G",
+    For example, if `xlabel` == `f"Rrs {c}"` then the columns "Rrs R", "Rrs G",
     "Rrs B", and "Rrs G2" (if available) will be used.
     """
     # Calculate residuals
