@@ -285,7 +285,15 @@ def residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None)
     propagate them (sum of squares).
     Returns a new table with differences.
     """
+    # Use a copy of x to store the residuals in
     result = x.copy()
+
+    # Remove columns that are in x but not in y
+    # For example, G2 if you are comparing RAW and JPEG
+    keys_not_overlapping = [key for key in result.keys() if key not in y.keys()]
+    result.remove_columns(keys_not_overlapping)
+
+    # Loop over the keys and update them to include x-y instead of just x
     for c in _loop_RGBG2_or_RGB(x, y, xdatalabel):
         result[xdatalabel.format(c=c)] = y[ydatalabel.format(c=c)] - x[xdatalabel.format(c=c)]
         if xerrlabel and yerrlabel:
