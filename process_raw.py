@@ -171,7 +171,7 @@ for folder_main in folders:
         axs[2].set_xlabel("$L_u$ (G) [a.u.]")
         axs[2].set_ylabel("$L_d$ (G) [a.u.]")
         axs[2].set_aspect("equal")
-        axs[1].set_title("$r =" + f"{all_corr[1,9]:.2f}" + "$")
+        axs[2].set_title("$r =" + f"{all_corr[1,9]:.2f}" + "$")
 
         plt.subplots_adjust(wspace=0.5)
         plt.savefig("corr.pdf", bbox_inches="tight")
