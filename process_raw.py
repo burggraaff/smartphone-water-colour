@@ -109,6 +109,11 @@ for folder_main in folders:
         all_cov_R = np.zeros((13,13)) ; all_cov_R[:12,:12] = all_cov ; all_cov_R[12,12] = 0.01**2
         print("Calculated standard deviations per channel")
 
+        # Calculate correlation coefficients
+        all_corr = np.corrcoef(all_RGBG)
+        not_diagonal = ~np.eye(12, dtype=bool)  # Off-diagonal element indices
+        max_corr = np.nanmax(all_corr[not_diagonal])
+
         # Convert to remote sensing reflectances
         R_rs = hc.R_RS(water_mean, sky_mean, card_mean)
         print("Calculated remote sensing reflectances")
