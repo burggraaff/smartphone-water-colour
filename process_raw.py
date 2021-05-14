@@ -18,6 +18,38 @@ import numpy as np
 from sys import argv
 from spectacle import io, load_camera
 from os import walk
+from matplotlib import pyplot as plt
+
+from matplotlib import cm
+from matplotlib.colors import Normalize
+from scipy.interpolate import interpn
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+def density_scatter(x, y, ax = None, sort = True, bins = 20, **kwargs):
+    # https://stackoverflow.com/a/53865762
+    """
+    Scatter plot colored by 2d histogram
+    """
+    if ax is None :
+        fig , ax = plt.subplots()
+    data , x_e, y_e = np.histogram2d( x, y, bins = bins, density = True )
+    z = interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) , data , np.vstack([x,y]).T , method = "splinef2d", bounds_error = False)
+
+    #To be sure to plot all data
+    z[np.where(np.isnan(z))] = 0.0
+
+    # Sort the points by density, so that the densest points are plotted last
+    if sort :
+        idx = z.argsort()
+        x, y, z = x[idx], y[idx], z[idx]
+
+    ax.scatter(x, y, c=z, **kwargs)
+
+    # norm = Normalize(vmin = np.min(z), vmax = np.max(z))
+    # cbar = fig.colorbar(cm.ScalarMappable(norm = norm), ax=ax)
+    # cbar.ax.set_ylabel('Density')
+
+    return ax
 
 from wk import hydrocolor as hc, wacodi as wa
 
@@ -113,6 +145,36 @@ for folder_main in folders:
         all_corr = np.corrcoef(all_RGBG)
         not_diagonal = ~np.eye(12, dtype=bool)  # Off-diagonal element indices
         max_corr = np.nanmax(all_corr[not_diagonal])
+
+        cmap = plt.cm.get_cmap("cividis", 20)
+        kwargs = {"cmap": cmap, "s": 5, "rasterized": True}
+
+        fig, axs = plt.subplots(ncols=3, figsize=(7,3), dpi=600)
+
+        divider = make_axes_locatable(axs[0])
+        cax = divider.append_axes('bottom', size='10%', pad=0.3)
+        im = axs[0].imshow(all_corr, extent=(0,12,12,0), cmap=cmap, vmin=0, vmax=1, origin="lower")
+        fig.colorbar(im, cax=cax, orientation='horizontal', ticks=np.arange(0,1.1,0.25), label="Pearson $r$")
+
+        axs[0].set_xticks(np.arange(0.5,12))
+        axs[0].set_xticklabels(["R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$"], fontsize="small")
+        axs[0].set_yticks(np.arange(0,13,4))
+        axs[0].set_yticklabels(["\n\n$L_d$", "\n\n$L_s$", "\n\n$L_u$", ""])
+
+        density_scatter(all_RGBG[1], all_RGBG[9], ax=axs[1], **kwargs)
+        density_scatter(all_RGBG[4], all_RGBG[5], ax=axs[2], **kwargs)
+
+        axs[1].set_xlabel("$L_u$ (G) [a.u.]")
+        axs[1].set_ylabel("$L_d$ (G) [a.u.]")
+        axs[1].set_aspect("equal")
+
+        axs[2].set_xlabel("$L_s$ (R) [a.u.]")
+        axs[2].set_ylabel("$L_s$ (G) [a.u.]")
+        axs[2].set_aspect("equal")
+
+        plt.subplots_adjust(wspace=0.5)
+        plt.savefig("corr.pdf", bbox_inches="tight")
+        plt.close()
 
         # Convert to remote sensing reflectances
         R_rs = hc.R_RS(water_mean, sky_mean, card_mean)
