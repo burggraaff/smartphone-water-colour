@@ -152,7 +152,7 @@ for folder_main in folders:
 
         divider = make_axes_locatable(axs[0])
         cax = divider.append_axes('bottom', size='10%', pad=0.3)
-        im = axs[0].imshow(all_corr, extent=(0,12,12,0), cmap=plt.cm.get_cmap("cividis", 20), vmin=0, vmax=1, origin="lower")
+        im = axs[0].imshow(all_corr, extent=(0,12,12,0), cmap=plt.cm.get_cmap("cividis", 10), vmin=0, vmax=1, origin="lower")
         fig.colorbar(im, cax=cax, orientation='horizontal', ticks=np.arange(0,1.1,0.25), label="Pearson $r$")
 
         axs[0].set_xticks(np.arange(0.5,12))
@@ -166,10 +166,12 @@ for folder_main in folders:
         axs[1].set_xlabel("$L_s$ (R) [a.u.]")
         axs[1].set_ylabel("$L_s$ (G) [a.u.]")
         axs[1].set_aspect("equal")
+        axs[1].set_title("$r =" + f"{all_corr[4,5]:.2f}" + "$")
 
         axs[2].set_xlabel("$L_u$ (G) [a.u.]")
         axs[2].set_ylabel("$L_d$ (G) [a.u.]")
         axs[2].set_aspect("equal")
+        axs[1].set_title("$r =" + f"{all_corr[1,9]:.2f}" + "$")
 
         plt.subplots_adjust(wspace=0.5)
         plt.savefig("corr.pdf", bbox_inches="tight")
