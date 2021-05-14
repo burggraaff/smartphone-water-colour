@@ -146,14 +146,13 @@ for folder_main in folders:
         not_diagonal = ~np.eye(12, dtype=bool)  # Off-diagonal element indices
         max_corr = np.nanmax(all_corr[not_diagonal])
 
-        cmap = plt.cm.get_cmap("cividis", 20)
-        kwargs = {"cmap": cmap, "s": 5, "rasterized": True}
+        kwargs = {"cmap": plt.cm.get_cmap("cividis", 10), "s": 5, "rasterized": True}
 
         fig, axs = plt.subplots(ncols=3, figsize=(7,3), dpi=600)
 
         divider = make_axes_locatable(axs[0])
         cax = divider.append_axes('bottom', size='10%', pad=0.3)
-        im = axs[0].imshow(all_corr, extent=(0,12,12,0), cmap=cmap, vmin=0, vmax=1, origin="lower")
+        im = axs[0].imshow(all_corr, extent=(0,12,12,0), cmap=plt.cm.get_cmap("cividis", 20), vmin=0, vmax=1, origin="lower")
         fig.colorbar(im, cax=cax, orientation='horizontal', ticks=np.arange(0,1.1,0.25), label="Pearson $r$")
 
         axs[0].set_xticks(np.arange(0.5,12))
@@ -161,15 +160,15 @@ for folder_main in folders:
         axs[0].set_yticks(np.arange(0,13,4))
         axs[0].set_yticklabels(["\n\n$L_d$", "\n\n$L_s$", "\n\n$L_u$", ""])
 
-        density_scatter(all_RGBG[1], all_RGBG[9], ax=axs[1], **kwargs)
-        density_scatter(all_RGBG[4], all_RGBG[5], ax=axs[2], **kwargs)
+        density_scatter(all_RGBG[4], all_RGBG[5], ax=axs[1], **kwargs)
+        density_scatter(all_RGBG[1], all_RGBG[9], ax=axs[2], **kwargs)
 
-        axs[1].set_xlabel("$L_u$ (G) [a.u.]")
-        axs[1].set_ylabel("$L_d$ (G) [a.u.]")
+        axs[1].set_xlabel("$L_s$ (R) [a.u.]")
+        axs[1].set_ylabel("$L_s$ (G) [a.u.]")
         axs[1].set_aspect("equal")
 
-        axs[2].set_xlabel("$L_s$ (R) [a.u.]")
-        axs[2].set_ylabel("$L_s$ (G) [a.u.]")
+        axs[2].set_xlabel("$L_u$ (G) [a.u.]")
+        axs[2].set_ylabel("$L_d$ (G) [a.u.]")
         axs[2].set_aspect("equal")
 
         plt.subplots_adjust(wspace=0.5)
