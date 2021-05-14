@@ -88,12 +88,12 @@ for folder_main in folders:
         water_RGBG = water_cut.reshape(4, -1)
         sky_RGBG = sky_cut.reshape(4, -1)
         card_RGBG = card_cut.reshape(4, -1)
-        all_RGBG = np.concatenate([water_RGBG, sky_RGBG, card_RGBG])
 
         # Divide by the spectral bandwidths to normalise to ADU nm^-1
         water_RGBG /= effective_bandwidths[:, np.newaxis]
         sky_RGBG /= effective_bandwidths[:, np.newaxis]
         card_RGBG /= effective_bandwidths[:, np.newaxis]
+        all_RGBG = np.concatenate([water_RGBG, sky_RGBG, card_RGBG])
 
         # Calculate mean values
         water_mean = water_RGBG.mean(axis=1)
