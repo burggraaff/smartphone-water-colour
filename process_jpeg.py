@@ -68,20 +68,27 @@ for folder_main in folders:
 
         hc.histogram_jpeg(water_all, sky_all, card_all, saveto=data_path/"statistics_jpeg.pdf")
 
+        # Reshape the central images to lists
+        water_RGB = water_cut.reshape(-1, 3)
+        sky_RGB = sky_cut.reshape(-1, 3)
+        card_RGB = card_cut.reshape(-1, 3)
+
         # Divide by the spectral bandwidths to normalise to ADU nm^-1
-        water_cut = water_cut / effective_bandwidths
-        sky_cut = sky_cut / effective_bandwidths
-        card_cut = card_cut / effective_bandwidths
+        water_RGB = water_RGB / effective_bandwidths
+        sky_RGB = sky_RGB / effective_bandwidths
+        card_RGB = card_RGB / effective_bandwidths
+        all_RGB = np.concatenate([water_RGB, sky_RGB, card_RGB], axis=1)
 
         # Calculate mean values
-        water_mean = water_cut.mean(axis=(0,1))
-        sky_mean = sky_cut.mean(axis=(0,1))
-        card_mean = card_cut.mean(axis=(0,1))
+        water_mean = water_RGB.mean(axis=0)
+        sky_mean = sky_RGB.mean(axis=0)
+        card_mean = card_RGB.mean(axis=0)
+        all_mean = all_RGB.mean(axis=0)
         print("Calculated mean values per channel")
 
-        water_std = water_cut.std(axis=(0,1))
-        sky_std = sky_cut.std(axis=(0,1))
-        card_std = card_cut.std(axis=(0,1))
+        water_std = water_RGB.std(axis=0)
+        sky_std = sky_RGB.std(axis=0)
+        card_std = card_RGB.std(axis=0)
         print("Calculated standard deviations per channel")
 
         # HydroColor
