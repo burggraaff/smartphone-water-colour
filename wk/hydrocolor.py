@@ -38,6 +38,31 @@ def R_RS_error(L_u, L_s, L_d, L_u_err, L_s_err, L_d_err, rho=0.028, R_ref=0.18):
     return R_rs_err
 
 
+def R_rs_covariance(L_Rref_covariance, R_rs, L_d, rho=0.028, R_ref=0.18):
+    """
+    Propagate the covariance in radiance and R_ref into a covariance matrix
+    for R_rs. Automatically determine the number of bands and return an
+    appropriately sized matrix.
+    """
+    # Determine the number of bands and create an appropriate identity matrix
+    nr_bands = len(R_rs)
+    I = np.eye(nr_bands)
+
+    # Calculate the four parts of the Jacobian matrix
+    J1 = 1/np.pi * R_ref * I * (1/L_d)
+    J2 = -1/np.pi * R_ref * rho * I * (1/L_d)
+    J3 = -1 * I * (R_rs / L_d)
+    JR = R_rs[:,np.newaxis] / R_ref
+
+    # Combine the parts of the Jacobian
+    J = np.concatenate([J1, J2, J3, JR], axis=1)
+
+    # Propagate the individual covariances
+    R_rs_cov = J @ L_Rref_covariance @ J.T
+
+    return R_rs_cov
+
+
 def data_type_RGB(filename):
     """
     Find out if a given filename has RAW, JPEG, or linearised JPEG data.

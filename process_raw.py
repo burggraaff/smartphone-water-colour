@@ -182,14 +182,7 @@ for folder_main in folders:
         print("Calculated remote sensing reflectances")
 
         # Covariances
-        Rref = 0.18
-        rho = 0.028
-        J1 = 1/np.pi * Rref * np.eye(4) * (1/card_mean)
-        J2 = -1/np.pi * Rref * rho * np.eye(4) * (1/card_mean)
-        J3 = -1 * np.eye(4) * (R_rs / card_mean)
-        JR = R_rs[:,np.newaxis] / Rref
-        J = np.concatenate([J1, J2, J3, JR], axis=1)
-        R_rs_cov = J @ all_cov_R @ J.T
+        R_rs_cov = hc.R_rs_covariance(all_cov_R, R_rs, card_mean)
 
         # HydroColor
 

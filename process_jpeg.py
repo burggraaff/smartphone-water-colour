@@ -69,26 +69,28 @@ for folder_main in folders:
         hc.histogram_jpeg(water_all, sky_all, card_all, saveto=data_path/"statistics_jpeg.pdf")
 
         # Reshape the central images to lists
-        water_RGB = water_cut.reshape(-1, 3)
-        sky_RGB = sky_cut.reshape(-1, 3)
-        card_RGB = card_cut.reshape(-1, 3)
+        water_RGB = water_cut.reshape(-1, 3).T
+        sky_RGB = sky_cut.reshape(-1, 3).T
+        card_RGB = card_cut.reshape(-1, 3).T
 
         # Divide by the spectral bandwidths to normalise to ADU nm^-1
-        water_RGB = water_RGB / effective_bandwidths
-        sky_RGB = sky_RGB / effective_bandwidths
-        card_RGB = card_RGB / effective_bandwidths
-        all_RGB = np.concatenate([water_RGB, sky_RGB, card_RGB], axis=1)
+        water_RGB = water_RGB / effective_bandwidths[:, np.newaxis]
+        sky_RGB = sky_RGB / effective_bandwidths[:, np.newaxis]
+        card_RGB = card_RGB / effective_bandwidths[:, np.newaxis]
+        all_RGB = np.concatenate([water_RGB, sky_RGB, card_RGB])
 
         # Calculate mean values
-        water_mean = water_RGB.mean(axis=0)
-        sky_mean = sky_RGB.mean(axis=0)
-        card_mean = card_RGB.mean(axis=0)
-        all_mean = all_RGB.mean(axis=0)
+        water_mean = water_RGB.mean(axis=1)
+        sky_mean = sky_RGB.mean(axis=1)
+        card_mean = card_RGB.mean(axis=1)
+        all_mean = all_RGB.mean(axis=1)
         print("Calculated mean values per channel")
 
-        water_std = water_RGB.std(axis=0)
-        sky_std = sky_RGB.std(axis=0)
-        card_std = card_RGB.std(axis=0)
+        water_std = water_RGB.std(axis=1)
+        sky_std = sky_RGB.std(axis=1)
+        card_std = card_RGB.std(axis=1)
+        all_cov = np.cov(all_RGB)
+        all_cov_R = np.zeros((10,10)) ; all_cov_R[:9,:9] = all_cov ; all_cov_R[-1,-1] = 0.01**2
         print("Calculated standard deviations per channel")
 
         # HydroColor
@@ -96,6 +98,9 @@ for folder_main in folders:
         # Convert to remote sensing reflectances
         R_rs = hc.R_RS(water_mean, sky_mean, card_mean)
         print("Calculated remote sensing reflectances")
+
+        # Covariances
+        R_rs_cov = hc.R_rs_covariance(all_cov_R, R_rs, card_mean)
 
         R_rs_err = hc.R_RS_error(water_mean, sky_mean, card_mean, water_std, sky_std, card_std)
         print("Calculated error in remote sensing reflectances")
