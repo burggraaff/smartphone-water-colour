@@ -14,10 +14,21 @@ colours = ["R", "G", "B", "G2"]  # Smartphone bands
 plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255], [0,158/255,115/255]]  # Plot colours from Okabe-Ito
 
 def R_RS(L_u, L_s, L_d, rho=0.028, R_ref=0.18):
+    """
+    Calculate the remote sensing reflectance (R_rs) from upwelling radiance L_u,
+    sky radiance L_s, downwelling radiance L_d.
+    Additional parameters are surface reflectivity rho (default 0.028), grey card
+    reflectance R_ref (0.18).
+    L_u, L_s, L_d can be NumPy arrays.
+    """
     return (L_u - rho * L_s) / ((np.pi / R_ref) * L_d)
 
 
 def R_RS_error(L_u, L_s, L_d, L_u_err, L_s_err, L_d_err, rho=0.028, R_ref=0.18):
+    """
+    Calculate the uncertainty in R_rs from the uncertainty in L_u, L_s, L_d.
+    Note this does NOT account for uncertainty in R_ref nor covariance.
+    """
     # Calculate squared errors individually
     R_rs_err_water = L_u_err**2 * ((0.18/np.pi) * L_d**-1)**2
     R_rs_err_sky = L_s_err**2 * ((0.18/np.pi) * 0.028 * L_d**-1)**2
