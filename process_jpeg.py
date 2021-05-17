@@ -69,6 +69,7 @@ for folder_main in folders:
         hc.histogram_jpeg(water_all, sky_all, card_all, saveto=data_path/"statistics_jpeg.pdf")
 
         # Reshape the central images to lists
+        # NB do not replace this with .reshape(3, -1) because that mixes channels
         water_RGB = water_cut.reshape(-1, 3).T
         sky_RGB = sky_cut.reshape(-1, 3).T
         card_RGB = card_cut.reshape(-1, 3).T
