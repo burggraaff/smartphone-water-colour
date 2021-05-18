@@ -182,7 +182,7 @@ for folder_main in folders:
         print("Calculated remote sensing reflectances")
 
         # Covariances
-        R_rs_cov = hc.R_rs_covariance(all_cov_R, R_rs, card_mean)
+        R_rs_covariance = hc.R_rs_covariance(all_cov_R, R_rs, card_mean)
 
         # HydroColor
 
@@ -194,6 +194,18 @@ for folder_main in folders:
 
         # Plot the result
         hc.plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err)
+
+        # Calculate band ratios
+        beta = (R_rs[1] + R_rs[3]) / (2 * R_rs[2])  # G/B
+        rho = (R_rs[1] + R_rs[3]) / (2 * R_rs[0])  # G/R
+        bandratios = np.array([beta, rho])
+
+        bandratios_J = np.array([[0            , -rho/R_rs[0]],
+                                 [1/R_rs[2]    , 1/R_rs[0]   ],
+                                 [-beta/R_rs[2], 0           ],
+                                 [1/R_rs[2]    , 1/R_rs[0]   ]])
+
+        bandratios_covariance = bandratios_J.T @ R_rs_covariance @ bandratios_J
 
         # # WACODI
 
