@@ -138,7 +138,6 @@ for folder_main in folders:
         sky_std = water_RGBG.std(axis=1)
         card_std = water_RGBG.std(axis=1)
         all_cov = np.cov(all_RGBG)
-        all_cov_R = np.zeros((13,13)) ; all_cov_R[:12,:12] = all_cov ; all_cov_R[12,12] = 0.01**2
         print("Calculated standard deviations per channel")
 
         # Calculate correlation coefficients
@@ -177,35 +176,48 @@ for folder_main in folders:
         plt.savefig("corr.pdf", bbox_inches="tight")
         plt.close()
 
+        # Average G and G2
+        M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
+                                   [0, 0.5, 0, 0.5],
+                                   [0, 0  , 1, 0  ]])
+        M_RGBG2_to_RGB_all_L = np.zeros((9, 12))
+        M_RGBG2_to_RGB_all_L[:3,:4] = M_RGBG2_to_RGB_all_L[3:6,4:8] = M_RGBG2_to_RGB_all_L[6:,8:] = M_RGBG2_to_RGB
+
+        all_mean_RGB = M_RGBG2_to_RGB_all_L @ all_mean
+        all_covariance_RGB = M_RGBG2_to_RGB_all_L @ all_cov @ M_RGBG2_to_RGB_all_L.T
+        all_correlation_RGB = hc.correlation_from_covariance(all_covariance_RGB)
+        all_covariance_RGB_Rref = hc.add_Rref_to_covariance(all_covariance_RGB)
+
+        water_mean_RGB, sky_mean_RGB, card_mean_RGB = hc.split_combined_radiances(all_mean_RGB)
+
         # Convert to remote sensing reflectances
-        R_rs = hc.R_RS(water_mean, sky_mean, card_mean)
+        R_rs = hc.R_RS(water_mean_RGB, sky_mean_RGB, card_mean_RGB)
         print("Calculated remote sensing reflectances")
 
         # Covariances
-        R_rs_covariance = hc.R_rs_covariance(all_cov_R, R_rs, card_mean)
+        R_rs_covariance = hc.R_rs_covariance(all_covariance_RGB_Rref, R_rs, card_mean_RGB)
+        R_rs_uncertainty = np.sqrt(np.diag(R_rs_covariance))  # Uncertainty per band, ignoring covariance
+        R_rs_correlation = hc.correlation_from_covariance(R_rs_covariance)
 
         # HydroColor
-
-        R_rs_err = hc.R_RS_error(water_mean, sky_mean, card_mean, water_std, sky_std, card_std)
-        print("Calculated error in remote sensing reflectances")
-
-        for R, R_err, c in zip(R_rs, R_rs_err, "RGB"):
-            print(f"{c}: R_rs = {R:.3f} +- {R_err:.3f} sr^-1")
+        for reflectance, reflectance_uncertainty, c in zip(R_rs, R_rs_uncertainty, "RGB"):
+            print(f"R_rs({c}) = ({reflectance:.3f} +- {reflectance_uncertainty:.3f}) sr^-1   ({100*reflectance_uncertainty/reflectance:.0f}% uncertainty)")
 
         # Plot the result
-        hc.plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err)
+        hc.plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_uncertainty)
 
         # Calculate band ratios
-        beta = (R_rs[1] + R_rs[3]) / (2 * R_rs[2])  # G/B
-        rho = (R_rs[1] + R_rs[3]) / (2 * R_rs[0])  # G/R
-        bandratios = np.array([beta, rho])
+        beta = R_rs[1] / R_rs[2]  # G/B
+        rho = R_rs[1] / R_rs[0]  # G/R
+        bandratios = np.array([rho, beta])
 
-        bandratios_J = np.array([[0            , -rho/R_rs[0]],
-                                 [1/R_rs[2]    , 1/R_rs[0]   ],
-                                 [-beta/R_rs[2], 0           ],
-                                 [1/R_rs[2]    , 1/R_rs[0]   ]])
+        bandratios_J = np.array([[-rho/R_rs[0], 1/R_rs[0], 0            ],
+                                 [0           , 1/R_rs[2], -beta/R_rs[2]]])
 
-        bandratios_covariance = bandratios_J.T @ R_rs_covariance @ bandratios_J
+        bandratios_covariance = bandratios_J @ R_rs_covariance @ bandratios_J.T
+        bandratios_uncertainty = np.sqrt(np.diag(bandratios_covariance))
+        bandratios_correlation = hc.correlation_from_covariance(bandratios_covariance)
+        print(f"Calculated average band ratios: R_rs(G)/R_rs(R) = {bandratios[0]:.2f} +- {bandratios_uncertainty[0]:.2f}    R_rs(G)/R_rs(B) = {bandratios[1]:.2f} +- {bandratios_uncertainty[1]:.2f}    (correlation r = {bandratios_correlation[0,1]:.2f})")
 
         # # WACODI
 

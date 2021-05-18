@@ -13,6 +13,43 @@ from scipy.stats import linregress
 colours = ["R", "G", "B", "G2"]  # Smartphone bands
 plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255], [0,158/255,115/255]]  # Plot colours from Okabe-Ito
 
+
+def correlation_from_covariance(covariance):
+    """
+    Convert a covariance matrix into a correlation matrix
+    https://gist.github.com/wiso/ce2a9919ded228838703c1c7c7dad13b
+    """
+    v = np.sqrt(np.diag(covariance))
+    outer_v = np.outer(v, v)
+    correlation = covariance / outer_v
+    correlation[covariance == 0] = 0
+    return correlation
+
+
+def add_Rref_to_covariance(covariance, Rref_uncertainty=0.01):
+    """
+    Add a column and row for R_ref to a covariance matrix.
+    The input Rref_uncertainty is assumed fully uncorrelated
+    to the other elements.
+    """
+    new_shape = np.array(covariance.shape) + 1  # Add a row and column
+    covariance_with_Rref = np.zeros(new_shape)  # Make an empty array
+    covariance_with_Rref[:-1,:-1] = covariance  # All but the last row and column are just the original covariance matrix
+    covariance_with_Rref[-1,-1] = Rref_uncertainty**2  # Put Rref_uncertainty in the last diagonal element
+
+    return covariance_with_Rref
+
+
+def split_combined_radiances(radiances):
+    """
+    For a combined radiance array, e.g. [Lu(R), Lu(G), Lu(B), Ls(R), ..., Ld(G), Ld(B)],
+    split it into three separate arrays: [Lu(R), Lu(G), Lu(B)], [Ls(R), ...], ...
+    """
+    n = len(radiances)//3
+    Lu, Ls, Ld = radiances[:n], radiances[n:2*n], radiances[2*n:]
+    return Lu, Ls, Ld
+
+
 def R_RS(L_u, L_s, L_d, rho=0.028, R_ref=0.18):
     """
     Calculate the remote sensing reflectance (R_rs) from upwelling radiance L_u,
