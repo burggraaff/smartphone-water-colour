@@ -225,13 +225,14 @@ for folder_main in folders:
 
         # # WACODI
 
-        # # Convert RGBG2 to RGB
-        # water_mean, sky_mean, card_mean = water_mean[:3], sky_mean[:3], card_mean[:3]
-        # water_std, sky_std, card_std = water_std[:3], sky_std[:3], card_std[:3]
+        # Convert RGB to XYZ
+        water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ = camera.convert_to_XYZ(water_mean_RGB, sky_mean_RGB, card_mean_RGB, R_rs)
+        # all_mean_XYZ = np.concatenate([water_XYZ, sky_XYZ, card_XYZ])
+        R_rs_XYZ_covariance = camera.XYZ_matrix @ R_rs_covariance @ camera.XYZ_matrix.T
+        radiance_RGB_to_XYZ = hc.block_diag(*[camera.XYZ_matrix]*3)
 
-        # # Convert RGB to XYZ
-        # water_XYZ, sky_XYZ, card_XYZ = camera.convert_to_XYZ(water_mean, sky_mean, card_mean)
-        # water_XYZ_err, sky_XYZ_err, card_XYZ_err = wa.convert_errors_to_XYZ(camera.XYZ_matrix, water_std, sky_std, card_std)
+        all_mean_XYZ = radiance_RGB_to_XYZ @ all_mean_RGB
+        all_mean_XYZ_covariance = radiance_RGB_to_XYZ @ all_covariance_RGB @ radiance_RGB_to_XYZ.T
 
         # # Calculate xy chromaticity
         # water_xy, sky_xy, card_xy = wa.convert_XYZ_to_xy(water_XYZ, sky_XYZ, card_XYZ)
