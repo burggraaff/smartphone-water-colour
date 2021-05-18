@@ -619,3 +619,5 @@ def write_results(saveto, timestamp, water, water_err, sky, sky_err, grey, grey_
 
     result.write(saveto, format="ascii.fast_csv")
     print(f"Saved results to `{saveto}`")
+
+#         hc.write_results(saveto, UTC, all_mean_RGB, all_covariance_RGB, R_rs, R_rs_covariance)

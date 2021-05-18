@@ -245,4 +245,4 @@ for folder_main in folders:
 
         # Write the result to file
         saveto = data_path.with_name(data_path.stem + "_raw.csv")
-        hc.write_results(saveto, UTC, water_mean, water_std, sky_mean, sky_std, card_mean, card_std, R_rs, R_rs_err)
+        hc.write_results(saveto, UTC, all_mean_RGB, all_covariance_RGB, R_rs, R_rs_covariance)
