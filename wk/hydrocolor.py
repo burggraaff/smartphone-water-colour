@@ -92,7 +92,7 @@ def R_rs_covariance(L_Rref_covariance, R_rs, L_d, rho=0.028, R_ref=0.18):
     JR = R_rs[:,np.newaxis] / R_ref
 
     # Combine the parts of the Jacobian
-    J = np.concatenate([J1, J2, J3, JR], axis=1)
+    J = np.block([J1, J2, J3, JR])
 
     # Propagate the individual covariances
     R_rs_cov = J @ L_Rref_covariance @ J.T
