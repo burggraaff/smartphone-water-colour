@@ -180,7 +180,7 @@ for folder_main in folders:
         M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
                                    [0, 0.5, 0, 0.5],
                                    [0, 0  , 1, 0  ]])
-        M_RGBG2_to_RGB_all_L = hc.block_diag(*[M_RGBG2_to_RGB]*3)
+        M_RGBG2_to_RGB_all_L = hc.block_diag(*[M_RGBG2_to_RGB]*3)  # Repeat three times along the diagonal, 0 elsewhere
 
         all_mean_RGB = M_RGBG2_to_RGB_all_L @ all_mean
         all_covariance_RGB = M_RGBG2_to_RGB_all_L @ all_cov @ M_RGBG2_to_RGB_all_L.T
@@ -189,12 +189,17 @@ for folder_main in folders:
 
         water_mean_RGB, sky_mean_RGB, card_mean_RGB = hc.split_combined_radiances(all_mean_RGB)
 
+        # Calculate Ed from Ld
+        Ld_covariance_RGB = all_covariance_RGB[-3:, -3:]  # Take only the Ld-Ld elements from the covariance matrix
+        Ed = hc.convert_Ld_to_Ed(card_mean_RGB)
+        Ed_covariance = hc.convert_Ld_to_Ed_covariance(Ld_covariance_RGB, Ed)
+
         # Convert to remote sensing reflectances
         R_rs = hc.R_RS(water_mean_RGB, sky_mean_RGB, card_mean_RGB)
+        R_rs_covariance = hc.R_rs_covariance(all_covariance_RGB_Rref, R_rs, card_mean_RGB)
         print("Calculated remote sensing reflectances")
 
-        # Covariances
-        R_rs_covariance = hc.R_rs_covariance(all_covariance_RGB_Rref, R_rs, card_mean_RGB)
+        # Derive naive uncertainty and correlation from covariance
         R_rs_uncertainty = np.sqrt(np.diag(R_rs_covariance))  # Uncertainty per band, ignoring covariance
         R_rs_correlation = hc.correlation_from_covariance(R_rs_covariance)
 
@@ -244,4 +249,4 @@ for folder_main in folders:
 
         # Write the result to file
         saveto = data_path.with_name(data_path.stem + "_raw.csv")
-        hc.write_results(saveto, UTC, all_mean_RGB, all_covariance_RGB, R_rs, R_rs_covariance)
+        hc.write_results(saveto, UTC, all_mean_RGB, all_covariance_RGB, R_rs, R_rs_covariance, Ed, Ed_covariance)

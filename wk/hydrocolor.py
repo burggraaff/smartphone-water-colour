@@ -38,6 +38,29 @@ def add_Rref_to_covariance(covariance, Rref_uncertainty=0.01):
     return covariance_with_Rref
 
 
+def convert_Ld_to_Ed(Ld, R_ref=0.18):
+    """
+    Convert downwelling radiance from a grey card (Ld) to downwelling
+    irradiance (Ed) using the reference reflectance (R_ref).
+    """
+    Ed = Ld / R_ref
+    return Ed
+
+
+def convert_Ld_to_Ed_covariance(Ld_covariance, Ed, R_ref=0.18, R_ref_uncertainty=0.01):
+    """
+    Convert the covariance in downwelling radiance (Ld) and the
+    reference reflectance (R_ref) to a covariance in downwelling
+    irradiance (Ed).
+    """
+    nr_bands = len(Ed)  # Number of bands - 3 for RGB, 4 for RGBG2
+    total_covariance = add_Rref_to_covariance(Ld_covariance, R_ref_uncertainty)
+    J = np.block([np.eye(nr_bands)/R_ref, (-Ed/R_ref)[:,np.newaxis]])  # Jacobian matrix
+    Ed_covariance = J @ total_covariance @ J.T
+
+    return Ed_covariance
+
+
 def split_combined_radiances(radiances):
     """
     For a combined radiance array, e.g. [Lu(R), Lu(G), Lu(B), Ls(R), ..., Ld(G), Ld(B)],
