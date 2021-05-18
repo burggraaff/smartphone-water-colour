@@ -180,8 +180,7 @@ for folder_main in folders:
         M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
                                    [0, 0.5, 0, 0.5],
                                    [0, 0  , 1, 0  ]])
-        M_RGBG2_to_RGB_all_L = np.zeros((9, 12))
-        M_RGBG2_to_RGB_all_L[:3,:4] = M_RGBG2_to_RGB_all_L[3:6,4:8] = M_RGBG2_to_RGB_all_L[6:,8:] = M_RGBG2_to_RGB
+        M_RGBG2_to_RGB_all_L = hc.block_diag(*[M_RGBG2_to_RGB]*3)
 
         all_mean_RGB = M_RGBG2_to_RGB_all_L @ all_mean
         all_covariance_RGB = M_RGBG2_to_RGB_all_L @ all_cov @ M_RGBG2_to_RGB_all_L.T

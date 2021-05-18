@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from datetime import datetime, timedelta
 from astropy import table
 from scipy.stats import linregress
+from scipy.linalg import block_diag
 
 colours = ["R", "G", "B", "G2"]  # Smartphone bands
 plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255], [0,158/255,115/255]]  # Plot colours from Okabe-Ito
@@ -32,10 +33,7 @@ def add_Rref_to_covariance(covariance, Rref_uncertainty=0.01):
     The input Rref_uncertainty is assumed fully uncorrelated
     to the other elements.
     """
-    new_shape = np.array(covariance.shape) + 1  # Add a row and column
-    covariance_with_Rref = np.zeros(new_shape)  # Make an empty array
-    covariance_with_Rref[:-1,:-1] = covariance  # All but the last row and column are just the original covariance matrix
-    covariance_with_Rref[-1,-1] = Rref_uncertainty**2  # Put Rref_uncertainty in the last diagonal element
+    covariance_with_Rref = block_diag(covariance, [Rref_uncertainty**2])
 
     return covariance_with_Rref
 
