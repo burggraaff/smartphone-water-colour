@@ -625,20 +625,53 @@ def UTC_timestamp(water_exif, conversion_to_utc=timedelta(hours=2)):
     return UTC
 
 
-def write_results(saveto, timestamp, water, water_err, sky, sky_err, grey, grey_err, Rrs, Rrs_err, Rref=0.18):
-    assert len(water) == len(water_err) == len(sky) == len(sky_err) == len(grey) == len(grey_err) == len(Rrs) == len(Rrs_err), "Not all input arrays have the same length"
-    header = ["Lu {c}", "Lu_err {c}", "Lsky {c}", "Lsky_err {c}", "Ld {c}", "Ld_err {c}", "Ed {c}", "Ed_err {c}", "Rrs {c}", "Rrs_err {c}"]
-    colours_here = "RGB" if len(water) == 3 else colours
-    header_full = [[s.format(c=c) for c in colours_here] for s in header]
-    header = ["UTC", "UTC (ISO)"] + [item for sublist in header_full for item in sublist]
+def _convert_symmetric_matrix_to_list(sym):
+    """
+    Convert a symmetric matrix `sym` to a list that contains its
+    upper-triangular (including diagonal) elements.
+    """
+    return sym[np.triu_indices_from(sym)]
 
-    Ed = np.pi / Rref * grey
-    Ed_err = np.pi / Rref * grey_err
-    data = [[timestamp.timestamp(), timestamp.isoformat(), *water, *water_err, *sky, *sky_err, *grey, *grey_err, *Ed, *Ed_err, *Rrs, *Rrs_err]]
 
+def _convert_list_to_symmetrix_matrix(symlist):
+    """
+    Convert a list containing elemens of a symmetric matrix
+    (e.g. generated using _convert_symmetric_matrix_to_list) back
+    into a matrix.
+    """
+    # Number of independent elements in symmetric matrix of size nxn is
+    # L = n*(n+1)/2
+    # Inverted gives n = -0.5 + 0.5*sqrt(1 + 8L)
+    nr_columns = int(-0.5 + 0.5*np.sqrt(1 + 8*len(symlist)))
+
+    # Create the array
+    arr = np.zeros((nr_columns, nr_columns))
+    arr[np.triu_indices(nr_columns)] = symlist  # Add the upper-triangular elements
+    arr = arr + arr.T - np.diag(np.diag(arr))  # Add the lower-triangular elements without doubling the diagonal
+
+    return arr
+
+
+def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_covariance, R_rs, R_rs_covariance):
+    # assert len(water) == len(water_err) == len(sky) == len(sky_err) == len(grey) == len(grey_err) == len(Rrs) == len(Rrs_err), "Not all input arrays have the same length"
+
+    # Split the covariance matrices out
+    radiances_covariance_list = _convert_symmetric_matrix_to_list(radiances_covariance)
+    Ed_covariance_list = _convert_symmetric_matrix_to_list(Ed_covariance)
+    R_rs_covariance_list = _convert_symmetric_matrix_to_list(R_rs_covariance)
+
+    # Make a header with the relevant items
+    header = ["Lu {c}", "Lsky {c}", "Ld {c}", "Ed {c}", "R_rs {c}"]
+    bands = "RGB"
+    header_full = [[s.format(c=c) for c in bands] for s in header]
+    header = ["UTC", "UTC (ISO)"] + [item for sublist in header_full for item in sublist] + ["L_covariance", "Ed_covariance", "R_rs_covariance"]
+
+    # Add the data to a row, and that row to a table
+    data = [[timestamp.timestamp(), timestamp.isoformat(), *radiances, *Ed, *R_rs, radiances_covariance, Ed_covariance, R_rs_covariance]]
     result = table.Table(rows=data, names=header)
 
+    # Write the result to file
     result.write(saveto, format="ascii.fast_csv")
     print(f"Saved results to `{saveto}`")
 
-#         hc.write_results(saveto, UTC, all_mean_RGB, all_covariance_RGB, R_rs, R_rs_covariance)
+# hc.write_results(saveto, UTC, all_mean_RGB, all_covariance_RGB, R_rs, R_rs_covariance, Ed, Ed_covariance)
