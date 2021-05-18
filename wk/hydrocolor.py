@@ -652,6 +652,15 @@ def _convert_list_to_symmetric_matrix(symlist):
     return arr
 
 
+def _generic_header(elements, prefix=""):
+    """
+    Generate a generic header (list of names) for a list `elements`.
+    Optionally use a prefix to identify them.
+    """
+    header = [f"{prefix}_{j:04d}" for j, ele in enumerate(elements)]
+    return header
+
+
 def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_covariance, R_rs, R_rs_covariance):
     # assert len(water) == len(water_err) == len(sky) == len(sky_err) == len(grey) == len(grey_err) == len(Rrs) == len(Rrs_err), "Not all input arrays have the same length"
 
@@ -660,14 +669,19 @@ def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_cov
     Ed_covariance_list = _convert_symmetric_matrix_to_list(Ed_covariance)
     R_rs_covariance_list = _convert_symmetric_matrix_to_list(R_rs_covariance)
 
+    # Headers for the covariance matrices
+    radiances_covariance_header = _generic_header(radiances_covariance_list, "cov_L")
+    Ed_covariance_header = _generic_header(Ed_covariance_list, "cov_Ed")
+    R_rs_covariance_header = _generic_header(R_rs_covariance_list, "cov_R_rs")
+
     # Make a header with the relevant items
     header = ["Lu {c}", "Lsky {c}", "Ld {c}", "Ed {c}", "R_rs {c}"]
     bands = "RGB"
     header_full = [[s.format(c=c) for c in bands] for s in header]
-    header = ["UTC", "UTC (ISO)"] + [item for sublist in header_full for item in sublist] + ["L_covariance", "Ed_covariance", "R_rs_covariance"]
+    header = ["UTC", "UTC (ISO)"] + [item for sublist in header_full for item in sublist] + radiances_covariance_header + Ed_covariance_header + R_rs_covariance_header
 
     # Add the data to a row, and that row to a table
-    data = [[timestamp.timestamp(), timestamp.isoformat(), *radiances, *Ed, *R_rs, radiances_covariance, Ed_covariance, R_rs_covariance]]
+    data = [[timestamp.timestamp(), timestamp.isoformat(), *radiances, *Ed, *R_rs, *radiances_covariance_list, *Ed_covariance_list, *R_rs_covariance_list]]
     result = table.Table(rows=data, names=header)
 
     # Write the result to file
