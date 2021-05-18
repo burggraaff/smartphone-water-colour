@@ -633,7 +633,7 @@ def _convert_symmetric_matrix_to_list(sym):
     return sym[np.triu_indices_from(sym)]
 
 
-def _convert_list_to_symmetrix_matrix(symlist):
+def _convert_list_to_symmetric_matrix(symlist):
     """
     Convert a list containing elemens of a symmetric matrix
     (e.g. generated using _convert_symmetric_matrix_to_list) back
