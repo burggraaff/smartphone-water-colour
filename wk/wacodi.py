@@ -1,6 +1,9 @@
 from spectacle.general import apply_to_multiple_args
 import numpy as np
-
+from matplotlib import pyplot as plt, transforms
+from matplotlib.patches import Ellipse
+from colorio._tools import plot_flat_gamut
+from .hydrocolor import correlation_from_covariance
 
 def _convert_error_to_XYZ(RGB_errors, XYZ_matrix):
     """
@@ -66,3 +69,34 @@ def convert_xy_to_hue_angle_covariance(xy_covariance, xy_data):
     hue_angle_uncertainty_rad = J @ xy_covariance @ J.T
     hue_angle_uncertainty = np.rad2deg(hue_angle_uncertainty_rad)
     return hue_angle_uncertainty
+
+
+def _confidence_ellipse(center, covariance, ax, covariance_scale=1, **kwargs):
+    """
+    Plot a confidence ellipse from a given (2x2) covariance matrix.
+    https://matplotlib.org/devdocs/gallery/statistics/confidence_ellipse.html
+    """
+    correlation = correlation_from_covariance(covariance)[0,1]
+    ell_radius_x = np.sqrt(1 + correlation)
+    ell_radius_y = np.sqrt(1 - correlation)
+    ellipse = Ellipse((0, 0), width=ell_radius_x*2, height=ell_radius_y*2, **kwargs)
+
+    scale_x = np.sqrt(covariance[0,0])*covariance_scale
+    scale_y = np.sqrt(covariance[1,1])*covariance_scale
+
+    transf = transforms.Affine2D().rotate_deg(45).scale(scale_x, scale_y).translate(*center)
+    ellipse.set_transform(transf + ax.transData)
+
+    return ax.add_patch(ellipse)
+
+
+def plot_xy_on_gamut_covariance(xy, xy_covariance, covariance_scale=1):
+    """
+    Plot xy coordinates on the gamut including their covariance ellipse.
+    """
+    fig = plt.figure(figsize=(3,3))
+    plot_flat_gamut(plot_planckian_locus=False, axes_labels=("", ""))
+    _confidence_ellipse(xy, xy_covariance, plt.gca(), covariance_scale=covariance_scale, edgecolor="k", fill=False, linestyle="--")
+    plt.scatter(*xy, c="k", s=5)
+    plt.show()
+    plt.close()

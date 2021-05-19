@@ -238,6 +238,9 @@ for folder_main in folders:
         water_xy_covariance = wa.convert_XYZ_to_xy_covariance(all_mean_XYZ_covariance[:3,:3], water_XYZ)
         R_rs_xy_covariance = wa.convert_XYZ_to_xy_covariance(R_rs_XYZ_covariance, R_rs_XYZ)
 
+        # Plot chromaticity
+        wa.plot_xy_on_gamut_covariance(R_rs_xy, R_rs_xy_covariance)
+
         # Calculate hue angle
         water_hue, R_rs_hue = wa.convert_xy_to_hue_angle(water_xy, R_rs_xy)
         water_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(water_xy_covariance, water_xy)
