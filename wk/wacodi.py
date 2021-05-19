@@ -32,6 +32,18 @@ def convert_XYZ_to_xy(*XYZ_data):
     return xy_all
 
 
+def convert_XYZ_to_xy_covariance(XYZ_covariance, XYZ_data):
+    """
+    Convert XYZ covariances to xy using the Jacobian.
+    """
+    X, Y, Z = XYZ_data  # Split the elements out
+    S = XYZ_data.sum(axis=0)  # Sum, used in denominators
+    J = np.array([[(Y+Z)/S, -X/S**2, -X/S**2],
+                  [-Y/S**2, (X+Z)/S, -Y/S**2]])
+    xy_covariance = J @ XYZ_covariance @ J.T
+    return xy_covariance
+
+
 def convert_xy_to_hue_angle(*xy_data):
     """
     Convert data from xy (chromaticity) to hue angle (in degrees)

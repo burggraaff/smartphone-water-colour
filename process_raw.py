@@ -235,11 +235,12 @@ for folder_main in folders:
         all_mean_XYZ_covariance = radiance_RGB_to_XYZ @ all_covariance_RGB @ radiance_RGB_to_XYZ.T
 
         # # Calculate xy chromaticity
-        water_xy, sky_xy, card_xy, R_rs_xy = wa.convert_XYZ_to_xy(water_XYZ, sky_XYZ, card_XYZ, R_rs)
-        # To do: Covariance
+        water_xy, sky_xy, card_xy, R_rs_xy = wa.convert_XYZ_to_xy(water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ)
+        water_xy_covariance = wa.convert_XYZ_to_xy_covariance(all_mean_XYZ_covariance[:3,:3], water_XYZ)
+        R_rs_xy_covariance = wa.convert_XYZ_to_xy_covariance(R_rs_XYZ_covariance, R_rs_XYZ)
 
         # # Calculate hue angle
-        water_hue, sky_hue, card_hue, R_rs_hue = wa.convert_xy_to_hue_angle(water_xy, sky_xy, card_xy, R_rs_xy)
+        water_hue, R_rs_hue = wa.convert_xy_to_hue_angle(water_xy, R_rs_xy)
         # To do: Covariance
         # water_hue_err, sky_hue_err, card_hue_err = [wa.convert_XYZ_error_to_hue_angle(XYZ_data, XYZ_error) for XYZ_data, XYZ_error in zip([water_XYZ, sky_XYZ, card_XYZ], [water_XYZ_err, sky_XYZ_err, card_XYZ_err])]
 
