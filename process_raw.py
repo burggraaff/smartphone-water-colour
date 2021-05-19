@@ -15,6 +15,8 @@ Command-line inputs:
 """
 
 import numpy as np
+np.set_printoptions(precision=2)
+
 from sys import argv
 from spectacle import io, load_camera
 from os import walk
@@ -238,6 +240,12 @@ for folder_main in folders:
         water_xy_covariance = wa.convert_XYZ_to_xy_covariance(all_mean_XYZ_covariance[:3,:3], water_XYZ)
         R_rs_xy_covariance = wa.convert_XYZ_to_xy_covariance(R_rs_XYZ_covariance, R_rs_XYZ)
 
+        # Calculate correlation
+        R_rs_xy_correlation = hc.correlation_from_covariance(R_rs_xy_covariance)
+        water_xy_correlation = hc.correlation_from_covariance(water_xy_covariance)
+
+        print("Converted to xy:", f"xy R_rs = {R_rs_xy} +- {np.sqrt(np.diag(R_rs_xy_covariance))} (r = {R_rs_xy_correlation[0,1]:.2f})", f"xy  L_u = {water_xy} +- {np.sqrt(np.diag(water_xy_covariance))} (r = {water_xy_correlation[0,1]:.2f})", sep="\n")
+
         # Plot chromaticity
         wa.plot_xy_on_gamut_covariance(R_rs_xy, R_rs_xy_covariance)
 
@@ -245,6 +253,7 @@ for folder_main in folders:
         water_hue, R_rs_hue = wa.convert_xy_to_hue_angle(water_xy, R_rs_xy)
         water_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(water_xy_covariance, water_xy)
         R_rs_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(R_rs_xy_covariance, R_rs_xy)
+        print("Calculated hue angles:", f"alpha R_rs = {R_rs_hue:.1f} +- {R_rs_hue_uncertainty:.1f} degrees", f"alpha  L_u = {water_hue:.1f} +- {water_hue_uncertainty:.1f} degrees", sep="\n")
 
         # Create a timestamp from EXIF (assume time zone UTC+2)
         # Time zone: UTC+2 for Balaton data, UTC for NZ data
