@@ -5,6 +5,16 @@ from matplotlib.patches import Ellipse
 from colorio._tools import plot_flat_gamut
 from .hydrocolor import correlation_from_covariance
 
+M_sRGB_to_XYZ = np.array([[0.4124564, 0.3575761, 0.1804375],
+                          [0.2126729, 0.7151522, 0.0721750],
+                          [0.0193339, 0.1191920, 0.9503041]])
+
+M_XYZ_D65_to_XYZ_E = np.array([[ 1.0502616,  0.0270757, -0.0232523],
+                               [ 0.0390650,  0.9729502, -0.0092579],
+                               [-0.0024047,  0.0026446,  0.9180873]])
+
+M_sRGB_to_XYZ_E = M_XYZ_D65_to_XYZ_E @ M_sRGB_to_XYZ
+
 def _convert_error_to_XYZ(RGB_errors, XYZ_matrix):
     """
     Convert RGB errors to XYZ
