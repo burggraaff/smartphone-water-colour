@@ -136,24 +136,21 @@ for folder_main in folders:
         all_mean = all_RGBG.mean(axis=1)
         print("Calculated mean values per channel")
 
-        water_std = water_RGBG.std(axis=1)
-        sky_std = water_RGBG.std(axis=1)
-        card_std = water_RGBG.std(axis=1)
-        all_cov = np.cov(all_RGBG)
-        print("Calculated standard deviations per channel")
+        # Calculate covariance, correlation matrices for the combined radiances
+        all_covariance = np.cov(all_RGBG)
+        all_correlation = np.corrcoef(all_RGBG)
+        not_diagonal = ~np.eye(12, dtype=bool)  # Off-diagonal elements
+        max_corr = np.nanmax(all_correlation[not_diagonal])
+        print(f"Calculated covariance and correlation matrices. Maximum off-diagonal correlation r = {max_corr:.2f}")
 
-        # Calculate correlation coefficients
-        all_corr = np.corrcoef(all_RGBG)
-        not_diagonal = ~np.eye(12, dtype=bool)  # Off-diagonal element indices
-        max_corr = np.nanmax(all_corr[not_diagonal])
-
+        # Plot correlation coefficients
         kwargs = {"cmap": plt.cm.get_cmap("cividis", 10), "s": 5, "rasterized": True}
 
         fig, axs = plt.subplots(ncols=3, figsize=(7,3), dpi=600)
 
         divider = make_axes_locatable(axs[0])
         cax = divider.append_axes('bottom', size='10%', pad=0.3)
-        im = axs[0].imshow(all_corr, extent=(0,12,12,0), cmap=plt.cm.get_cmap("cividis", 10), vmin=0, vmax=1, origin="lower")
+        im = axs[0].imshow(all_correlation, extent=(0,12,12,0), cmap=plt.cm.get_cmap("cividis", 10), vmin=0, vmax=1, origin="lower")
         fig.colorbar(im, cax=cax, orientation='horizontal', ticks=np.arange(0,1.1,0.2), label="Pearson $r$")
 
         axs[0].set_xticks(np.arange(0.5,12))
@@ -167,12 +164,12 @@ for folder_main in folders:
         axs[1].set_xlabel("$L_s$ (R) [a.u.]")
         axs[1].set_ylabel("$L_s$ (G) [a.u.]")
         axs[1].set_aspect("equal")
-        axs[1].set_title("$r =" + f"{all_corr[4,5]:.2f}" + "$")
+        axs[1].set_title("$r =" + f"{all_correlation[4,5]:.2f}" + "$")
 
         axs[2].set_xlabel("$L_u$ (G) [a.u.]")
         axs[2].set_ylabel("$L_d$ (G) [a.u.]")
         axs[2].set_aspect("equal")
-        axs[2].set_title("$r =" + f"{all_corr[1,9]:.2f}" + "$")
+        axs[2].set_title("$r =" + f"{all_correlation[1,9]:.2f}" + "$")
 
         plt.subplots_adjust(wspace=0.5)
         plt.savefig("corr.pdf", bbox_inches="tight")
@@ -185,7 +182,7 @@ for folder_main in folders:
         M_RGBG2_to_RGB_all_L = hc.block_diag(*[M_RGBG2_to_RGB]*3)  # Repeat three times along the diagonal, 0 elsewhere
 
         all_mean_RGB = M_RGBG2_to_RGB_all_L @ all_mean
-        all_covariance_RGB = M_RGBG2_to_RGB_all_L @ all_cov @ M_RGBG2_to_RGB_all_L.T
+        all_covariance_RGB = M_RGBG2_to_RGB_all_L @ all_covariance @ M_RGBG2_to_RGB_all_L.T
         all_correlation_RGB = hc.correlation_from_covariance(all_covariance_RGB)
         all_covariance_RGB_Rref = hc.add_Rref_to_covariance(all_covariance_RGB)
 
