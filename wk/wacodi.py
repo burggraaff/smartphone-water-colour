@@ -39,7 +39,7 @@ def convert_XYZ_to_xy(*XYZ_data):
     Convert data from XYZ to xy (chromaticity)
     """
     def _convert_single(XYZ):
-        xy = XYZ[:2] / XYZ.sum(axis=0)
+        xy = XYZ[:2] / np.sum(XYZ, axis=0)
         return xy
     xy_all = apply_to_multiple_args(_convert_single, XYZ_data)
     return xy_all
@@ -50,7 +50,7 @@ def convert_XYZ_to_xy_covariance(XYZ_covariance, XYZ_data):
     Convert XYZ covariances to xy using the Jacobian.
     """
     X, Y, Z = XYZ_data  # Split the elements out
-    S = XYZ_data.sum(axis=0)  # Sum, used in denominators
+    S = np.sum(XYZ_data, axis=0)  # Sum, used in denominators
     J = np.array([[(Y+Z)/S, -X/S**2, -X/S**2],
                   [-Y/S**2, (X+Z)/S, -Y/S**2]])
     xy_covariance = J @ XYZ_covariance @ J.T
