@@ -55,14 +55,14 @@ def convert_xy_to_hue_angle(*xy_data):
     return hue_angle_all
 
 
-def convert_XYZ_error_to_hue_angle(XYZ_data, XYZ_error):
+def convert_xy_to_hue_angle_covariance(xy_covariance, xy_data):
     """
-    For a single XYZ vector and error vector, convert this to an error in hue angle
+    Convert xy covariances to an uncertainty in hue angle using the Jacobian.
     """
-    X,Y,Z = XYZ_data
-    Xerr, Yerr, Zerr = XYZ_error
-    ddX = (3*Z - 3*Y) / (5*X**2 - 2*X*(4*Y + Z) + 5*Y**2 - 2*Y*Z + 2*Z**2)
-    ddY = (3*X - 3*Z) / (5*X**2 - 2*X*(4*Y + Z) + 5*Y**2 - 2*Y*Z + 2*Z**2)
-    hue_err = np.sqrt(Xerr**2 * ddX**2 + Yerr**2 * ddY**2)  # Radians
-    hue_err = np.rad2deg(hue_err)
-    return hue_err
+    x, y = xy_data
+    xc, yc = x-1/3, y-1/3  # Subtract the white point
+    denominator = xc**2 + yc**2
+    J = np.array([yc/denominator, -xc/denominator])
+    hue_angle_uncertainty_rad = J @ xy_covariance @ J.T
+    hue_angle_uncertainty = np.rad2deg(hue_angle_uncertainty_rad)
+    return hue_angle_uncertainty

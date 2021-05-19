@@ -241,8 +241,8 @@ for folder_main in folders:
 
         # # Calculate hue angle
         water_hue, R_rs_hue = wa.convert_xy_to_hue_angle(water_xy, R_rs_xy)
-        # To do: Covariance
-        # water_hue_err, sky_hue_err, card_hue_err = [wa.convert_XYZ_error_to_hue_angle(XYZ_data, XYZ_error) for XYZ_data, XYZ_error in zip([water_XYZ, sky_XYZ, card_XYZ], [water_XYZ_err, sky_XYZ_err, card_XYZ_err])]
+        water_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(water_xy_covariance, water_xy)
+        R_rs_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(R_rs_xy_covariance, R_rs_xy)
 
         # Create a timestamp from EXIF (assume time zone UTC+2)
         # Time zone: UTC+2 for Balaton data, UTC for NZ data
