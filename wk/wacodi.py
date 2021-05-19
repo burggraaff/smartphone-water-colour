@@ -98,5 +98,8 @@ def plot_xy_on_gamut_covariance(xy, xy_covariance, covariance_scale=1):
     plot_flat_gamut(plot_planckian_locus=False, axes_labels=("", ""))
     _confidence_ellipse(xy, xy_covariance, plt.gca(), covariance_scale=covariance_scale, edgecolor="k", fill=False, linestyle="--")
     plt.scatter(*xy, c="k", s=5)
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.axis("equal")
     plt.show()
     plt.close()
