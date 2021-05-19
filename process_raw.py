@@ -223,23 +223,22 @@ for folder_main in folders:
         bandratios_correlation = hc.correlation_from_covariance(bandratios_covariance)
         print(f"Calculated average band ratios: R_rs(G)/R_rs(R) = {bandratios[0]:.2f} +- {bandratios_uncertainty[0]:.2f}    R_rs(G)/R_rs(B) = {bandratios[1]:.2f} +- {bandratios_uncertainty[1]:.2f}    (correlation r = {bandratios_correlation[0,1]:.2f})")
 
-        # # WACODI
+        # WACODI
 
         # Convert RGB to XYZ
         water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ = camera.convert_to_XYZ(water_mean_RGB, sky_mean_RGB, card_mean_RGB, R_rs)
-        # all_mean_XYZ = np.concatenate([water_XYZ, sky_XYZ, card_XYZ])
         R_rs_XYZ_covariance = camera.XYZ_matrix @ R_rs_covariance @ camera.XYZ_matrix.T
-        radiance_RGB_to_XYZ = hc.block_diag(*[camera.XYZ_matrix]*3)
 
+        radiance_RGB_to_XYZ = hc.block_diag(*[camera.XYZ_matrix]*3)
         all_mean_XYZ = radiance_RGB_to_XYZ @ all_mean_RGB
         all_mean_XYZ_covariance = radiance_RGB_to_XYZ @ all_covariance_RGB @ radiance_RGB_to_XYZ.T
 
-        # # Calculate xy chromaticity
+        # Calculate xy chromaticity
         water_xy, sky_xy, card_xy, R_rs_xy = wa.convert_XYZ_to_xy(water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ)
         water_xy_covariance = wa.convert_XYZ_to_xy_covariance(all_mean_XYZ_covariance[:3,:3], water_XYZ)
         R_rs_xy_covariance = wa.convert_XYZ_to_xy_covariance(R_rs_XYZ_covariance, R_rs_XYZ)
 
-        # # Calculate hue angle
+        # Calculate hue angle
         water_hue, R_rs_hue = wa.convert_xy_to_hue_angle(water_xy, R_rs_xy)
         water_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(water_xy_covariance, water_xy)
         R_rs_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(R_rs_xy_covariance, R_rs_xy)
