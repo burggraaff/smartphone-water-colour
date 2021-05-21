@@ -167,13 +167,15 @@ for folder_main in folders:
 
         axs[1].set_xlabel("$L_s$ (R) [a.u.]")
         axs[1].set_ylabel("$L_s$ (G) [a.u.]")
-        axs[1].set_aspect("equal")
         axs[1].set_title("$r =" + f"{all_correlation[4,5]:.2f}" + "$")
 
         axs[2].set_xlabel("$L_u$ (G) [a.u.]")
         axs[2].set_ylabel("$L_d$ (G) [a.u.]")
-        axs[2].set_aspect("equal")
         axs[2].set_title("$r =" + f"{all_correlation[1,9]:.2f}" + "$")
+
+        for ax in axs[1:]:
+            ax.set_aspect("equal")
+            ax.grid(ls="--", c="0.5", alpha=0.5)
 
         plt.subplots_adjust(wspace=0.5)
         plt.savefig("corr.pdf", bbox_inches="tight")
