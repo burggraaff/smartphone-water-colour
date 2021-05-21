@@ -15,6 +15,8 @@ M_XYZ_D65_to_XYZ_E = np.array([[ 1.0502616,  0.0270757, -0.0232523],
 
 M_sRGB_to_XYZ_E = M_XYZ_D65_to_XYZ_E @ M_sRGB_to_XYZ
 
+FU_hueangles = np.array([234.55, 227.168, 220.977, 209.994, 190.779, 163.084, 132.999, 109.054, 94.037, 83.346, 74.572, 67.957, 62.186, 56.435, 50.665, 45.129, 39.769, 34.906, 30.439, 26.337, 22.741])
+
 def _convert_error_to_XYZ(RGB_errors, XYZ_matrix):
     """
     Convert RGB errors to XYZ
@@ -79,6 +81,33 @@ def convert_xy_to_hue_angle_covariance(xy_covariance, xy_data):
     hue_angle_uncertainty_rad = J @ xy_covariance @ J.T
     hue_angle_uncertainty = np.rad2deg(hue_angle_uncertainty_rad)
     return hue_angle_uncertainty
+
+
+@np.vectorize
+def convert_hue_angle_to_ForelUle(hue_angle):
+    """
+    Use a look-up table to convert a given hue angle to a Forel-Ule index.
+    """
+    try:  # Simply look for the lowest FU colour whose hue angle is less than ours
+        bigger_than = np.where(hue_angle > FU_hueangles)[0][0]
+    except IndexError:  # If the index is out of bounds, return 21
+        bigger_than = 21
+    return bigger_than
+
+
+def convert_hue_angle_to_ForelUle_uncertainty(hue_angle_uncertainty, hue_angle):
+    """
+    Use a look-up table to convert a hue angle and its uncertainty into a range
+    of Forel-Ule indices.
+    """
+    # Calculate the hue angles corresponding to +-1 sigma
+    minmax_hueangle = hue_angle - hue_angle_uncertainty, hue_angle + hue_angle_uncertainty
+
+    # Convert the minimum and maximum to Forel-Ule indices
+    # Sort because hue angle and FU are inversely related
+    minmax_FU = np.sort(convert_hue_angle_to_ForelUle(minmax_hueangle))
+
+    return minmax_FU
 
 
 def _confidence_ellipse(center, covariance, ax, covariance_scale=1, **kwargs):

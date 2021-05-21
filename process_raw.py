@@ -258,6 +258,13 @@ for folder_main in folders:
         R_rs_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(R_rs_xy_covariance, R_rs_xy)
         print("Calculated hue angles:", f"alpha R_rs = {R_rs_hue:.1f} +- {R_rs_hue_uncertainty:.1f} degrees", f"alpha  L_u = {water_hue:.1f} +- {water_hue_uncertainty:.1f} degrees", sep="\n")
 
+        # Convert to Forel-Ule index
+        water_FU, R_rs_FU = wa.convert_hue_angle_to_ForelUle([water_hue, R_rs_hue])
+        water_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(water_hue_uncertainty, water_hue)
+        R_rs_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(R_rs_hue_uncertainty, R_rs_hue)
+        print("Determined Forel-Ule indices:", f"FU R_rs = {R_rs_FU} [{R_rs_FU_range[0]}-{R_rs_FU_range[1]}]", f"FU  L_u = {water_FU} [{water_FU_range[0]}-{water_FU_range[1]}]", sep="\n")
+
+
         # Create a timestamp from EXIF (assume time zone UTC+2)
         # Time zone: UTC+2 for Balaton data, UTC for NZ data
         if folder_main.stem == "NZ":
