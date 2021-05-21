@@ -12,8 +12,8 @@ from astropy import table
 from scipy.linalg import block_diag
 from scipy.interpolate import interpn
 
-colours = ["R", "G", "B", "G2"]  # Smartphone bands
-plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255], [0,158/255,115/255]]  # Plot colours from Okabe-Ito
+colours = "RGB"  # Smartphone bands
+plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255]]  # Plot colours from Okabe-Ito
 
 
 def correlation_from_covariance(covariance):
@@ -292,19 +292,6 @@ def effective_bandwidth(calibration_folder):
     return effective_bandwidths
 
 
-def _loop_RGBG2_or_RGB(data1, data2, param):
-    """
-    Return RGBG2 if each data table has keys corresponding to each of those bands.
-    Otherwise, return only RGB.
-    """
-    loop_colours = colours
-    # We can't do `data1.keys() + data2.keys()` because we must check each individually
-    if all("G2" not in key for key in data1.keys()) or all("G2" not in key for key in data2.keys()):
-        loop_colours = colours[:3]
-
-    return loop_colours
-
-
 # Pearson r correlation coefficient
 correlation = lambda x, y: np.corrcoef(x, y)[0, 1]
 
@@ -343,15 +330,13 @@ def statistic_RGB(func, data1, data2, xdatalabel, ydatalabel):
     """
     Calculate a statistic (e.g. MAD, MAPD, RMSE) in a given parameter `param`,
     e.g. Rrs, between two Astropy data tables. Assumes the same key structure
-    in each table, namely `{param} {c}` where c is R, G, B, and optionally G2.
+    in each table, namely `{param} {c}` where c is R, G, or B.
 
     Returns the statistic overall and per band.
     """
-    loop_colours = _loop_RGBG2_or_RGB(data1, data2, xdatalabel)
-
-    stat_RGB = np.array([func(data1[xdatalabel.format(c=c)], data2[ydatalabel.format(c=c)]) for c in loop_colours])
-    data1_combined = ravel_table(data1, xdatalabel, loop_colours)
-    data2_combined = ravel_table(data2, ydatalabel, loop_colours)
+    stat_RGB = np.array([func(data1[xdatalabel.format(c=c)], data2[ydatalabel.format(c=c)]) for c in colours])
+    data1_combined = ravel_table(data1, xdatalabel, colours)
+    data2_combined = ravel_table(data2, ydatalabel, colours)
     stat_all = func(data1_combined, data2_combined)
 
     return stat_all, stat_RGB
@@ -384,12 +369,11 @@ def residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None)
     result = x.copy()
 
     # Remove columns that are in x but not in y
-    # For example, G2 if you are comparing RAW and JPEG
     keys_not_overlapping = [key for key in result.keys() if key not in y.keys()]
     result.remove_columns(keys_not_overlapping)
 
     # Loop over the keys and update them to include x-y instead of just x
-    for c in _loop_RGBG2_or_RGB(x, y, xdatalabel):
+    for c in colours:
         result[xdatalabel.format(c=c)] = y[ydatalabel.format(c=c)] - x[xdatalabel.format(c=c)]
         if xerrlabel and yerrlabel:
             result[xerrlabel.format(c=c)] = np.sqrt(x[xerrlabel.format(c=c)]**2 + y[yerrlabel.format(c=c)]**2)
@@ -446,7 +430,7 @@ def _correlation_plot_errorbars(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None
     xmax = 0.  # Maximum on x axis
     ymax = 0.  # Maximum on y axis
 
-    # Loop over the RGBG2 bands and plot the relevant data points
+    # Loop over the colour bands and plot the relevant data points
     for c, pc in zip(colours, plot_colours):
         try:
             xdata = x[xdatalabel.format(c=c)]
@@ -479,9 +463,9 @@ def _correlation_plot_errorbars(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None
 def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", saveto=None):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
-    `xdatalabel` and `ydatalabel`, which are assumed to have RGB/RGBG2 versions.
-    For example, if `xlabel` == `f"Rrs {c}"` then the columns "Rrs R", "RRs G",
-    "Rrs B", and "Rrs G2" (if available) will be used.
+    `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
+    For example, if `xlabel` == `f"R_rs {c}"` then the columns "R_rs R",
+    "R_rs G", and "R_rs B" will be used.
     """
     # Create figure
     plt.figure(figsize=(4,4), tight_layout=True)
@@ -514,9 +498,9 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
 def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", saveto=None):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
-    `xdatalabel` and `ydatalabel`, which are assumed to have RGB/RGBG2 versions.
-    For example, if `xlabel` == `f"Rrs {c}"` then the columns "Rrs R", "Rrs G",
-    "Rrs B", and "Rrs G2" (if available) will be used.
+    `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
+    For example, if `xlabel` == `f"R_rs {c}"` then the columns "R_rs R",
+    "R_rs G", and "R_rs B" will be used.
     """
     # Calculate residuals
     residuals = residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel)
@@ -629,9 +613,8 @@ def comparison_histogram(x_table, y_table, param="Rrs {c}", xlabel="", ylabel=""
     """
     Make a histogram of the ratio and difference in a given `param` for `x` and `y`
     """
-    loop_colours = _loop_RGBG2_or_RGB(x_table, y_table, param)
-    x = ravel_table(x_table, param, loop_colours)
-    y = ravel_table(y_table, param, loop_colours)
+    x = ravel_table(x_table, param, colours)
+    y = ravel_table(y_table, param, colours)
 
     ratio = y/x
     diff = y-x
