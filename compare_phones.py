@@ -51,11 +51,11 @@ for param, label, unit in zip(parameters, labels, units):
 
     hc.comparison_histogram(data_phone1, data_phone2, param+" {c}", xlabel=phone1_name, ylabel=phone2_name, quantity=label, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_{param}_hist.pdf")
 
-label_Rrs = "$R_{rs}$"
-unit_Rrs = "[sr$^{-1}$]"
-hc.correlation_plot_RGB_equal(data_phone1, data_phone2, "Rrs {c}", "Rrs {c}", xerrlabel="Rrs_err {c}", yerrlabel="Rrs_err {c}", xlabel=f"{phone1_name} {label_Rrs} {unit_Rrs}", ylabel=f"{phone2_name}\n{label_Rrs} {unit_Rrs}", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_Rrs.pdf")
+label_R_rs = "$R_{rs}$"
+unit_R_rs = "[sr$^{-1}$]"
+hc.correlation_plot_RGB_equal(data_phone1, data_phone2, "R_rs {c}", "R_rs {c}", xerrlabel="R_rs_err {c}", yerrlabel="R_rs_err {c}", xlabel=f"{phone1_name} {label_R_rs} {unit_R_rs}", ylabel=f"{phone2_name}\n{label_R_rs} {unit_R_rs}", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_R_rs.pdf")
 
-hc.comparison_histogram(data_phone1, data_phone2, "Rrs {c}", xlabel=phone1_name, ylabel=phone2_name, quantity=label_Rrs, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_Rrs_hist.pdf")
+hc.comparison_histogram(data_phone1, data_phone2, "R_rs {c}", xlabel=phone1_name, ylabel=phone2_name, quantity=label_R_rs, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_R_rs_hist.pdf")
 
 # Correlation plot: Band ratios/differences
 hc.correlation_plot_bands(data_phone1, data_phone2, xlabel=phone1_name, ylabel=phone2_name, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_bands.pdf")
