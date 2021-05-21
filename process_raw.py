@@ -22,37 +22,6 @@ from spectacle import io, load_camera
 from os import walk
 from matplotlib import pyplot as plt
 
-from matplotlib import cm
-from matplotlib.colors import Normalize
-from scipy.interpolate import interpn
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-
-def density_scatter(x, y, ax = None, sort = True, bins = 20, **kwargs):
-    # https://stackoverflow.com/a/53865762
-    """
-    Scatter plot colored by 2d histogram
-    """
-    if ax is None :
-        fig , ax = plt.subplots()
-    data , x_e, y_e = np.histogram2d( x, y, bins = bins, density = True )
-    z = interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) , data , np.vstack([x,y]).T , method = "splinef2d", bounds_error = False)
-
-    #To be sure to plot all data
-    z[np.where(np.isnan(z))] = 0.0
-
-    # Sort the points by density, so that the densest points are plotted last
-    if sort :
-        idx = z.argsort()
-        x, y, z = x[idx], y[idx], z[idx]
-
-    ax.scatter(x, y, c=z, **kwargs)
-
-    # norm = Normalize(vmin = np.min(z), vmax = np.max(z))
-    # cbar = fig.colorbar(cm.ScalarMappable(norm = norm), ax=ax)
-    # cbar.ax.set_ylabel('Density')
-
-    return ax
-
 from wk import hydrocolor as hc, wacodi as wa
 
 # Get the data folder from the command line
@@ -144,42 +113,7 @@ for folder_main in folders:
         print(f"Calculated covariance and correlation matrices. Maximum off-diagonal correlation r = {max_corr:.2f}")
 
         # Plot correlation coefficients
-        kwargs = {"cmap": plt.cm.get_cmap("cividis", 10), "s": 5, "rasterized": True}
-
-        fig, axs = plt.subplots(ncols=3, figsize=(7,3), dpi=600)
-
-        divider = make_axes_locatable(axs[0])
-        cax = divider.append_axes('bottom', size='10%', pad=0.3)
-        im = axs[0].imshow(all_correlation, extent=(0,12,12,0), cmap=plt.cm.get_cmap("cividis", 10), vmin=0, vmax=1, origin="lower")
-        fig.colorbar(im, cax=cax, orientation='horizontal', ticks=np.arange(0,1.1,0.2), label="Pearson $r$")
-
-        axs[0].set_xticks(np.arange(0,13,4))
-        xtick_offset = " "*10
-        axs[0].set_xticklabels([f"{xtick_offset}$L_u$", f"{xtick_offset}$L_s$", f"{xtick_offset}$L_d$", ""])
-        axs[0].set_yticks(np.arange(0,13,4))
-        axs[0].set_yticklabels(["\n\n$L_d$", "\n\n$L_s$", "\n\n$L_u$", ""])
-
-        # twin.set_xticks(np.arange(0.5,12))
-        # twin.set_xticklabels(["R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$"], fontsize="small")
-
-        density_scatter(all_RGBG[4], all_RGBG[5], ax=axs[1], **kwargs)
-        density_scatter(all_RGBG[1], all_RGBG[9], ax=axs[2], **kwargs)
-
-        axs[1].set_xlabel("$L_s$ (R) [a.u.]")
-        axs[1].set_ylabel("$L_s$ (G) [a.u.]")
-        axs[1].set_title("$r =" + f"{all_correlation[4,5]:.2f}" + "$")
-
-        axs[2].set_xlabel("$L_u$ (G) [a.u.]")
-        axs[2].set_ylabel("$L_d$ (G) [a.u.]")
-        axs[2].set_title("$r =" + f"{all_correlation[1,9]:.2f}" + "$")
-
-        for ax in axs[1:]:
-            ax.set_aspect("equal")
-            ax.grid(ls="--", c="0.5", alpha=0.5)
-
-        plt.subplots_adjust(wspace=0.5)
-        plt.savefig("corr.pdf", bbox_inches="tight")
-        plt.close()
+        hc.plot_correlation_matrix_radiance(all_correlation, x1=all_RGBG[4], y1=all_RGBG[5], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=all_RGBG[1], y2=all_RGBG[9], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_raw.pdf")
 
         # Average G and G2
         M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
@@ -249,7 +183,7 @@ for folder_main in folders:
         R_rs_xy_correlation = hc.correlation_from_covariance(R_rs_xy_covariance)
         water_xy_correlation = hc.correlation_from_covariance(water_xy_covariance)
 
-        print("Converted to xy:", f"xy R_rs = {R_rs_xy} +- {np.sqrt(np.diag(R_rs_xy_covariance))} (r = {R_rs_xy_correlation[0,1]:.2f})", f"xy  L_u = {water_xy} +- {np.sqrt(np.diag(water_xy_covariance))} (r = {water_xy_correlation[0,1]:.2f})", sep="\n")
+        print("Converted to xy:", f"xy R_rs = {R_rs_xy} +- {np.sqrt(np.diag(R_rs_xy_covariance))} (r = {R_rs_xy_correlation[0,1]:.2f})", f"xy L_u  = {water_xy} +- {np.sqrt(np.diag(water_xy_covariance))} (r = {water_xy_correlation[0,1]:.2f})", sep="\n")
 
         # Plot chromaticity
         wa.plot_xy_on_gamut_covariance(R_rs_xy, R_rs_xy_covariance)
@@ -258,13 +192,13 @@ for folder_main in folders:
         water_hue, R_rs_hue = wa.convert_xy_to_hue_angle(water_xy, R_rs_xy)
         water_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(water_xy_covariance, water_xy)
         R_rs_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(R_rs_xy_covariance, R_rs_xy)
-        print("Calculated hue angles:", f"alpha R_rs = {R_rs_hue:.1f} +- {R_rs_hue_uncertainty:.1f} degrees", f"alpha  L_u = {water_hue:.1f} +- {water_hue_uncertainty:.1f} degrees", sep="\n")
+        print("Calculated hue angles:", f"alpha R_rs = {R_rs_hue:.1f} +- {R_rs_hue_uncertainty:.1f} degrees", f"alpha L_u  = {water_hue:.1f} +- {water_hue_uncertainty:.1f} degrees", sep="\n")
 
         # Convert to Forel-Ule index
         water_FU, R_rs_FU = wa.convert_hue_angle_to_ForelUle([water_hue, R_rs_hue])
         water_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(water_hue_uncertainty, water_hue)
         R_rs_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(R_rs_hue_uncertainty, R_rs_hue)
-        print("Determined Forel-Ule indices:", f"FU R_rs = {R_rs_FU} [{R_rs_FU_range[0]}-{R_rs_FU_range[1]}]", f"FU  L_u = {water_FU} [{water_FU_range[0]}-{water_FU_range[1]}]", sep="\n")
+        print("Determined Forel-Ule indices:", f"FU R_rs = {R_rs_FU} [{R_rs_FU_range[0]}-{R_rs_FU_range[1]}]", f"FU L_u  = {water_FU} [{water_FU_range[0]}-{water_FU_range[1]}]", sep="\n")
 
 
         # Create a timestamp from EXIF (assume time zone UTC+2)

@@ -5,11 +5,12 @@ Module with functions etc for HydroColor
 from spectacle import io, analyse, calibrate, spectral
 from spectacle.general import RMS
 import numpy as np
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, cm
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from datetime import datetime, timedelta
 from astropy import table
-from scipy.stats import linregress
 from scipy.linalg import block_diag
+from scipy.interpolate import interpn
 
 colours = ["R", "G", "B", "G2"]  # Smartphone bands
 plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255], [0,158/255,115/255]]  # Plot colours from Okabe-Ito
@@ -609,6 +610,73 @@ def comparison_histogram(x_table, y_table, param="Rrs {c}", xlabel="", ylabel=""
     if saveto:
         plt.savefig(saveto, bbox_inches="tight")
     plt.show()
+    plt.close()
+
+
+def density_scatter(x, y, ax = None, sort = True, bins = 20, **kwargs):
+    # https://stackoverflow.com/a/53865762
+    """
+    Scatter plot colored by 2d histogram
+    """
+    if ax is None :
+        fig , ax = plt.subplots()
+    data , x_e, y_e = np.histogram2d( x, y, bins = bins, density = True )
+    z = interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) , data , np.vstack([x,y]).T , method = "splinef2d", bounds_error = False)
+
+    #To be sure to plot all data
+    z[np.where(np.isnan(z))] = 0.0
+
+    # Sort the points by density, so that the densest points are plotted last
+    if sort :
+        idx = z.argsort()
+        x, y, z = x[idx], y[idx], z[idx]
+
+    ax.scatter(x, y, c=z, **kwargs)
+
+    return ax
+
+
+def plot_correlation_matrix_radiance(correlation_matrix, x1, y1, x2, y2, x1label="[a.u.]", y1label="[a.u.]", x2label="[a.u.]", y2label="[a.u.]", saveto=None):
+    """
+    Plot a given correlation matrix consisting of RGB or RGBG2 radiances.
+    """
+    # Plot correlation coefficients
+    kwargs = {"cmap": plt.cm.get_cmap("cividis", 10), "s": 5, "rasterized": True}
+
+    fig, axs = plt.subplots(ncols=3, figsize=(7,3), dpi=600)
+
+    divider = make_axes_locatable(axs[0])
+    cax = divider.append_axes('bottom', size='10%', pad=0.3)
+    im = axs[0].imshow(correlation_matrix, extent=(0,12,12,0), cmap=plt.cm.get_cmap("cividis", 10), vmin=0, vmax=1, origin="lower")
+    fig.colorbar(im, cax=cax, orientation='horizontal', ticks=np.arange(0,1.1,0.2), label="Pearson $r$")
+
+    axs[0].set_xticks(np.arange(0,13,4))
+    xtick_offset = " "*10
+    axs[0].set_xticklabels([f"{xtick_offset}$L_u$", f"{xtick_offset}$L_s$", f"{xtick_offset}$L_d$", ""])
+    axs[0].set_yticks(np.arange(0,13,4))
+    axs[0].set_yticklabels(["\n\n$L_d$", "\n\n$L_s$", "\n\n$L_u$", ""])
+
+    # twin.set_xticks(np.arange(0.5,12))
+    # twin.set_xticklabels(["R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$"], fontsize="small")
+
+    density_scatter(x1, y1, ax=axs[1], **kwargs)
+    density_scatter(x2, y2, ax=axs[2], **kwargs)
+
+    axs[1].set_xlabel(x1label)
+    axs[1].set_ylabel(y1label)
+    axs[1].set_title("$r =" + f"{correlation(x1,y1):.2f}" + "$")
+
+    axs[2].set_xlabel(x2label)
+    axs[2].set_ylabel(y2label)
+    axs[2].set_title("$r =" + f"{correlation(x2,y2):.2f}" + "$")
+
+    for ax in axs[1:]:
+        ax.set_aspect("equal")
+        ax.grid(ls="--", c="0.5", alpha=0.5)
+
+    plt.subplots_adjust(wspace=0.5)
+    if saveto:
+        plt.savefig(saveto, bbox_inches="tight")
     plt.close()
 
 
