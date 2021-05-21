@@ -657,25 +657,17 @@ def plot_correlation_matrix_radiance(correlation_matrix, x1, y1, x2, y2, x1label
     axs[0].set_yticks(ticks)
     axs[0].set_yticklabels(["\n\n$L_d$", "\n\n$L_s$", "\n\n$L_u$", ""])
 
-    # twin.set_xticks(np.arange(0.5,12))
-    # twin.set_xticklabels(["R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$"], fontsize="small")
+    for ax, x, y, xlabel, ylabel in zip(axs[1:], [x1, x2], [y1, y2], [x1label, x2label], [y1label, y2label]):
+        density_scatter(x, y, ax=ax, **kwargs)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.set_title("$r =" + f"{correlation(x,y):.2f}" + "$")
 
-    density_scatter(x1, y1, ax=axs[1], **kwargs)
-    density_scatter(x2, y2, ax=axs[2], **kwargs)
-
-    axs[1].set_xlabel(x1label)
-    axs[1].set_ylabel(y1label)
-    axs[1].set_title("$r =" + f"{correlation(x1,y1):.2f}" + "$")
-
-    axs[2].set_xlabel(x2label)
-    axs[2].set_ylabel(y2label)
-    axs[2].set_title("$r =" + f"{correlation(x2,y2):.2f}" + "$")
-    axs[2].yaxis.set_label_position("right")
-    axs[2].yaxis.tick_right()
-
-    for ax in axs[1:]:
         ax.set_aspect("equal")
         ax.grid(ls="--", c="0.5", alpha=0.5)
+
+    axs[2].yaxis.set_label_position("right")
+    axs[2].yaxis.tick_right()
 
     plt.subplots_adjust(wspace=0.5)
     if saveto:
