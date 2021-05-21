@@ -48,6 +48,7 @@ for folder_main in folders:
         data_path = folder/pattern
         if not data_path.exists():
             continue
+        print("\n  ", data_path)
 
         # Load data
         water_path, sky_path, card_path = hc.generate_paths(data_path, camera.raw_extension)
