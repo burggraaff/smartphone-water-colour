@@ -661,31 +661,32 @@ def _generic_header(elements, prefix=""):
     return header
 
 
-def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_covariance, R_rs, R_rs_covariance):
+def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_covariance, R_rs, R_rs_covariance, R_rs_xy, R_rs_xy_covariance, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range):
     # assert len(water) == len(water_err) == len(sky) == len(sky_err) == len(grey) == len(grey_err) == len(Rrs) == len(Rrs_err), "Not all input arrays have the same length"
 
     # Split the covariance matrices out
     radiances_covariance_list = _convert_symmetric_matrix_to_list(radiances_covariance)
     Ed_covariance_list = _convert_symmetric_matrix_to_list(Ed_covariance)
     R_rs_covariance_list = _convert_symmetric_matrix_to_list(R_rs_covariance)
+    R_rs_xy_covariance_list = _convert_symmetric_matrix_to_list(R_rs_xy_covariance)
 
     # Headers for the covariance matrices
     radiances_covariance_header = _generic_header(radiances_covariance_list, "cov_L")
     Ed_covariance_header = _generic_header(Ed_covariance_list, "cov_Ed")
     R_rs_covariance_header = _generic_header(R_rs_covariance_list, "cov_R_rs")
+    R_rs_xy_covariance_header = _generic_header(R_rs_xy_covariance_list, "cov_R_rs_xy")
 
     # Make a header with the relevant items
-    header = ["Lu {c}", "Lsky {c}", "Ld {c}", "Ed {c}", "R_rs {c}"]
+    header_RGB = ["Lu {c}", "Lsky {c}", "Ld {c}", "Ed {c}", "R_rs {c}"]
     bands = "RGB"
-    header_full = [[s.format(c=c) for c in bands] for s in header]
-    header = ["UTC", "UTC (ISO)"] + [item for sublist in header_full for item in sublist] + radiances_covariance_header + Ed_covariance_header + R_rs_covariance_header
+    header_RGB_full = [[s.format(c=c) for c in bands] for s in header_RGB]
+    header_hue = ["R_rs (hue)", "R_rs_err (hue)", "R_rs (FU)", "R_rs_min (FU)", "R_rs_max (FU)"]
+    header = ["UTC", "UTC (ISO)"] + [item for sublist in header_RGB_full for item in sublist] + radiances_covariance_header + Ed_covariance_header + R_rs_covariance_header + R_rs_xy_covariance_header + header_hue
 
     # Add the data to a row, and that row to a table
-    data = [[timestamp.timestamp(), timestamp.isoformat(), *radiances, *Ed, *R_rs, *radiances_covariance_list, *Ed_covariance_list, *R_rs_covariance_list]]
+    data = [[timestamp.timestamp(), timestamp.isoformat(), *radiances, *Ed, *R_rs, *radiances_covariance_list, *Ed_covariance_list, *R_rs_covariance_list, *R_rs_xy_covariance_list, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, *R_rs_FU_range]]
     result = table.Table(rows=data, names=header)
 
     # Write the result to file
     result.write(saveto, format="ascii.fast_csv")
     print(f"Saved results to `{saveto}`")
-
-# hc.write_results(saveto, UTC, all_mean_RGB, all_covariance_RGB, R_rs, R_rs_covariance, Ed, Ed_covariance)

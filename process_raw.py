@@ -208,6 +208,7 @@ for folder_main in folders:
         R_rs_uncertainty = np.sqrt(np.diag(R_rs_covariance))  # Uncertainty per band, ignoring covariance
         R_rs_correlation = hc.correlation_from_covariance(R_rs_covariance)
 
+
         # HydroColor
         for reflectance, reflectance_uncertainty, c in zip(R_rs, R_rs_uncertainty, "RGB"):
             print(f"R_rs({c}) = ({reflectance:.3f} +- {reflectance_uncertainty:.3f}) sr^-1   ({100*reflectance_uncertainty/reflectance:.0f}% uncertainty)")
@@ -227,6 +228,7 @@ for folder_main in folders:
         bandratios_uncertainty = np.sqrt(np.diag(bandratios_covariance))
         bandratios_correlation = hc.correlation_from_covariance(bandratios_covariance)
         print(f"Calculated average band ratios: R_rs(G)/R_rs(R) = {bandratios[0]:.2f} +- {bandratios_uncertainty[0]:.2f}    R_rs(G)/R_rs(B) = {bandratios[1]:.2f} +- {bandratios_uncertainty[1]:.2f}    (correlation r = {bandratios_correlation[0,1]:.2f})")
+
 
         # WACODI
 
@@ -274,4 +276,4 @@ for folder_main in folders:
 
         # Write the result to file
         saveto = data_path.with_name(data_path.stem + "_raw.csv")
-        hc.write_results(saveto, UTC, all_mean_RGB, all_covariance_RGB, Ed, Ed_covariance, R_rs, R_rs_covariance)
+        hc.write_results(saveto, UTC, all_mean_RGB, all_covariance_RGB, Ed, Ed_covariance, R_rs, R_rs_covariance, R_rs_xy, R_rs_xy_covariance, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range)
