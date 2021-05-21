@@ -670,6 +670,8 @@ def plot_correlation_matrix_radiance(correlation_matrix, x1, y1, x2, y2, x1label
     axs[2].set_xlabel(x2label)
     axs[2].set_ylabel(y2label)
     axs[2].set_title("$r =" + f"{correlation(x2,y2):.2f}" + "$")
+    axs[2].yaxis.set_label_position("right")
+    axs[2].yaxis.tick_right()
 
     for ax in axs[1:]:
         ax.set_aspect("equal")
