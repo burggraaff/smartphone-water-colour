@@ -647,7 +647,7 @@ def plot_correlation_matrix_radiance(correlation_matrix, x1, y1, x2, y2, x1label
 
     divider = make_axes_locatable(axs[0])
     cax = divider.append_axes('bottom', size='10%', pad=0.3)
-    im = axs[0].imshow(correlation_matrix, extent=(0,1,1,0), cmap=plt.cm.get_cmap("cividis", 10), vmin=0, vmax=1, origin="lower")
+    im = axs[0].imshow(correlation_matrix, extent=(0,1,1,0), cmap=plt.cm.get_cmap("cividis", 5), vmin=0, vmax=1, origin="lower")
     fig.colorbar(im, cax=cax, orientation='horizontal', ticks=np.arange(0,1.1,0.2), label="Pearson $r$")
 
     ticks = np.linspace(0,1,4)
