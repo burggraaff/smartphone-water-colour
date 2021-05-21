@@ -153,10 +153,14 @@ for folder_main in folders:
         im = axs[0].imshow(all_correlation, extent=(0,12,12,0), cmap=plt.cm.get_cmap("cividis", 10), vmin=0, vmax=1, origin="lower")
         fig.colorbar(im, cax=cax, orientation='horizontal', ticks=np.arange(0,1.1,0.2), label="Pearson $r$")
 
-        axs[0].set_xticks(np.arange(0.5,12))
-        axs[0].set_xticklabels(["R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$"], fontsize="small")
+        axs[0].set_xticks(np.arange(0,13,4))
+        xtick_offset = " "*10
+        axs[0].set_xticklabels([f"{xtick_offset}$L_u$", f"{xtick_offset}$L_s$", f"{xtick_offset}$L_d$", ""])
         axs[0].set_yticks(np.arange(0,13,4))
         axs[0].set_yticklabels(["\n\n$L_d$", "\n\n$L_s$", "\n\n$L_u$", ""])
+
+        # twin.set_xticks(np.arange(0.5,12))
+        # twin.set_xticklabels(["R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$"], fontsize="small")
 
         density_scatter(all_RGBG[4], all_RGBG[5], ax=axs[1], **kwargs)
         density_scatter(all_RGBG[1], all_RGBG[9], ax=axs[2], **kwargs)
