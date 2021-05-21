@@ -90,9 +90,19 @@ for folder_main in folders:
         water_std = water_RGB.std(axis=1)
         sky_std = sky_RGB.std(axis=1)
         card_std = card_RGB.std(axis=1)
-        all_cov = np.cov(all_RGB)
-        all_cov_R = np.zeros((10,10)) ; all_cov_R[:9,:9] = all_cov ; all_cov_R[-1,-1] = 0.01**2
         print("Calculated standard deviations per channel")
+
+        # Calculate covariance, correlation matrices for the combined radiances
+        all_covariance_RGB = np.cov(all_RGB)
+        all_correlation_RGB = np.corrcoef(all_RGB)
+        not_diagonal = ~np.eye(9, dtype=bool)  # Off-diagonal elements
+        max_corr = np.nanmax(all_correlation_RGB[not_diagonal])
+        print(f"Calculated covariance and correlation matrices. Maximum off-diagonal correlation r = {max_corr:.2f}")
+
+        # Plot correlation coefficients
+        hc.plot_correlation_matrix_radiance(all_correlation_RGB, x1=all_RGB[3], y1=all_RGB[4], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=all_RGB[1], y2=all_RGB[7], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_jpeg.pdf")
+
+        all_covariance_RGB_Rref = hc.add_Rref_to_covariance(all_covariance_RGB)
 
         # HydroColor
 
@@ -101,8 +111,6 @@ for folder_main in folders:
         print("Calculated remote sensing reflectances")
 
         # Covariances
-        R_rs_cov = hc.R_rs_covariance(all_cov_R, R_rs, card_mean)
-
         R_rs_err = hc.R_RS_error(water_mean, sky_mean, card_mean, water_std, sky_std, card_std)
         print("Calculated error in remote sensing reflectances")
 
@@ -117,4 +125,4 @@ for folder_main in folders:
 
         # Write the result to file
         saveto = data_path.with_name(data_path.stem + "_jpeg.csv")
-        hc.write_results(saveto, UTC, water_mean, water_std, sky_mean, sky_std, card_mean, card_std, R_rs, R_rs_err)
+        # hc.write_results(saveto, UTC, water_mean, water_std, sky_mean, sky_std, card_mean, card_std, R_rs, R_rs_err)

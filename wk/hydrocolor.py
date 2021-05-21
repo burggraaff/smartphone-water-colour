@@ -647,13 +647,14 @@ def plot_correlation_matrix_radiance(correlation_matrix, x1, y1, x2, y2, x1label
 
     divider = make_axes_locatable(axs[0])
     cax = divider.append_axes('bottom', size='10%', pad=0.3)
-    im = axs[0].imshow(correlation_matrix, extent=(0,12,12,0), cmap=plt.cm.get_cmap("cividis", 10), vmin=0, vmax=1, origin="lower")
+    im = axs[0].imshow(correlation_matrix, extent=(0,1,1,0), cmap=plt.cm.get_cmap("cividis", 10), vmin=0, vmax=1, origin="lower")
     fig.colorbar(im, cax=cax, orientation='horizontal', ticks=np.arange(0,1.1,0.2), label="Pearson $r$")
 
-    axs[0].set_xticks(np.arange(0,13,4))
+    ticks = np.linspace(0,1,4)
+    axs[0].set_xticks(ticks)
     xtick_offset = " "*10
     axs[0].set_xticklabels([f"{xtick_offset}$L_u$", f"{xtick_offset}$L_s$", f"{xtick_offset}$L_d$", ""])
-    axs[0].set_yticks(np.arange(0,13,4))
+    axs[0].set_yticks(ticks)
     axs[0].set_yticklabels(["\n\n$L_d$", "\n\n$L_s$", "\n\n$L_u$", ""])
 
     # twin.set_xticks(np.arange(0.5,12))
