@@ -464,8 +464,8 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
     `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
-    For example, if `xlabel` == `f"R_rs {c}"` then the columns "R_rs R",
-    "R_rs G", and "R_rs B" will be used.
+    For example, if `xlabel` == `f"R_rs ({c})"` then the columns "R_rs (R)",
+    "R_rs (G)", and "R_rs (B)" will be used.
     """
     # Create figure
     plt.figure(figsize=(4,4), tight_layout=True)
@@ -499,8 +499,8 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
     `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
-    For example, if `xlabel` == `f"R_rs {c}"` then the columns "R_rs R",
-    "R_rs G", and "R_rs B" will be used.
+    For example, if `xlabel` == `f"R_rs ({c})"` then the columns "R_rs (R)",
+    "R_rs (G)", and "R_rs (B)" will be used.
     """
     # Calculate residuals
     residuals = residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel)
@@ -761,12 +761,12 @@ def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_cov
     # Headers for the covariance matrices
     radiances_covariance_header = _generic_header(radiances_covariance_list, "cov_L")
     Ed_covariance_header = _generic_header(Ed_covariance_list, "cov_Ed")
-    R_rs_covariance_header = _generic_header(R_rs_covariance_list, "cov_R_rs")
+    R_rs_covariance_header = _generic_header(R_rs_covariance_list, "cov_R_rs_RGB")
     band_ratios_covariance_header = _generic_header(band_ratios_covariance_list, "cov_band_ratio")
     R_rs_xy_covariance_header = _generic_header(R_rs_xy_covariance_list, "cov_R_rs_xy")
 
     # Make a header with the relevant items
-    header_RGB = ["Lu {c}", "Lsky {c}", "Ld {c}", "Ed {c}", "R_rs {c}"]
+    header_RGB = ["Lu ({c})", "Lsky ({c})", "Ld ({c})", "Ed ({c})", "R_rs ({c})"]
     bands = "RGB"
     header_RGB_full = [[s.format(c=c) for c in bands] for s in header_RGB]
     header_hue = ["R_rs (G/R)", "R_rs (G/B)", "R_rs (x)", "R_rs (y)", "R_rs (hue)", "R_rs_err (hue)", "R_rs (FU)", "R_rs_min (FU)", "R_rs_max (FU)"]
@@ -779,3 +779,45 @@ def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_cov
     # Write the result to file
     result.write(saveto, format="ascii.fast_csv")
     print(f"Saved results to `{saveto}`")
+
+
+def _convert_matrix_to_uncertainties_column(covariance_matrices, labels):
+    """
+    Take a column containing covariance matrices and generate a number of columns
+    containing the uncertainties on its diagonal.
+    """
+    assert len(labels) == len(covariance_matrices[0]), f"Number of labels (len{labels}) does not match matrix dimensionality ({len(covariance_matrices[0])})."
+    diagonals = np.array([np.diag(matrix) for matrix in covariance_matrices])
+    columns = [table.Column(name=label, data=diagonals[:,j]) for j, label in enumerate(labels)]
+    return columns
+
+
+def read_results(filename):
+    """
+    Read a results file generated with write_results.
+    """
+    # Read the file
+    data = table.Table.read(filename)
+
+    # Iterate over the different covariance columns and make them into arrays again
+    covariance_keys = ["cov_L", "cov_Ed", "cov_R_rs_RGB", "cov_band_ratio", "cov_R_rs_xy"]
+    for key_cov in covariance_keys:
+        keys = sorted([key for key in data.keys() if key_cov in key])
+        # [*row] puts the row data into a list; otherwise the iteration does not work
+        covariance_matrices = [_convert_list_to_symmetric_matrix([*row]) for row in data[keys]]
+
+        # Add a new column with these matrices and remove the raw data columns
+        data.add_column(table.Column(name=key_cov, data=covariance_matrices))
+        data.remove_columns(keys)
+
+    # Iterate over the covariance matrices and calculate simple uncertainties from them
+    covariance_keys_split = [np.ravel([[f"L{sub}_err ({c})" for c in colours] for sub in ["u", "sky", "d"]]),
+                             [f"Ed_err ({c})" for c in colours],
+                             [f"R_rs_err ({c})" for c in colours],
+                             [f"R_rs_err ({ratio})" for ratio in ["G/R", "G/B"]],
+                             [f"R_rs_err ({c})" for c in "xy"]]
+    for key, keys_split in zip(covariance_keys, covariance_keys_split):
+        uncertainties = _convert_matrix_to_uncertainties_column(data[key], keys_split)
+        data.add_columns(uncertainties)
+
+    return data
