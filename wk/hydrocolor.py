@@ -788,7 +788,8 @@ def _convert_matrix_to_uncertainties_column(covariance_matrices, labels):
     """
     assert len(labels) == len(covariance_matrices[0]), f"Number of labels (len{labels}) does not match matrix dimensionality ({len(covariance_matrices[0])})."
     diagonals = np.array([np.diag(matrix) for matrix in covariance_matrices])
-    columns = [table.Column(name=label, data=diagonals[:,j]) for j, label in enumerate(labels)]
+    uncertainties = np.sqrt(diagonals)
+    columns = [table.Column(name=label, data=uncertainties[:,j]) for j, label in enumerate(labels)]
     return columns
 
 
