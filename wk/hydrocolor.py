@@ -381,45 +381,56 @@ def residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None)
     return result
 
 
-def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", equal_aspect=False, minzero=False, setmax=True, saveto=None):
+def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax=None, equal_aspect=False, minzero=False, setmax=True, saveto=None):
     """
     Simple correlation plot, no RGB stuff.
     """
-    plt.figure(figsize=(3,3))
-    plt.errorbar(x, y, xerr=xerr, yerr=yerr, color="k", fmt="o")
+    # If no Axes object was given, make a new one
+    if ax is None:
+        newaxes = True
+        plt.figure(figsize=(3,3))
+        ax = plt.gca()
+    else:
+        newaxes = False
 
+    # Plot the data
+    ax.errorbar(x, y, xerr=xerr, yerr=yerr, color="k", fmt="o")
+
+    # Set the origin to (0, 0)
     if minzero:
-        plt.xlim(xmin=0)
-        plt.ylim(ymin=0)
+        ax.set_xlim(xmin=0)
+        ax.set_ylim(ymin=0)
 
+    # Set the top right corner to include all data
     if setmax:
         xmax = 1.05*np.nanmax(x)
         ymax = 1.05*np.nanmax(y)
         if equal_aspect:
             xmax = ymax = max(xmax, ymax)
-        plt.xlim(xmax=xmax)
-        plt.ylim(ymax=ymax)
+        ax.set_xlim(xmax=xmax)
+        ax.set_ylim(ymax=ymax)
 
     # Plot the x=y line
-    plt.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
+    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
 
     # Plot settings
-    plt.grid(True, ls="--")
+    ax.grid(True, ls="--")
 
     # Get statistics for title
     r = correlation(x, y)
     title = f"$r$ = {r:.2f}"
-    plt.title(title)
+    ax.set_title(title)
 
-    # Labels
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
+    # Labels for x and y axes
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
 
-    # Save, show, close plot
-    if saveto:
-        plt.savefig(saveto, bbox_inches="tight")
-    plt.show()
-    plt.close()
+    # Save, show, close plot (if a new plot was made)
+    if newaxes:
+        if saveto:
+            plt.savefig(saveto, bbox_inches="tight")
+        plt.show()
+        plt.close()
 
 
 def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False):
