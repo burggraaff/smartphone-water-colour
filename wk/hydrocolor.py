@@ -422,7 +422,7 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", eq
     plt.close()
 
 
-def _correlation_plot_errorbars(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False):
+def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False):
     """
     Plot data into a correlation plot.
     Helper function.
@@ -471,7 +471,7 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
     plt.figure(figsize=(4,4), tight_layout=True)
 
     # Plot in the one panel
-    _correlation_plot_errorbars(plt.gca(), x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel)
+    _correlation_plot_errorbars_RGB(plt.gca(), x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel)
 
     # Plot the x=y line
     plt.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
@@ -509,8 +509,8 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     fig, axs = plt.subplots(figsize=(4,5), nrows=2, sharex=True, gridspec_kw={"height_ratios": [3,1]})
 
     # Plot in both panels
-    _correlation_plot_errorbars(axs[0], x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, equal_aspect=True)
-    _correlation_plot_errorbars(axs[1], x, residuals, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, setmax=False)
+    _correlation_plot_errorbars_RGB(axs[0], x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, equal_aspect=True)
+    _correlation_plot_errorbars_RGB(axs[1], x, residuals, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, setmax=False)
 
     # Plot the x=y line (top) and horizontal (bottom)
     axs[0].plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
