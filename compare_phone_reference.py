@@ -87,6 +87,15 @@ if reference == "WISP-3":
     for c in hc.colours:
         table_reference[f"R_rs ({c})"] = (table_reference[f"Lu ({c})"] - 0.028*table_reference[f"Lsky ({c})"])/table_reference[f"Ed ({c})"]
 
+# Add band ratios to table
+bandratio_GR = table_reference["R_rs (G)"]/table_reference["R_rs (R)"]
+bandratio_GR.name = "R_rs (G/R)"
+# bandratio_GR_err = bandratio_GR * np.sqrt(table_reference["R_rs_err (G)"]**2/table_reference["R_rs (G)"]**2 + table_reference["R_rs_err (R)"]**2/table_reference["R_rs (R)"]**2)
+bandratio_GB = table_reference["R_rs (G)"]/table_reference["R_rs (B)"]
+bandratio_GB.name = "R_rs (G/B)"
+# bandratio_GB_err = bandratio_GR * np.sqrt(table_reference["R_rs_err (G)"]**2/table_reference["R_rs (G)"]**2 + table_reference["R_rs_err (B)"]**2/table_reference["R_rs (B)"]**2)
+table_reference.add_columns([bandratio_GR, bandratio_GB])
+
 # Lists to store separate data rows - are converted to tables later
 data_phone = []
 data_reference = []
@@ -169,5 +178,5 @@ hc.correlation_plot_RGB_equal(data_reference, data_phone, "R_rs ({c})", "R_rs ({
 
 hc.comparison_histogram(data_reference, data_phone, "R_rs ({c})", xlabel=reference, ylabel=cameralabel, quantity=label_R_rs, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_R_rs_hist.pdf")
 
-# Correlation plot: Band ratios/differences
-# hc.correlation_plot_bands(data_reference, data_phone, xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_bands.pdf")
+# Correlation plot: Band ratios
+hc.correlation_plot_bands(data_reference["R_rs (G/R)"], data_phone["R_rs (G/R)"], data_reference["R_rs (G/B)"], data_phone["R_rs (G/B)"], x_err_GR=None, y_err_GR=data_phone["R_rs_err (G/R)"], x_err_GB=None, y_err_GB=data_phone["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_band_ratio.pdf")
