@@ -6,7 +6,7 @@ Command line inputs:
         Example: "water-colour-data\Data_Monocle2019_L5All.csv"
 
 Outputs:
-    * File containing Ed, Ls, Lt, Rrs
+    * File containing Ed, Ls, Lt, R_rs
         Example: "water-colour-data\Data_Monocle2019_L5All_table.csv"
 """
 import numpy as np
@@ -39,10 +39,15 @@ data.sort("UTC")
 # Remove unused columns
 data.remove_columns(["EdPAR", "EdDevice"])
 
+# Rename columns from Rrs to R_rs
+R_rs_columns = [key for key in data.keys() if "Rrs_" in key]
+R_rs_columns_new = [key.replace("Rrs", "R_rs") for key in R_rs_columns]
+data.rename_columns(R_rs_columns, R_rs_columns_new)
+print("Renamed columns from Rrs to R_rs")
+
 # Add dummy Ed, Lu, Lsky columns
-Rrs_columns = [key for key in data.keys() if "Rrs_" in key]
-wavelengths = np.array([float(key[4:]) for key in Rrs_columns])
-dummy_columns = [[table.Column(data=-np.ones_like(data[Rrs_key]), name=Rrs_key.replace("Rrs", param)) for Rrs_key in Rrs_columns] for param in ["Ed", "Lu", "Lsky"]]
+wavelengths = np.array([float(key[4:]) for key in R_rs_columns])
+dummy_columns = [[table.Column(data=-np.ones_like(data[R_rs_key]), name=R_rs_key.replace("R_rs", param)) for R_rs_key in R_rs_columns_new] for param in ["Ed", "Lu", "Lsky"]]
 dummy_columns = table.Table([x for y in dummy_columns for x in y])
 data = table.hstack([data, dummy_columns])
 print("Added dummy radiance columns")
@@ -69,6 +74,6 @@ def plot_sample(data_plot, sample_quantity, ylabel="", saveto=None):
     plt.show()
     plt.close()
 
-# Plot Rrs
-filename_Rrs = f"results/{filename.stem}.pdf"
-plot_sample(data, "Rrs", ylabel="$R_{rs}$ [sr$^{-1}$]", saveto=filename_Rrs)
+# Plot R_rs
+filename_R_rs = f"results/{filename.stem}.pdf"
+plot_sample(data, "R_rs", ylabel="$R_{rs}$ [sr$^{-1}$]", saveto=filename_R_rs)
