@@ -554,65 +554,17 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     plt.close()
 
 
-def correlation_plot_bands(x, y, datalabel="Rrs", quantity="$R_{rs}$", unit="sr$^{-1}$", xlabel="", ylabel="", saveto=None):
+def correlation_plot_bands(x_GR, y_GR, x_GB, y_GB, x_err_GR=None, y_err_GR=None, x_err_GB=None, y_err_GB=None, quantity="$R_{rs}$", xlabel="", ylabel="", saveto=None):
     """
-    Make a correlation plot between the band ratios/differences for G-B and G-R.
+    Make a correlation plot between the band ratios G/R and G/B.
     """
-    max_ratio = 0.
-    max_diff = 0.
-    min_diff = 0.
-    fig, axs = plt.subplots(2, 2, sharex="col", sharey="col", figsize=(5,5), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
-    for j, c in enumerate("BR"):
-        label_G = f"{datalabel} G"
-        label_G_err = f"{datalabel}_err G"
-        label_c = f"{datalabel} {c}"
-        label_c_err = f"{datalabel}_err {c}"
+    fig, axs = plt.subplots(ncols=2, sharex=True, sharey=True, figsize=(4,2), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
+    correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[0], xlabel=f"{quantity} G/R\n({xlabel})", ylabel=f"{quantity} G/R\n({ylabel})", equal_aspect=True, minzero=False, setmax=True)
+    correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[1], xlabel=f"{quantity} G/B\n({xlabel})", ylabel=f"{quantity} G/B\n({ylabel})", equal_aspect=True, minzero=False, setmax=True)
 
-        ratio_x = x[label_G]/x[label_c]
-        ratio_y = y[label_G]/y[label_c]
-        ratio_err_x = ratio_x * np.sqrt(x[label_G_err]**2/x[label_G]**2 + x[label_c_err]**2/x[label_c]**2)
-        ratio_err_y = ratio_y * np.sqrt(y[label_G_err]**2/y[label_G]**2 + y[label_c_err]**2/y[label_c]**2)
-
-        diff_x = x[label_G] - x[label_c]
-        diff_y = y[label_G] - y[label_c]
-        diff_err_x = np.sqrt(x[label_G_err]**2 + x[label_c_err]**2)
-        diff_err_y = np.sqrt(y[label_G_err]**2 + y[label_c_err]**2)
-
-        axs[j,0].errorbar(ratio_x, ratio_y, xerr=ratio_err_x, yerr=ratio_err_y, c="k", fmt="o")
-        axs[j,1].errorbar(diff_x, diff_y, xerr=diff_err_x, yerr=diff_err_y, c="k", fmt="o")
-
-        max_ratio = max(np.nanmax(ratio_x), np.nanmax(ratio_y), max_ratio)
-        max_diff = max(np.nanmax(diff_x), np.nanmax(diff_y), max_diff)
-        min_diff = min(np.nanmin(diff_x), np.nanmin(diff_y), min_diff)
-
-        axs[j,0].set_xlim(0, 1.1*max_ratio)
-        axs[j,0].set_ylim(0, 1.1*max_ratio)
-        axs[j,1].set_xlim(1.1*min_diff, 1.1*max_diff)
-        axs[j,1].set_ylim(1.1*min_diff, 1.1*max_diff)
-
-    for ax in axs.ravel():
-        ax.grid(True, ls="--")
-        ax.plot([-1, 5], [-1, 5], c='k', ls="--")
-        ax.set_aspect("equal")
-        ax.locator_params(axis="both", nbins=4)
-
-    for ax in axs[:,1]:
-        ax.tick_params(axis="y", left=False, labelleft=False, right=True, labelright=True)
-        ax.yaxis.set_label_position("right")
-
-    for ax in axs[0]:
-        ax.tick_params(axis="x", bottom=False, labelbottom=False, top=True, labeltop=True)
-        ax.xaxis.set_label_position("top")
-
-    axs[0,0].set_xlabel(f"{xlabel} {quantity} $G / B$")
-    axs[0,0].set_ylabel(f"{ylabel}\n{quantity} $G / B$")
-    axs[1,0].set_xlabel(f"{xlabel} {quantity} $G / R$")
-    axs[1,0].set_ylabel(f"{ylabel}\n{quantity} $G / R$")
-
-    axs[0,1].set_xlabel(f"{xlabel} {quantity} $G - B$ [{unit}]")
-    axs[0,1].set_ylabel(f"{ylabel}\n{quantity} $G - B$ [{unit}]")
-    axs[1,1].set_xlabel(f"{xlabel} {quantity} $G - R$ [{unit}]")
-    axs[1,1].set_ylabel(f"{ylabel}\n{quantity} $G - R$ [{unit}]")
+    # Switch ytick labels on the right plot to the right
+    axs[1].tick_params(axis="y", left=False, labelleft=False, right=True, labelright=True)
+    axs[1].yaxis.set_label_position("right")
 
     if saveto:
         plt.savefig(saveto, bbox_inches="tight")

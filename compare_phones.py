@@ -57,8 +57,8 @@ hc.correlation_plot_RGB_equal(data_phone1, data_phone2, "R_rs ({c})", "R_rs ({c}
 
 hc.comparison_histogram(data_phone1, data_phone2, "R_rs ({c})", xlabel=phone1_name, ylabel=phone2_name, quantity=label_R_rs, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_R_rs_hist.pdf")
 
-# Correlation plot: Band ratios/differences
-# hc.correlation_plot_bands(data_phone1, data_phone2, xlabel=phone1_name, ylabel=phone2_name, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_bands.pdf")
+# Correlation plot: Band ratios
+hc.correlation_plot_bands(data_phone1["R_rs (G/R)"], data_phone2["R_rs (G/R)"], data_phone1["R_rs (G/B)"], data_phone2["R_rs (G/B)"], x_err_GR=data_phone1["R_rs_err (G/R)"], y_err_GR=data_phone2["R_rs_err (G/R)"], x_err_GB=data_phone1["R_rs_err (G/B)"], y_err_GB=data_phone2["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=phone1_name, ylabel=phone2_name, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_band_ratio.pdf")
 
 # Correlation plot for all radiances combined
 def get_radiances(data):
