@@ -16,6 +16,8 @@ from sys import argv
 from pathlib import Path
 from datetime import datetime
 
+from wk import wacodi as wa
+
 # Get filenames
 filename = Path(argv[1])
 print("Input file:", filename.absolute())
@@ -51,6 +53,9 @@ dummy_columns = [[table.Column(data=-np.ones_like(data[R_rs_key]), name=R_rs_key
 dummy_columns = table.Table([x for y in dummy_columns for x in y])
 data = table.hstack([data, dummy_columns])
 print("Added dummy radiance columns")
+
+# Add WACODI data - XYZ, xy, hue angle, Forel-Ule
+data = wa.add_colour_data_to_table(data)
 
 # Write data to file
 data.write(saveto, format="ascii.fast_csv")

@@ -1,8 +1,11 @@
 from spectacle.general import apply_to_multiple_args
+from spectacle.spectral import convolve_multi, cie_wavelengths, cie_xyz
 import numpy as np
 from matplotlib import pyplot as plt, transforms
 from matplotlib.patches import Ellipse
 from colorio._tools import plot_flat_gamut
+from astropy import table
+
 from .hydrocolor import correlation_from_covariance
 
 M_sRGB_to_XYZ = np.array([[0.4124564, 0.3575761, 0.1804375],
@@ -108,6 +111,34 @@ def convert_hue_angle_to_ForelUle_uncertainty(hue_angle_uncertainty, hue_angle):
     minmax_FU = np.sort(convert_hue_angle_to_ForelUle(minmax_hueangle))
 
     return minmax_FU
+
+
+def add_colour_data_to_table(data, key="R_rs"):
+    """
+    Add colour data (XYZ, xy, hue angle, FU) to a data table.
+    """
+    # Spectral convolution to XYZ
+    cols = [col for col in data.keys() if key in col]  # Find the relevant keys
+    wavelengths = np.array([float(col.split(key)[1][1:]) for col in cols])  # Data wavelengths
+    data_array = np.array(data[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
+
+    # Convolve to XYZ
+    data_XYZ = np.array([convolve_multi(cie_wavelengths, band, wavelengths, data_array) for band in cie_xyz])
+
+    # Calculate xy from XYZ
+    data_xy = convert_XYZ_to_xy(data_XYZ)
+
+    # Calculate the hue angle and associated FU index
+    hue_angles = convert_xy_to_hue_angle(data_xy)
+    FU_indices = convert_hue_angle_to_ForelUle(hue_angles)
+
+    # Put WACODI data in a table
+    table_WACODI = table.Table(data=[*data_XYZ, *data_xy, hue_angles, FU_indices], names=[f"{key} ({label})" for label in [*"XYZxy", "hue", "FU"]])
+
+    # Merge convolved data table with original data table
+    data = table.hstack([data, table_WACODI])
+
+    return data
 
 
 def _confidence_ellipse(center, covariance, ax, covariance_scale=1, **kwargs):

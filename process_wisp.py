@@ -16,6 +16,8 @@ from astropy import table
 from sys import argv
 from pathlib import Path
 from datetime import datetime
+from spectacle import spectral
+from wk import wacodi as wa
 
 # Label that matches column header
 def label(text, wvl):
@@ -87,6 +89,9 @@ print("Input file:", filename.absolute())
 
 # Convert to table
 data = load_wisp_data(filename)
+
+# Add WACODI data - XYZ, xy, hue angle, Forel-Ule
+data = wa.add_colour_data_to_table(data)
 
 # Write to file
 filename_result = filename.with_name(filename.stem + "_table.csv")
