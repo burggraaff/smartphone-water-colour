@@ -68,7 +68,7 @@ table_reference = table.Table.read(path_reference)
 # Spectral convolution
 # Convolve R_rs itself for now because of fingerprinting
 for key in ["Ed", "Lsky", "Lu", "R_rs"]:
-    cols = [col for col in table_reference.keys() if key in col]  # Find the relevant keys
+    cols = [col for col in table_reference.keys() if key in col and not any(f"({label})" in col for label in [*"XYZxy", "hue", "FU"])]  # Find the relevant keys
     wavelengths = np.array([float(col.split(key)[1][1:]) for col in cols])  # Data wavelengths
     data = np.array(table_reference[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
 
