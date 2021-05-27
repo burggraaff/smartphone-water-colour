@@ -124,6 +124,11 @@ for row in table_phone:
         row_uncertainties = table.Table(data=uncertainties, names=keys_err)
         row_reference = table.hstack([row_reference, row_uncertainties])
 
+    # If the uncertainties on the reference data are above a threshold, disregard this match-up
+    threshold = 0.1  # relative
+    if any(row_reference[f"R_rs_err ({c})"]/row_reference[f"R_rs ({c})"] >= threshold for c in hc.colours):
+        continue
+
     # Add some metadata that may be used to identify the quality of the match
     metadata = table.Table(names=["nr_matches", "closest_match"], data=np.array([len(close_enough), time_differences[closest]]))
     row_reference = table.hstack([metadata, row_reference])
