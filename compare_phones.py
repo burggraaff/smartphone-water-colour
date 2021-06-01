@@ -79,4 +79,4 @@ hc.correlation_plot_RGB(radiance_phone1, radiance_phone2, "L ({c})", "L ({c})", 
 
 hc.comparison_histogram(radiance_phone1, radiance_phone2, "L ({c})", xlabel=phone1_name, ylabel=phone2_name, quantity=label, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_L_hist.pdf")
 
-wa.correlation_plot_hue_angle_and_ForelUle(data_phone1["R_rs (hue)"], data_phone2["R_rs (hue)"], xlabel=phone1_name, ylabel=phone2_name, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_hueangle_ForelUle.pdf")
+wa.correlation_plot_hue_angle_and_ForelUle(data_phone1["R_rs (hue)"], data_phone2["R_rs (hue)"], xlabel=phone1_name+" $R_{rs}$", ylabel=phone2_name+" $R_{rs}$", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_hueangle_ForelUle.pdf")
