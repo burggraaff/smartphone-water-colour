@@ -333,6 +333,18 @@ def residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None)
     return result
 
 
+def _correlation_plot_gridlines(ax=None):
+    """
+    Add grid lines and the y=x line to a plot.
+    """
+    # Get the active Axes object
+    if ax is None:
+        ax = plt.gca()
+
+    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")  # Diagonal
+    ax.grid(True, ls="--")  # Grid lines
+
+
 def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax=None, equal_aspect=False, minzero=False, setmax=True, saveto=None):
     """
     Simple correlation plot, no RGB stuff.
@@ -362,11 +374,8 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
         ax.set_xlim(xmax=xmax)
         ax.set_ylim(ymax=ymax)
 
-    # Plot the x=y line
-    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
-
-    # Plot settings
-    ax.grid(True, ls="--")
+    # Grid lines and y=x diagonal
+    _correlation_plot_gridlines(ax)
 
     # Get statistics for title
     r = correlation(x, y)
@@ -436,11 +445,8 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
     # Plot in the one panel
     _correlation_plot_errorbars_RGB(plt.gca(), x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel)
 
-    # Plot the x=y line
-    plt.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
-
-    # Plot settings
-    plt.grid(True, ls="--")
+    # y=x line and grid lines
+    _correlation_plot_gridlines()
 
     # Get statistics for title
     r_all, r_RGB = statistic_RGB(correlation, x, y, xdatalabel, ydatalabel)
@@ -476,12 +482,9 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     _correlation_plot_errorbars_RGB(axs[1], x, residuals, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, setmax=False)
 
     # Plot the x=y line (top) and horizontal (bottom)
-    axs[0].plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
+    _correlation_plot_gridlines(axs[0])
     axs[1].axhline(0, c='k', ls="--")
-
-    # Plot settings
-    for ax in axs:
-        ax.grid(True, ls="--")
+    axs[1].grid(True, ls="--")
 
     # Get statistics for title
     MAD_all, MAD_RGB = statistic_RGB(MAD, x, y, xdatalabel, ydatalabel)
