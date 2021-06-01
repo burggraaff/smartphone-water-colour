@@ -6,7 +6,7 @@ from matplotlib.patches import Ellipse
 from colorio._tools import plot_flat_gamut
 from astropy import table
 
-from .hydrocolor import correlation_from_covariance, correlation_plot_simple
+from .hydrocolor import correlation_from_covariance, correlation_plot_simple, MAD, MAPD
 
 M_sRGB_to_XYZ = np.array([[0.4124564, 0.3575761, 0.1804375],
                           [0.2126729, 0.7151522, 0.0721750],
@@ -231,6 +231,11 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     ax3.set_xlim(ax.get_xlim())
     ax3.set_xlabel(xlabel_FU)
     ax3.tick_params(axis="x", length=0)
+
+    mad = MAD(x, y)
+    mapd = MAPD(x, y)
+    title = f"MAD = ${mad:.1f} \\degree$ ({mapd:.1f}%)"
+    ax.set_title(title)
 
     # Number of matches (Delta 0)
     # Number of near-matches (Delta 1)
