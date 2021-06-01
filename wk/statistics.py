@@ -17,7 +17,8 @@ def MAD(x, y):
 
 def MAPD(x, y):
     """
-    Median absolute percentage deviation (sometimes MAPE) between data sets x and y.
+    Symmetric median absolute percentage deviation (sometimes sMAPE) between
+    data sets x and y.
     Normalised relative to (x+y)/2 rather than just x or y.
     Expressed in %, so already multiplied by 100.
     """
@@ -25,6 +26,24 @@ def MAPD(x, y):
     MAD_relative = np.nanmedian(np.abs((y-x)/normalisation))
     MAD_percent = MAD_relative * 100.
     return MAD_percent
+
+
+def zeta(x, y):
+    """
+    Log accuracy ratio between data sets x and y.
+    """
+    logR = np.abs(np.log(y/x))
+    zeta = 100 * (np.exp(np.nanmedian(logR)) - 1)
+    return zeta
+
+
+def SSPB(x, y):
+    """
+    Symmetric signed percentage bias between data sets x and y.
+    """
+    MlogQ = np.nanmedian(np.log(y/x))
+    SSPB = 100 * np.sign(MlogQ) * (np.exp(np.abs(MlogQ)) - 1)
+    return SSPB
 
 
 def ravel_table(data, key, loop_keys):
