@@ -2,6 +2,8 @@
 Module with some statistics used in the analysis
 """
 import numpy as np
+from scipy import odr
+
 from . import colours
 
 # Pearson r correlation coefficient
@@ -71,3 +73,24 @@ def statistic_RGB(func, data1, data2, xdatalabel, ydatalabel):
     stat_all = func(data1_combined, data2_combined)
 
     return stat_all, stat_RGB
+
+
+def linear_regression(x, y, xerr=0, yerr=0):
+    """
+    Linear regression, using uncertainties in x and y.
+    https://docs.scipy.org/doc/scipy/reference/odr.html
+    """
+    def linear(params, x):
+        return params[0]*x + params[1]
+
+    data = odr.RealData(x, y, sx=xerr, sy=yerr)
+    model = odr.Model(linear)  # Ignore Jacobians for now
+
+    odr_holder = odr.ODR(data, model, beta0=[1., 0.])
+    output = odr_holder.run()
+
+    params = output.beta
+    params_cov = output.cov_beta
+    output_function = lambda x: linear(params, x)
+
+    return params, params_cov, output_function

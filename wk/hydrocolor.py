@@ -13,7 +13,7 @@ from scipy.linalg import block_diag
 from scipy.interpolate import interpn
 
 from . import colours
-from .statistics import correlation, MAD, MAPD, ravel_table, statistic_RGB
+from .statistics import correlation, MAD, MAPD, ravel_table, statistic_RGB, linear_regression
 
 plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255]]  # Plot colours from Okabe-Ito
 
@@ -345,7 +345,7 @@ def _correlation_plot_gridlines(ax=None):
     ax.grid(True, ls="--")  # Grid lines
 
 
-def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax=None, equal_aspect=False, minzero=False, setmax=True, saveto=None):
+def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax=None, equal_aspect=False, minzero=False, setmax=True, regression=False, saveto=None):
     """
     Simple correlation plot, no RGB stuff.
     """
@@ -376,6 +376,13 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
 
     # Grid lines and y=x diagonal
     _correlation_plot_gridlines(ax)
+
+    # If wanted, perform a linear regression and plot the result
+    if regression:
+        params, params_cov, func = linear_regression(x, y, xerr, yerr)
+        x_plot = np.array([-1000., 1000.])
+        y_plot = func(x_plot)
+        ax.plot(x_plot, y_plot, color="k")
 
     # Get statistics for title
     r = correlation(x, y)
