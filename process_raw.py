@@ -125,9 +125,11 @@ for folder_main in folders:
         all_mean_RGB = M_RGBG2_to_RGB_all_L @ all_mean
         all_covariance_RGB = M_RGBG2_to_RGB_all_L @ all_covariance @ M_RGBG2_to_RGB_all_L.T
         all_correlation_RGB = hc.correlation_from_covariance(all_covariance_RGB)
-        all_covariance_RGB_Rref = hc.add_Rref_to_covariance(all_covariance_RGB)
 
         water_mean_RGB, sky_mean_RGB, card_mean_RGB = hc.split_combined_radiances(all_mean_RGB)
+
+        # Add Rref to covariance matrix
+        all_covariance_RGB_Rref = hc.add_Rref_to_covariance(all_covariance_RGB)
 
         # Calculate Ed from Ld
         Ld_covariance_RGB = all_covariance_RGB[-3:, -3:]  # Take only the Ld-Ld elements from the covariance matrix
