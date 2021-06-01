@@ -11,7 +11,7 @@ from sys import argv
 from matplotlib import pyplot as plt
 from spectacle import io
 from astropy import table
-from wk import hydrocolor as hc
+from wk import hydrocolor as hc, wacodi as wa
 
 # Get the data folder from the command line
 path_data1, path_data2 = io.path_from_input(argv)
@@ -21,8 +21,8 @@ phone_name = " ".join(path_data1.stem.split("_")[1:-1])
 data_type1 = hc.data_type_RGB(path_data1)
 data_type2 = hc.data_type_RGB(path_data2)
 
-data1 = table.Table.read(path_data1)
-data2 = table.Table.read(path_data2)
+data1 = hc.read_results(path_data1)
+data2 = hc.read_results(path_data2)
 
 parameters = ["Lu", "Lsky", "Ld", "Ed"]
 labels = ["$L_u$", "$L_{sky}$", "$L_d$", "$E_d$"]
@@ -39,8 +39,10 @@ hc.correlation_plot_RGB_equal(data1, data2, "R_rs ({c})", "R_rs ({c})", xerrlabe
 
 hc.comparison_histogram(data1, data2, "R_rs ({c})", xlabel=f"{phone_name} {data_type1}", ylabel=f"{phone_name} {data_type2}", quantity=label, saveto=f"results/comparison_{phone_name}_{data_type1}_X_{data_type2}_R_rs_hist.pdf")
 
-# Correlation plot: Band ratios/differences
-hc.correlation_plot_bands(data1, data2, xlabel=f"{phone_name} {data_type1}", ylabel=f"{phone_name} {data_type2}", saveto=f"results/comparison_{phone_name}_{data_type1}_X_{data_type2}_bands.pdf")
+# Correlation plot: Band ratios
+hc.correlation_plot_bands(data1["R_rs (G/R)"], data2["R_rs (G/R)"], data1["R_rs (G/B)"], data2["R_rs (G/B)"], x_err_GR=data1["R_rs_err (G/R)"], y_err_GR=data2["R_rs_err (G/R)"], x_err_GB=data1["R_rs_err (G/B)"], y_err_GB=data2["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=f"{phone_name} {data_type1}", ylabel=f"{phone_name} {data_type2}", saveto=f"results/comparison_{phone_name}_{data_type1}_X_{data_type2}_band_ratio.pdf")
+
+wa.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=f"{phone_name} {data_type1}"+" $R_{rs}$", ylabel=f"{phone_name} {data_type2}"+" $R_{rs}$", saveto=f"results/comparison_{phone_name}_{data_type1}_X_{data_type2}_hueangle_ForelUle.pdf")
 
 # Correlation plot for all radiances combined
 def get_radiances(data):
