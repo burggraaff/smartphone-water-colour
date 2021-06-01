@@ -175,6 +175,28 @@ def plot_xy_on_gamut_covariance(xy, xy_covariance, covariance_scale=1):
     plt.close()
 
 
+def compare_FU_matches_from_hue_angle(x, y):
+    """
+    Count the percentage of matching FU colours in x and y.
+    Return the percentage that are the same (e.g. x=1, y=1)
+    and the percentage within 1 (e.g. x=1, y=2).
+    """
+    assert len(x) == len(y), f"x and y have different lengths: {len(x)} and {len(y)}."
+
+    # Convert hue angles to Forel-Ule colours
+    x_FU, y_FU = convert_hue_angle_to_ForelUle([x, y])
+
+    # Count the number of (near-)matching FU colours
+    matches = np.where(x_FU == y_FU)[0]
+    near_matches = np.where(np.abs(x_FU - y_FU) <= 1)[0]
+
+    # Convert counts to percentages
+    matches_percent = 100*len(matches)/len(x)
+    near_matches_percent = 100*len(near_matches)/len(x)
+
+    return matches_percent, near_matches_percent
+
+
 def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="", ylabel="", saveto=None):
     """
     Make a correlation plot of hue angles (x and y).
@@ -234,7 +256,10 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
 
     mad = MAD(x, y)
     mapd = MAPD(x, y)
-    title = f"MAD = ${mad:.1f} \\degree$ ({mapd:.1f}%)"
+
+    FU_matches, FU_near_matches = compare_FU_matches_from_hue_angle(x, y)
+
+    title = f"MAD = ${mad:.1f} \\degree$ ({mapd:.1f}%)\n{FU_matches:.0f}% $\Delta$FU$= 0$   {FU_near_matches:.0f}% $\Delta$FU$\leq 1$"
     ax.set_title(title)
 
     # Number of matches (Delta 0)
