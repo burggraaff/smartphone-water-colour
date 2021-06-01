@@ -13,6 +13,8 @@ Command-line inputs:
 """
 
 import numpy as np
+np.set_printoptions(precision=2)
+
 from sys import argv
 from spectacle import io, load_camera
 from os import walk
@@ -87,11 +89,6 @@ for folder_main in folders:
         all_mean = all_RGB.mean(axis=1)
         print("Calculated mean values per channel")
 
-        water_std = water_RGB.std(axis=1)
-        sky_std = sky_RGB.std(axis=1)
-        card_std = card_RGB.std(axis=1)
-        print("Calculated standard deviations per channel")
-
         # Calculate covariance, correlation matrices for the combined radiances
         all_covariance_RGB = np.cov(all_RGB)
         all_correlation_RGB = np.corrcoef(all_RGB)
@@ -102,27 +99,89 @@ for folder_main in folders:
         # Plot correlation coefficients
         hc.plot_correlation_matrix_radiance(all_correlation_RGB, x1=all_RGB[3], y1=all_RGB[4], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=all_RGB[1], y2=all_RGB[7], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_jpeg.pdf")
 
+        # Add Rref to covariance matrix
         all_covariance_RGB_Rref = hc.add_Rref_to_covariance(all_covariance_RGB)
 
-        # HydroColor
+        # Calculate Ed from Ld
+        Ld_covariance_RGB = all_covariance_RGB[-3:, -3:]  # Take only the Ld-Ld elements from the covariance matrix
+        Ed = hc.convert_Ld_to_Ed(card_mean)
+        Ed_covariance = hc.convert_Ld_to_Ed_covariance(Ld_covariance_RGB, Ed)
 
         # Convert to remote sensing reflectances
         R_rs = hc.R_RS(water_mean, sky_mean, card_mean)
+        R_rs_covariance = hc.R_rs_covariance(all_covariance_RGB_Rref, R_rs, card_mean)
         print("Calculated remote sensing reflectances")
 
-        # Covariances
-        R_rs_err = hc.R_RS_error(water_mean, sky_mean, card_mean, water_std, sky_std, card_std)
-        print("Calculated error in remote sensing reflectances")
+        # Derive naive uncertainty and correlation from covariance
+        R_rs_uncertainty = np.sqrt(np.diag(R_rs_covariance))  # Uncertainty per band, ignoring covariance
+        R_rs_correlation = hc.correlation_from_covariance(R_rs_covariance)
 
-        for R, R_err, c in zip(R_rs, R_rs_err, "RGB"):
-            print(f"{c}: R_rs = {R:.3f} +- {R_err:.3f} sr^-1")
+
+        # HydroColor
+        for reflectance, reflectance_uncertainty, c in zip(R_rs, R_rs_uncertainty, "RGB"):
+            print(f"R_rs({c}) = ({reflectance:.3f} +- {reflectance_uncertainty:.3f}) sr^-1   ({100*reflectance_uncertainty/reflectance:.0f}% uncertainty)")
 
         # Plot the result
-        hc.plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err)
+        hc.plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_uncertainty)
+
+        # Calculate band ratios
+        beta = R_rs[1] / R_rs[2]  # G/B
+        rho = R_rs[1] / R_rs[0]  # G/R
+        bandratios = np.array([rho, beta])
+
+        bandratios_J = np.array([[-rho/R_rs[0], 1/R_rs[0], 0            ],
+                                 [0           , 1/R_rs[2], -beta/R_rs[2]]])
+
+        bandratios_covariance = bandratios_J @ R_rs_covariance @ bandratios_J.T
+        bandratios_uncertainty = np.sqrt(np.diag(bandratios_covariance))
+        bandratios_correlation = hc.correlation_from_covariance(bandratios_covariance)
+        print(f"Calculated average band ratios: R_rs(G)/R_rs(R) = {bandratios[0]:.2f} +- {bandratios_uncertainty[0]:.2f}    R_rs(G)/R_rs(B) = {bandratios[1]:.2f} +- {bandratios_uncertainty[1]:.2f}    (correlation r = {bandratios_correlation[0,1]:.2f})")
+
+
+        # WACODI
+
+        # Convert RGB to XYZ
+        water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ = wa.M_sRGB_to_XYZ_E @ water_mean, wa.M_sRGB_to_XYZ_E @ sky_mean, wa.M_sRGB_to_XYZ_E @ card_mean, wa.M_sRGB_to_XYZ_E @ R_rs
+        R_rs_XYZ_covariance = wa.M_sRGB_to_XYZ_E @ R_rs_covariance @ wa.M_sRGB_to_XYZ_E.T
+
+        radiance_RGB_to_XYZ = hc.block_diag(*[wa.M_sRGB_to_XYZ_E.T]*3)
+        all_mean_XYZ = radiance_RGB_to_XYZ @ all_mean
+        all_mean_XYZ_covariance = radiance_RGB_to_XYZ @ all_covariance_RGB @ radiance_RGB_to_XYZ.T
+
+        # Calculate xy chromaticity
+        water_xy, sky_xy, card_xy, R_rs_xy = wa.convert_XYZ_to_xy(water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ)
+        water_xy_covariance = wa.convert_XYZ_to_xy_covariance(all_mean_XYZ_covariance[:3,:3], water_XYZ)
+        R_rs_xy_covariance = wa.convert_XYZ_to_xy_covariance(R_rs_XYZ_covariance, R_rs_XYZ)
+
+        # Calculate correlation
+        R_rs_xy_correlation = hc.correlation_from_covariance(R_rs_xy_covariance)
+        water_xy_correlation = hc.correlation_from_covariance(water_xy_covariance)
+
+        print("Converted to xy:", f"xy R_rs = {R_rs_xy} +- {np.sqrt(np.diag(R_rs_xy_covariance))} (r = {R_rs_xy_correlation[0,1]:.2f})", f"xy L_u  = {water_xy} +- {np.sqrt(np.diag(water_xy_covariance))} (r = {water_xy_correlation[0,1]:.2f})", sep="\n")
+
+        # Plot chromaticity
+        wa.plot_xy_on_gamut_covariance(R_rs_xy, R_rs_xy_covariance)
+
+        # Calculate hue angle
+        water_hue, R_rs_hue = wa.convert_xy_to_hue_angle(water_xy, R_rs_xy)
+        water_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(water_xy_covariance, water_xy)
+        R_rs_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(R_rs_xy_covariance, R_rs_xy)
+        print("Calculated hue angles:", f"alpha R_rs = {R_rs_hue:.1f} +- {R_rs_hue_uncertainty:.1f} degrees", f"alpha L_u  = {water_hue:.1f} +- {water_hue_uncertainty:.1f} degrees", sep="\n")
+
+        # Convert to Forel-Ule index
+        water_FU, R_rs_FU = wa.convert_hue_angle_to_ForelUle([water_hue, R_rs_hue])
+        water_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(water_hue_uncertainty, water_hue)
+        R_rs_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(R_rs_hue_uncertainty, R_rs_hue)
+        print("Determined Forel-Ule indices:", f"FU R_rs = {R_rs_FU} [{R_rs_FU_range[0]}-{R_rs_FU_range[1]}]", f"FU L_u  = {water_FU} [{water_FU_range[0]}-{water_FU_range[1]}]", sep="\n")
+
 
         # Create a timestamp from EXIF (assume time zone UTC+2)
-        UTC = hc.UTC_timestamp(water_exif)
+        # Time zone: UTC+2 for Balaton data, UTC for NZ data
+        if folder_main.stem == "NZ":
+            UTC = hc.UTC_timestamp(water_exif, conversion_to_utc=hc.timedelta(hours=0))
+        else:
+            UTC = hc.UTC_timestamp(water_exif)
 
         # Write the result to file
         saveto = data_path.with_name(data_path.stem + "_jpeg.csv")
-        # hc.write_results(saveto, UTC, water_mean, water_std, sky_mean, sky_std, card_mean, card_std, R_rs, R_rs_err)
+        hc.write_results(saveto, UTC, all_mean, all_covariance_RGB, Ed, Ed_covariance, R_rs, R_rs_covariance, bandratios, bandratios_covariance, R_rs_xy, R_rs_xy_covariance, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range)
