@@ -180,19 +180,25 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     Make a correlation plot of hue angles (x and y).
     Draw the equivalent Forel-Ule indices on the grid for reference.
     """
+    # Generate labels for the x and y axes
     xlabel_hue = f"{xlabel}\nHue angle $\\alpha$ (degrees)"
     ylabel_hue = f"{ylabel}\nHue angle $\\alpha$ (degrees)"
     xlabel_FU = f"{xlabel}\nForel-Ule index"
     ylabel_FU = f"{ylabel}\nForel-Ule index"
 
+    # Create figure
     fig, ax = plt.subplots(figsize=(4,4))
 
+    # Plot the data
     correlation_plot_simple(x, y, xerr=xerr, yerr=yerr, ax=ax, equal_aspect=True)
 
+    # Set the x and y labels for hue angle
     ax.set_xlabel(xlabel_hue)
     ax.set_ylabel(ylabel_hue)
     ax.grid(False)
 
+    # Plot lines correspnding to the FU colour limits, and
+    # colour the squares along the x=y line.
     line_kwargs = {"c": "k", "lw": 0.5}
     for fu,angle in enumerate(FU_hueangles):
         ax.axvline(angle, **line_kwargs)
@@ -200,9 +206,17 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
         square = FU_hueangles[fu:fu+2]
         ax.fill_between(square, *square, facecolor="0.5")
 
+    # Same ticks on x and y.
+    # Weird quirk in matplotlib: you need to do it twice (x->y then y->x)
+    # to actually get the same ticks on both axes.
+    ax.set_yticks(ax.get_xticks())
+    ax.set_xticks(ax.get_yticks())
+
+    # Labels for FU colours: every odd colour, in the middle of the range
     FU_middles = np.array([(a + b)/2 for a, b in zip(FU_hueangles, FU_hueangles[1:])])[::2]
     FU_labels = np.arange(1,21)[::2]
 
+    # Add a new x axis at the top with FU colours
     ax2 = ax.twinx()
     ax2.set_yticks(FU_middles)
     ax2.set_yticklabels(FU_labels)
@@ -210,6 +224,7 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     ax2.set_ylabel(ylabel_FU)
     ax2.tick_params(axis="y", length=0)
 
+    # Add a new y axis on the right with FU colours
     ax3 = ax2.twiny()
     ax3.set_xticks(FU_middles)
     ax3.set_xticklabels(FU_labels)
@@ -220,6 +235,7 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     # Number of matches (Delta 0)
     # Number of near-matches (Delta 1)
 
+    # Save and close the plot
     if saveto is not None:
         plt.savefig(saveto, bbox_inches="tight")
     plt.show()
