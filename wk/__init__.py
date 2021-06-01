@@ -1,0 +1,1 @@
+colours = "RGB"  # Smartphone bands

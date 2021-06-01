@@ -5,13 +5,74 @@ Module with functions etc for HydroColor
 from spectacle import io, analyse, calibrate, spectral
 from spectacle.general import RMS
 import numpy as np
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, cm
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from datetime import datetime, timedelta
 from astropy import table
-from scipy.stats import linregress
+from scipy.linalg import block_diag
+from scipy.interpolate import interpn
 
-colours = ["R", "G", "B", "G2"]  # Smartphone bands
-plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255], [0,158/255,115/255]]  # Plot colours from Okabe-Ito
+from . import colours
+from .statistics import correlation, MAD, MAPD, ravel_table, statistic_RGB
+
+plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255]]  # Plot colours from Okabe-Ito
+
+
+def correlation_from_covariance(covariance):
+    """
+    Convert a covariance matrix into a correlation matrix
+    https://gist.github.com/wiso/ce2a9919ded228838703c1c7c7dad13b
+    """
+    v = np.sqrt(np.diag(covariance))
+    outer_v = np.outer(v, v)
+    correlation = covariance / outer_v
+    correlation[covariance == 0] = 0
+    return correlation
+
+
+def add_Rref_to_covariance(covariance, Rref_uncertainty=0.01):
+    """
+    Add a column and row for R_ref to a covariance matrix.
+    The input Rref_uncertainty is assumed fully uncorrelated
+    to the other elements.
+    """
+    covariance_with_Rref = block_diag(covariance, [Rref_uncertainty**2])
+
+    return covariance_with_Rref
+
+
+def convert_Ld_to_Ed(Ld, R_ref=0.18):
+    """
+    Convert downwelling radiance from a grey card (Ld) to downwelling
+    irradiance (Ed) using the reference reflectance (R_ref).
+    """
+    Ed = Ld / R_ref
+    return Ed
+
+
+def convert_Ld_to_Ed_covariance(Ld_covariance, Ed, R_ref=0.18, R_ref_uncertainty=0.01):
+    """
+    Convert the covariance in downwelling radiance (Ld) and the
+    reference reflectance (R_ref) to a covariance in downwelling
+    irradiance (Ed).
+    """
+    nr_bands = len(Ed)  # Number of bands - 3 for RGB, 4 for RGBG2
+    total_covariance = add_Rref_to_covariance(Ld_covariance, R_ref_uncertainty)
+    J = np.block([np.eye(nr_bands)/R_ref, (-Ed/R_ref)[:,np.newaxis]])  # Jacobian matrix
+    Ed_covariance = J @ total_covariance @ J.T
+
+    return Ed_covariance
+
+
+def split_combined_radiances(radiances):
+    """
+    For a combined radiance array, e.g. [Lu(R), Lu(G), Lu(B), Ls(R), ..., Ld(G), Ld(B)],
+    split it into three separate arrays: [Lu(R), Lu(G), Lu(B)], [Ls(R), ...], ...
+    """
+    n = len(radiances)//3
+    Lu, Ls, Ld = radiances[:n], radiances[n:2*n], radiances[2*n:]
+    return Lu, Ls, Ld
+
 
 def R_RS(L_u, L_s, L_d, rho=0.028, R_ref=0.18):
     """
@@ -55,7 +116,7 @@ def R_rs_covariance(L_Rref_covariance, R_rs, L_d, rho=0.028, R_ref=0.18):
     JR = R_rs[:,np.newaxis] / R_ref
 
     # Combine the parts of the Jacobian
-    J = np.concatenate([J1, J2, J3, JR], axis=1)
+    J = np.block([J1, J2, J3, JR])
 
     # Propagate the individual covariances
     R_rs_cov = J @ L_Rref_covariance @ J.T
@@ -233,71 +294,6 @@ def effective_bandwidth(calibration_folder):
     return effective_bandwidths
 
 
-def _loop_RGBG2_or_RGB(data1, data2, param):
-    """
-    Return RGBG2 if each data table has keys corresponding to each of those bands.
-    Otherwise, return only RGB.
-    """
-    loop_colours = colours
-    # We can't do `data1.keys() + data2.keys()` because we must check each individually
-    if all("G2" not in key for key in data1.keys()) or all("G2" not in key for key in data2.keys()):
-        loop_colours = colours[:3]
-
-    return loop_colours
-
-
-# Pearson r correlation coefficient
-correlation = lambda x, y: np.corrcoef(x, y)[0, 1]
-
-
-def MAD(x, y):
-    """
-    Median absolute deviation (sometimes MAE) between data sets x and y.
-    """
-    return np.nanmedian(np.abs(y-x))
-
-
-def MAPD(x, y):
-    """
-    Median absolute percentage deviation (sometimes MAPE) between data sets x and y.
-    Normalised relative to (x+y)/2 rather than just x or y.
-    Expressed in %, so already multiplied by 100.
-    """
-    normalisation = (x+y)/2  # Normalisation factors
-    MAD_relative = np.nanmedian(np.abs((y-x)/normalisation))
-    MAD_percent = MAD_relative * 100.
-    return MAD_percent
-
-
-def ravel_table(data, key, loop_keys):
-    """
-    Apply np.ravel to a number of columns, e.g. to combine Rrs R, Rrs G, Rrs B
-    into one array for all Rrs.
-    data is the input table.
-    key is the fixed key, e.g. "Rrs".
-    loop_keys is an interable list of keys to loop over, e.g. "RGB"
-    """
-    return np.ravel([data[key.format(c=c)] for c in loop_keys])
-
-
-def statistic_RGB(func, data1, data2, xdatalabel, ydatalabel):
-    """
-    Calculate a statistic (e.g. MAD, MAPD, RMSE) in a given parameter `param`,
-    e.g. Rrs, between two Astropy data tables. Assumes the same key structure
-    in each table, namely `{param} {c}` where c is R, G, B, and optionally G2.
-
-    Returns the statistic overall and per band.
-    """
-    loop_colours = _loop_RGBG2_or_RGB(data1, data2, xdatalabel)
-
-    stat_RGB = np.array([func(data1[xdatalabel.format(c=c)], data2[ydatalabel.format(c=c)]) for c in loop_colours])
-    data1_combined = ravel_table(data1, xdatalabel, loop_colours)
-    data2_combined = ravel_table(data2, ydatalabel, loop_colours)
-    stat_all = func(data1_combined, data2_combined)
-
-    return stat_all, stat_RGB
-
-
 def plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=None):
     plt.figure(figsize=(4,3))
     for j, c in enumerate(plot_colours[:3]):
@@ -325,12 +321,11 @@ def residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None)
     result = x.copy()
 
     # Remove columns that are in x but not in y
-    # For example, G2 if you are comparing RAW and JPEG
     keys_not_overlapping = [key for key in result.keys() if key not in y.keys()]
     result.remove_columns(keys_not_overlapping)
 
     # Loop over the keys and update them to include x-y instead of just x
-    for c in _loop_RGBG2_or_RGB(x, y, xdatalabel):
+    for c in colours:
         result[xdatalabel.format(c=c)] = y[ydatalabel.format(c=c)] - x[xdatalabel.format(c=c)]
         if xerrlabel and yerrlabel:
             result[xerrlabel.format(c=c)] = np.sqrt(x[xerrlabel.format(c=c)]**2 + y[yerrlabel.format(c=c)]**2)
@@ -338,7 +333,68 @@ def residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None)
     return result
 
 
-def _correlation_plot_errorbars(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False):
+def _correlation_plot_gridlines(ax=None):
+    """
+    Add grid lines and the y=x line to a plot.
+    """
+    # Get the active Axes object
+    if ax is None:
+        ax = plt.gca()
+
+    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")  # Diagonal
+    ax.grid(True, ls="--")  # Grid lines
+
+
+def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax=None, equal_aspect=False, minzero=False, setmax=True, saveto=None):
+    """
+    Simple correlation plot, no RGB stuff.
+    """
+    # If no Axes object was given, make a new one
+    if ax is None:
+        newaxes = True
+        plt.figure(figsize=(3,3))
+        ax = plt.gca()
+    else:
+        newaxes = False
+
+    # Plot the data
+    ax.errorbar(x, y, xerr=xerr, yerr=yerr, color="k", fmt="o")
+
+    # Set the origin to (0, 0)
+    if minzero:
+        ax.set_xlim(xmin=0)
+        ax.set_ylim(ymin=0)
+
+    # Set the top right corner to include all data
+    if setmax:
+        xmax = 1.05*np.nanmax(x)
+        ymax = 1.05*np.nanmax(y)
+        if equal_aspect:
+            xmax = ymax = max(xmax, ymax)
+        ax.set_xlim(xmax=xmax)
+        ax.set_ylim(ymax=ymax)
+
+    # Grid lines and y=x diagonal
+    _correlation_plot_gridlines(ax)
+
+    # Get statistics for title
+    r = correlation(x, y)
+    title = f"$r$ = {r:.2f}"
+    ax.set_title(title)
+
+    # Labels for x and y axes
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+    # Save, show, close plot (if a new plot was made)
+    if newaxes:
+        if saveto:
+            plt.savefig(saveto, bbox_inches="tight")
+        plt.show()
+        plt.close()
+
+
+def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False):
     """
     Plot data into a correlation plot.
     Helper function.
@@ -346,7 +402,7 @@ def _correlation_plot_errorbars(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None
     xmax = 0.  # Maximum on x axis
     ymax = 0.  # Maximum on y axis
 
-    # Loop over the RGBG2 bands and plot the relevant data points
+    # Loop over the colour bands and plot the relevant data points
     for c, pc in zip(colours, plot_colours):
         try:
             xdata = x[xdatalabel.format(c=c)]
@@ -379,21 +435,18 @@ def _correlation_plot_errorbars(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None
 def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", saveto=None):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
-    `xdatalabel` and `ydatalabel`, which are assumed to have RGB/RGBG2 versions.
-    For example, if `xlabel` == `f"Rrs {c}"` then the columns "Rrs R", "RRs G",
-    "Rrs B", and "Rrs G2" (if available) will be used.
+    `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
+    For example, if `xlabel` == `f"R_rs ({c})"` then the columns "R_rs (R)",
+    "R_rs (G)", and "R_rs (B)" will be used.
     """
     # Create figure
     plt.figure(figsize=(4,4), tight_layout=True)
 
     # Plot in the one panel
-    _correlation_plot_errorbars(plt.gca(), x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel)
+    _correlation_plot_errorbars_RGB(plt.gca(), x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel)
 
-    # Plot the x=y line
-    plt.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
-
-    # Plot settings
-    plt.grid(True, ls="--")
+    # y=x line and grid lines
+    _correlation_plot_gridlines()
 
     # Get statistics for title
     r_all, r_RGB = statistic_RGB(correlation, x, y, xdatalabel, ydatalabel)
@@ -414,9 +467,9 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
 def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", saveto=None):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
-    `xdatalabel` and `ydatalabel`, which are assumed to have RGB/RGBG2 versions.
-    For example, if `xlabel` == `f"Rrs {c}"` then the columns "Rrs R", "Rrs G",
-    "Rrs B", and "Rrs G2" (if available) will be used.
+    `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
+    For example, if `xlabel` == `f"R_rs ({c})"` then the columns "R_rs (R)",
+    "R_rs (G)", and "R_rs (B)" will be used.
     """
     # Calculate residuals
     residuals = residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel)
@@ -425,16 +478,13 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     fig, axs = plt.subplots(figsize=(4,5), nrows=2, sharex=True, gridspec_kw={"height_ratios": [3,1]})
 
     # Plot in both panels
-    _correlation_plot_errorbars(axs[0], x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, equal_aspect=True)
-    _correlation_plot_errorbars(axs[1], x, residuals, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, setmax=False)
+    _correlation_plot_errorbars_RGB(axs[0], x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, equal_aspect=True)
+    _correlation_plot_errorbars_RGB(axs[1], x, residuals, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, setmax=False)
 
     # Plot the x=y line (top) and horizontal (bottom)
-    axs[0].plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")
+    _correlation_plot_gridlines(axs[0])
     axs[1].axhline(0, c='k', ls="--")
-
-    # Plot settings
-    for ax in axs:
-        ax.grid(True, ls="--")
+    axs[1].grid(True, ls="--")
 
     # Get statistics for title
     MAD_all, MAD_RGB = statistic_RGB(MAD, x, y, xdatalabel, ydatalabel)
@@ -459,65 +509,17 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     plt.close()
 
 
-def correlation_plot_bands(x, y, datalabel="Rrs", quantity="$R_{rs}$", unit="sr$^{-1}$", xlabel="", ylabel="", saveto=None):
+def correlation_plot_bands(x_GR, y_GR, x_GB, y_GB, x_err_GR=None, y_err_GR=None, x_err_GB=None, y_err_GB=None, quantity="$R_{rs}$", xlabel="", ylabel="", saveto=None):
     """
-    Make a correlation plot between the band ratios/differences for G-B and G-R.
+    Make a correlation plot between the band ratios G/R and G/B.
     """
-    max_ratio = 0.
-    max_diff = 0.
-    min_diff = 0.
-    fig, axs = plt.subplots(2, 2, sharex="col", sharey="col", figsize=(5,5), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
-    for j, c in enumerate("BR"):
-        label_G = f"{datalabel} G"
-        label_G_err = f"{datalabel}_err G"
-        label_c = f"{datalabel} {c}"
-        label_c_err = f"{datalabel}_err {c}"
+    fig, axs = plt.subplots(ncols=2, sharex=True, sharey=True, figsize=(4,2), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
+    correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[0], xlabel=f"{quantity} G/R\n({xlabel})", ylabel=f"{quantity} G/R\n({ylabel})", equal_aspect=True, minzero=False, setmax=True)
+    correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[1], xlabel=f"{quantity} G/B\n({xlabel})", ylabel=f"{quantity} G/B\n({ylabel})", equal_aspect=True, minzero=False, setmax=True)
 
-        ratio_x = x[label_G]/x[label_c]
-        ratio_y = y[label_G]/y[label_c]
-        ratio_err_x = ratio_x * np.sqrt(x[label_G_err]**2/x[label_G]**2 + x[label_c_err]**2/x[label_c]**2)
-        ratio_err_y = ratio_y * np.sqrt(y[label_G_err]**2/y[label_G]**2 + y[label_c_err]**2/y[label_c]**2)
-
-        diff_x = x[label_G] - x[label_c]
-        diff_y = y[label_G] - y[label_c]
-        diff_err_x = np.sqrt(x[label_G_err]**2 + x[label_c_err]**2)
-        diff_err_y = np.sqrt(y[label_G_err]**2 + y[label_c_err]**2)
-
-        axs[j,0].errorbar(ratio_x, ratio_y, xerr=ratio_err_x, yerr=ratio_err_y, c="k", fmt="o")
-        axs[j,1].errorbar(diff_x, diff_y, xerr=diff_err_x, yerr=diff_err_y, c="k", fmt="o")
-
-        max_ratio = max(np.nanmax(ratio_x), np.nanmax(ratio_y), max_ratio)
-        max_diff = max(np.nanmax(diff_x), np.nanmax(diff_y), max_diff)
-        min_diff = min(np.nanmin(diff_x), np.nanmin(diff_y), min_diff)
-
-        axs[j,0].set_xlim(0, 1.1*max_ratio)
-        axs[j,0].set_ylim(0, 1.1*max_ratio)
-        axs[j,1].set_xlim(1.1*min_diff, 1.1*max_diff)
-        axs[j,1].set_ylim(1.1*min_diff, 1.1*max_diff)
-
-    for ax in axs.ravel():
-        ax.grid(True, ls="--")
-        ax.plot([-1, 5], [-1, 5], c='k', ls="--")
-        ax.set_aspect("equal")
-        ax.locator_params(axis="both", nbins=4)
-
-    for ax in axs[:,1]:
-        ax.tick_params(axis="y", left=False, labelleft=False, right=True, labelright=True)
-        ax.yaxis.set_label_position("right")
-
-    for ax in axs[0]:
-        ax.tick_params(axis="x", bottom=False, labelbottom=False, top=True, labeltop=True)
-        ax.xaxis.set_label_position("top")
-
-    axs[0,0].set_xlabel(f"{xlabel} {quantity} $G / B$")
-    axs[0,0].set_ylabel(f"{ylabel}\n{quantity} $G / B$")
-    axs[1,0].set_xlabel(f"{xlabel} {quantity} $G / R$")
-    axs[1,0].set_ylabel(f"{ylabel}\n{quantity} $G / R$")
-
-    axs[0,1].set_xlabel(f"{xlabel} {quantity} $G - B$ [{unit}]")
-    axs[0,1].set_ylabel(f"{ylabel}\n{quantity} $G - B$ [{unit}]")
-    axs[1,1].set_xlabel(f"{xlabel} {quantity} $G - R$ [{unit}]")
-    axs[1,1].set_ylabel(f"{ylabel}\n{quantity} $G - R$ [{unit}]")
+    # Switch ytick labels on the right plot to the right
+    axs[1].tick_params(axis="y", left=False, labelleft=False, right=True, labelright=True)
+    axs[1].yaxis.set_label_position("right")
 
     if saveto:
         plt.savefig(saveto, bbox_inches="tight")
@@ -529,9 +531,8 @@ def comparison_histogram(x_table, y_table, param="Rrs {c}", xlabel="", ylabel=""
     """
     Make a histogram of the ratio and difference in a given `param` for `x` and `y`
     """
-    loop_colours = _loop_RGBG2_or_RGB(x_table, y_table, param)
-    x = ravel_table(x_table, param, loop_colours)
-    y = ravel_table(y_table, param, loop_colours)
+    x = ravel_table(x_table, param, colours)
+    y = ravel_table(y_table, param, colours)
 
     ratio = y/x
     diff = y-x
@@ -554,6 +555,68 @@ def comparison_histogram(x_table, y_table, param="Rrs {c}", xlabel="", ylabel=""
     plt.close()
 
 
+def density_scatter(x, y, ax = None, sort = True, bins = 20, **kwargs):
+    # https://stackoverflow.com/a/53865762
+    """
+    Scatter plot colored by 2d histogram
+    """
+    if ax is None :
+        fig , ax = plt.subplots()
+    data , x_e, y_e = np.histogram2d( x, y, bins = bins, density = True )
+    z = interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) , data , np.vstack([x,y]).T , method = "splinef2d", bounds_error = False)
+
+    #To be sure to plot all data
+    z[np.where(np.isnan(z))] = 0.0
+
+    # Sort the points by density, so that the densest points are plotted last
+    if sort :
+        idx = z.argsort()
+        x, y, z = x[idx], y[idx], z[idx]
+
+    ax.scatter(x, y, c=z, **kwargs)
+
+    return ax
+
+
+def plot_correlation_matrix_radiance(correlation_matrix, x1, y1, x2, y2, x1label="[a.u.]", y1label="[a.u.]", x2label="[a.u.]", y2label="[a.u.]", saveto=None):
+    """
+    Plot a given correlation matrix consisting of RGB or RGBG2 radiances.
+    """
+    # Plot correlation coefficients
+    kwargs = {"cmap": plt.cm.get_cmap("cividis", 10), "s": 5, "rasterized": True}
+
+    fig, axs = plt.subplots(ncols=3, figsize=(7,3), dpi=600)
+
+    divider = make_axes_locatable(axs[0])
+    cax = divider.append_axes('bottom', size='10%', pad=0.3)
+    im = axs[0].imshow(correlation_matrix, extent=(0,1,1,0), cmap=plt.cm.get_cmap("cividis", 5), vmin=0, vmax=1, origin="lower")
+    fig.colorbar(im, cax=cax, orientation='horizontal', ticks=np.arange(0,1.1,0.2), label="Pearson $r$")
+
+    ticks = np.linspace(0,1,4)
+    axs[0].set_xticks(ticks)
+    xtick_offset = " "*10
+    axs[0].set_xticklabels([f"{xtick_offset}$L_u$", f"{xtick_offset}$L_s$", f"{xtick_offset}$L_d$", ""])
+    axs[0].set_yticks(ticks)
+    axs[0].set_yticklabels(["\n\n$L_d$", "\n\n$L_s$", "\n\n$L_u$", ""])
+
+    for ax, x, y, xlabel, ylabel in zip(axs[1:], [x1, x2], [y1, y2], [x1label, x2label], [y1label, y2label]):
+        density_scatter(x, y, ax=ax, **kwargs)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.set_title("$r =" + f"{correlation(x,y):.2f}" + "$")
+
+        ax.set_aspect("equal")
+        ax.grid(ls="--", c="0.5", alpha=0.5)
+
+    axs[2].yaxis.set_label_position("right")
+    axs[2].yaxis.tick_right()
+
+    plt.subplots_adjust(wspace=0.5)
+    if saveto:
+        plt.savefig(saveto, bbox_inches="tight")
+    plt.close()
+
+
 def UTC_timestamp(water_exif, conversion_to_utc=timedelta(hours=2)):
     try:
         timestamp = water_exif["EXIF DateTimeOriginal"].values
@@ -567,18 +630,113 @@ def UTC_timestamp(water_exif, conversion_to_utc=timedelta(hours=2)):
     return UTC
 
 
-def write_results(saveto, timestamp, water, water_err, sky, sky_err, grey, grey_err, Rrs, Rrs_err, Rref=0.18):
-    assert len(water) == len(water_err) == len(sky) == len(sky_err) == len(grey) == len(grey_err) == len(Rrs) == len(Rrs_err), "Not all input arrays have the same length"
-    header = ["Lu {c}", "Lu_err {c}", "Lsky {c}", "Lsky_err {c}", "Ld {c}", "Ld_err {c}", "Ed {c}", "Ed_err {c}", "Rrs {c}", "Rrs_err {c}"]
-    colours_here = "RGB" if len(water) == 3 else colours
-    header_full = [[s.format(c=c) for c in colours_here] for s in header]
-    header = ["UTC", "UTC (ISO)"] + [item for sublist in header_full for item in sublist]
+def _convert_symmetric_matrix_to_list(sym):
+    """
+    Convert a symmetric matrix `sym` to a list that contains its
+    upper-triangular (including diagonal) elements.
+    """
+    return sym[np.triu_indices_from(sym)]
 
-    Ed = np.pi / Rref * grey
-    Ed_err = np.pi / Rref * grey_err
-    data = [[timestamp.timestamp(), timestamp.isoformat(), *water, *water_err, *sky, *sky_err, *grey, *grey_err, *Ed, *Ed_err, *Rrs, *Rrs_err]]
 
+def _convert_list_to_symmetric_matrix(symlist):
+    """
+    Convert a list containing elemens of a symmetric matrix
+    (e.g. generated using _convert_symmetric_matrix_to_list) back
+    into a matrix.
+    """
+    # Number of independent elements in symmetric matrix of size nxn is
+    # L = n*(n+1)/2
+    # Inverted gives n = -0.5 + 0.5*sqrt(1 + 8L)
+    nr_columns = int(-0.5 + 0.5*np.sqrt(1 + 8*len(symlist)))
+
+    # Create the array
+    arr = np.zeros((nr_columns, nr_columns))
+    arr[np.triu_indices(nr_columns)] = symlist  # Add the upper-triangular elements
+    arr = arr + arr.T - np.diag(np.diag(arr))  # Add the lower-triangular elements without doubling the diagonal
+
+    return arr
+
+
+def _generic_header(elements, prefix=""):
+    """
+    Generate a generic header (list of names) for a list `elements`.
+    Optionally use a prefix to identify them.
+    """
+    header = [f"{prefix}_{j:04d}" for j, ele in enumerate(elements)]
+    return header
+
+
+def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_covariance, R_rs, R_rs_covariance, band_ratios, band_ratios_covariance, R_rs_xy, R_rs_xy_covariance, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range):
+    # assert len(water) == len(water_err) == len(sky) == len(sky_err) == len(grey) == len(grey_err) == len(Rrs) == len(Rrs_err), "Not all input arrays have the same length"
+
+    # Split the covariance matrices out
+    radiances_covariance_list = _convert_symmetric_matrix_to_list(radiances_covariance)
+    Ed_covariance_list = _convert_symmetric_matrix_to_list(Ed_covariance)
+    R_rs_covariance_list = _convert_symmetric_matrix_to_list(R_rs_covariance)
+    band_ratios_covariance_list = _convert_symmetric_matrix_to_list(band_ratios_covariance)
+    R_rs_xy_covariance_list = _convert_symmetric_matrix_to_list(R_rs_xy_covariance)
+
+    # Headers for the covariance matrices
+    radiances_covariance_header = _generic_header(radiances_covariance_list, "cov_L")
+    Ed_covariance_header = _generic_header(Ed_covariance_list, "cov_Ed")
+    R_rs_covariance_header = _generic_header(R_rs_covariance_list, "cov_R_rs_RGB")
+    band_ratios_covariance_header = _generic_header(band_ratios_covariance_list, "cov_band_ratio")
+    R_rs_xy_covariance_header = _generic_header(R_rs_xy_covariance_list, "cov_R_rs_xy")
+
+    # Make a header with the relevant items
+    header_RGB = ["Lu ({c})", "Lsky ({c})", "Ld ({c})", "Ed ({c})", "R_rs ({c})"]
+    bands = "RGB"
+    header_RGB_full = [[s.format(c=c) for c in bands] for s in header_RGB]
+    header_hue = ["R_rs (G/R)", "R_rs (G/B)", "R_rs (x)", "R_rs (y)", "R_rs (hue)", "R_rs_err (hue)", "R_rs (FU)", "R_rs_min (FU)", "R_rs_max (FU)"]
+    header = ["UTC", "UTC (ISO)"] + [item for sublist in header_RGB_full for item in sublist] + header_hue + radiances_covariance_header + Ed_covariance_header + R_rs_covariance_header + band_ratios_covariance_header + R_rs_xy_covariance_header
+
+    # Add the data to a row, and that row to a table
+    data = [[timestamp.timestamp(), timestamp.isoformat(), *radiances, *Ed, *R_rs, *band_ratios, *R_rs_xy, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, *R_rs_FU_range, *radiances_covariance_list, *Ed_covariance_list, *R_rs_covariance_list, *band_ratios_covariance_list, *R_rs_xy_covariance_list]]
     result = table.Table(rows=data, names=header)
 
+    # Write the result to file
     result.write(saveto, format="ascii.fast_csv")
     print(f"Saved results to `{saveto}`")
+
+
+def _convert_matrix_to_uncertainties_column(covariance_matrices, labels):
+    """
+    Take a column containing covariance matrices and generate a number of columns
+    containing the uncertainties on its diagonal.
+    """
+    assert len(labels) == len(covariance_matrices[0]), f"Number of labels (len{labels}) does not match matrix dimensionality ({len(covariance_matrices[0])})."
+    diagonals = np.array([np.diag(matrix) for matrix in covariance_matrices])
+    uncertainties = np.sqrt(diagonals)
+    columns = [table.Column(name=label, data=uncertainties[:,j]) for j, label in enumerate(labels)]
+    return columns
+
+
+def read_results(filename):
+    """
+    Read a results file generated with write_results.
+    """
+    # Read the file
+    data = table.Table.read(filename)
+
+    # Iterate over the different covariance columns and make them into arrays again
+    covariance_keys = ["cov_L", "cov_Ed", "cov_R_rs_RGB", "cov_band_ratio", "cov_R_rs_xy"]
+    for key_cov in covariance_keys:
+        keys = sorted([key for key in data.keys() if key_cov in key])
+        # [*row] puts the row data into a list; otherwise the iteration does not work
+        covariance_matrices = [_convert_list_to_symmetric_matrix([*row]) for row in data[keys]]
+
+        # Add a new column with these matrices and remove the raw data columns
+        data.add_column(table.Column(name=key_cov, data=covariance_matrices))
+        data.remove_columns(keys)
+
+    # Iterate over the covariance matrices and calculate simple uncertainties from them
+    covariance_keys_split = [np.ravel([[f"L{sub}_err ({c})" for c in colours] for sub in ["u", "sky", "d"]]),
+                             [f"Ed_err ({c})" for c in colours],
+                             [f"R_rs_err ({c})" for c in colours],
+                             [f"R_rs_err ({ratio})" for ratio in ["G/R", "G/B"]],
+                             [f"R_rs_err ({c})" for c in "xy"]]
+    for key, keys_split in zip(covariance_keys, covariance_keys_split):
+        uncertainties = _convert_matrix_to_uncertainties_column(data[key], keys_split)
+        data.add_columns(uncertainties)
+
+    return data

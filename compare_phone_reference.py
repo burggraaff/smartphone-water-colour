@@ -22,7 +22,7 @@ from spectacle import io, spectral, load_camera
 from spectacle.general import RMS
 from astropy import table
 from datetime import datetime
-from wk import hydrocolor as hc
+from wk import hydrocolor as hc, wacodi as wa
 
 # Time limit for inclusion
 max_time_diff = 60*5  # 5 minutes
@@ -62,29 +62,39 @@ RGB_wavelengths = spectral.effective_wavelengths(wavelengths_phone, RGB_response
 camera.load_spectral_bands()
 effective_bandwidths = camera.spectral_bands
 
-table_phone = table.Table.read(path_phone)
+table_phone = hc.read_results(path_phone)
 table_reference = table.Table.read(path_reference)
 
 # Spectral convolution
-# Convolve Rrs itself for now because of fingerprinting
-for key in ["Ed", "Lsky", "Lu", "Rrs"]:
-    cols = [col for col in table_reference.keys() if key in col]  # Find the relevant keys
-    wavelengths = np.array([float(col.split("_")[1]) for col in cols])  # Data wavelengths
+# Convolve R_rs itself for now because of fingerprinting
+for key in ["Ed", "Lsky", "Lu", "R_rs"]:
+    cols = [col for col in table_reference.keys() if key in col and not any(f"({label})" in col for label in [*"XYZxy", "hue", "FU"])]  # Find the relevant keys
+    wavelengths = np.array([float(col.split(key)[1][1:]) for col in cols])  # Data wavelengths
     data = np.array(table_reference[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
 
-    data_convolved = camera.convolve_multi(wavelengths, data).T  # Apply spectral convolution
+    # Apply spectral convolution with the RGB (not G2) bands
+    data_convolved = camera.convolve_multi(wavelengths, data)[:3].T
 
     # Put convolved data in a table
-    keys_convolved = [f"{key} {band}" for band in hc.colours]
+    keys_convolved = [f"{key} ({c})" for c in hc.colours]
     table_convolved = table.Table(data=data_convolved, names=keys_convolved)
 
     # Merge convolved data table with original data table
     table_reference = table.hstack([table_reference, table_convolved])
 
-# For the WISP-3, where we have Lu, Lsky, and Ed, don't convolve Rrs directly
+# For the WISP-3, where we have Lu, Lsky, and Ed, don't convolve R_rs directly
 if reference == "WISP-3":
-    for band in hc.colours:
-        table_reference[f"Rrs {band}"] = (table_reference[f"Lu {band}"] - 0.028*table_reference[f"Lsky {band}"])/table_reference[f"Ed {band}"]
+    for c in hc.colours:
+        table_reference[f"R_rs ({c})"] = (table_reference[f"Lu ({c})"] - 0.028*table_reference[f"Lsky ({c})"])/table_reference[f"Ed ({c})"]
+
+# Add band ratios to table
+bandratio_GR = table_reference["R_rs (G)"]/table_reference["R_rs (R)"]
+bandratio_GR.name = "R_rs (G/R)"
+# bandratio_GR_err = bandratio_GR * np.sqrt(table_reference["R_rs_err (G)"]**2/table_reference["R_rs (G)"]**2 + table_reference["R_rs_err (R)"]**2/table_reference["R_rs (R)"]**2)
+bandratio_GB = table_reference["R_rs (G)"]/table_reference["R_rs (B)"]
+bandratio_GB.name = "R_rs (G/B)"
+# bandratio_GB_err = bandratio_GR * np.sqrt(table_reference["R_rs_err (G)"]**2/table_reference["R_rs (G)"]**2 + table_reference["R_rs_err (B)"]**2/table_reference["R_rs (B)"]**2)
+table_reference.add_columns([bandratio_GR, bandratio_GB])
 
 # Lists to store separate data rows - are converted to tables later
 data_phone = []
@@ -102,17 +112,22 @@ for row in table_phone:
     phone_time = datetime.fromtimestamp(row['UTC']).isoformat()
     reference_time = datetime.fromtimestamp(table_reference[closest]["UTC"]).isoformat()
 
-    # Calculate the median Lu/Lsky/Ed/Rrs within the matching observations, and uncertainty on this spectrum
+    # Calculate the median Lu/Lsky/Ed/R_rs within the matching observations, and uncertainty on this spectrum
     row_reference = table.Table(table_reference[closest])
-    for key in ["Ed", "Lu", "Lsky", "Rrs"]:
+    for key in ["Ed", "Lu", "Lsky", "R_rs"]:
         # Average over the "close enough" rows
-        keys = [f"{key}_{wvl:.1f}" for wvl in wavelengths] + [f"{key} {c}" for c in hc.colours]
-        keys_err = [f"{key}_err_{wvl:.1f}" for wvl in wavelengths] + [f"{key}_err {c}" for c in hc.colours]
+        keys = [f"{key}_{wvl:.1f}" for wvl in wavelengths] + [f"{key} ({c})" for c in hc.colours]
+        keys_err = [f"{key}_err_{wvl:.1f}" for wvl in wavelengths] + [f"{key}_err ({c})" for c in hc.colours]
 
         row_reference[keys][0] = [np.nanmedian(table_reference[k][close_enough]) for k in keys]
         uncertainties = np.array([np.nanstd(table_reference[k][close_enough]) for k in keys])
         row_uncertainties = table.Table(data=uncertainties, names=keys_err)
         row_reference = table.hstack([row_reference, row_uncertainties])
+
+    # If the uncertainties on the reference data are above a threshold, disregard this match-up
+    threshold = 0.1  # relative
+    if any(row_reference[f"R_rs_err ({c})"]/row_reference[f"R_rs ({c})"] >= threshold for c in hc.colours):
+        continue
 
     # Add some metadata that may be used to identify the quality of the match
     metadata = table.Table(names=["nr_matches", "closest_match"], data=np.array([len(close_enough), time_differences[closest]]))
@@ -129,14 +144,14 @@ for row in table_phone:
     saveto = f"results/{ref_small}_comparison/{camera.name}_{data_type}_{phone_time}.pdf".replace(":", "-")
 
     # Plot the spectrum for comparison
-    Rrs = np.array([row_reference[f"Rrs_{wvl:.1f}"][0] for wvl in wavelengths])
-    Rrs_err = np.array([row_reference[f"Rrs_err_{wvl:.1f}"][0] for wvl in wavelengths])
+    R_rs = np.array([row_reference[f"R_rs_{wvl:.1f}"][0] for wvl in wavelengths])
+    R_rs_err = np.array([row_reference[f"R_rs_err_{wvl:.1f}"][0] for wvl in wavelengths])
     plt.figure(figsize=(3.3,3.3), tight_layout=True)
-    plt.plot(wavelengths, Rrs, c="k")
-    plt.fill_between(wavelengths, Rrs-Rrs_err, Rrs+Rrs_err, facecolor="0.3")
+    plt.plot(wavelengths, R_rs, c="k")
+    plt.fill_between(wavelengths, R_rs-R_rs_err, R_rs+R_rs_err, facecolor="0.3")
     for j, (c, pc) in enumerate(zip("RGB", hc.plot_colours)):
-        plt.errorbar(RGB_wavelengths[j], row[f"Rrs {c}"], xerr=effective_bandwidths[j]/2, yerr=row[f"Rrs_err {c}"], fmt="o", c=pc)
-        plt.errorbar(RGB_wavelengths[j], row_reference[f"Rrs {c}"][0], xerr=effective_bandwidths[j]/2, yerr=row_reference[f"Rrs_err {c}"][0], fmt="^", c=pc)
+        plt.errorbar(RGB_wavelengths[j], row[f"R_rs ({c})"], xerr=effective_bandwidths[j]/2, yerr=row[f"R_rs_err ({c})"], fmt="o", c=pc)
+        plt.errorbar(RGB_wavelengths[j], row_reference[f"R_rs ({c})"][0], xerr=effective_bandwidths[j]/2, yerr=row_reference[f"R_rs_err ({c})"][0], fmt="^", c=pc)
     plt.grid(True, ls="--")
     plt.xlim(300, 900)
     plt.xlabel("Wavelength [nm]")
@@ -158,15 +173,17 @@ units_phone = ["[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU n
 units_reference = ["[W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "[W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "[W m$^{-2}$ nm$^{-1}$]"]
 
 for param, label, unit_phone, unit_reference in zip(parameters, labels, units_phone, units_reference):
-    hc.correlation_plot_RGB(data_reference, data_phone, param+" {c}", param+" {c}", xerrlabel=param+"_err {c}", yerrlabel=param+"_err {c}", xlabel=f"{reference} {label} {unit_reference}", ylabel=f"{cameralabel} {label} {unit_phone}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
+    hc.correlation_plot_RGB(data_reference, data_phone, param+" ({c})", param+" ({c})", xerrlabel=param+"_err ({c})", yerrlabel=param+"_err ({c})", xlabel=f"{reference} {label} {unit_reference}", ylabel=f"{cameralabel} {label} {unit_phone}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
 
-    hc.comparison_histogram(data_reference, data_phone, param+" {c}", xlabel=reference, ylabel=cameralabel, quantity=label, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}_hist.pdf")
+    hc.comparison_histogram(data_reference, data_phone, param+" ({c})", xlabel=reference, ylabel=cameralabel, quantity=label, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}_hist.pdf")
 
-label_Rrs = "$R_{rs}$"
-unit_Rrs = "[sr$^{-1}$]"
-hc.correlation_plot_RGB_equal(data_reference, data_phone, "Rrs {c}", "Rrs {c}", xerrlabel="Rrs_err {c}", yerrlabel="Rrs_err {c}", xlabel=f"{reference} {label_Rrs} {unit_Rrs}", ylabel=f"{cameralabel}\n{label_Rrs} {unit_Rrs}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs.pdf")
+label_R_rs = "$R_{rs}$"
+unit_R_rs = "[sr$^{-1}$]"
+hc.correlation_plot_RGB_equal(data_reference, data_phone, "R_rs ({c})", "R_rs ({c})", xerrlabel="R_rs_err ({c})", yerrlabel="R_rs_err ({c})", xlabel=f"{reference} {label_R_rs} {unit_R_rs}", ylabel=f"{cameralabel}\n{label_R_rs} {unit_R_rs}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_R_rs.pdf")
 
-hc.comparison_histogram(data_reference, data_phone, "Rrs {c}", xlabel=reference, ylabel=cameralabel, quantity=label_Rrs, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_Rrs_hist.pdf")
+hc.comparison_histogram(data_reference, data_phone, "R_rs ({c})", xlabel=reference, ylabel=cameralabel, quantity=label_R_rs, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_R_rs_hist.pdf")
 
-# Correlation plot: Band ratios/differences
-hc.correlation_plot_bands(data_reference, data_phone, xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_bands.pdf")
+# Correlation plot: Band ratios
+hc.correlation_plot_bands(data_reference["R_rs (G/R)"], data_phone["R_rs (G/R)"], data_reference["R_rs (G/B)"], data_phone["R_rs (G/B)"], x_err_GR=None, y_err_GR=data_phone["R_rs_err (G/R)"], x_err_GB=None, y_err_GB=data_phone["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_band_ratio.pdf")
+
+wa.correlation_plot_hue_angle_and_ForelUle(data_reference["R_rs (hue)"], data_phone["R_rs (hue)"], xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_hueangle_ForelUle.pdf")

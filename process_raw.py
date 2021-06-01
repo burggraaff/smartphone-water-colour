@@ -15,41 +15,12 @@ Command-line inputs:
 """
 
 import numpy as np
+np.set_printoptions(precision=2)
+
 from sys import argv
 from spectacle import io, load_camera
 from os import walk
 from matplotlib import pyplot as plt
-
-from matplotlib import cm
-from matplotlib.colors import Normalize
-from scipy.interpolate import interpn
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-
-def density_scatter(x, y, ax = None, sort = True, bins = 20, **kwargs):
-    # https://stackoverflow.com/a/53865762
-    """
-    Scatter plot colored by 2d histogram
-    """
-    if ax is None :
-        fig , ax = plt.subplots()
-    data , x_e, y_e = np.histogram2d( x, y, bins = bins, density = True )
-    z = interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) , data , np.vstack([x,y]).T , method = "splinef2d", bounds_error = False)
-
-    #To be sure to plot all data
-    z[np.where(np.isnan(z))] = 0.0
-
-    # Sort the points by density, so that the densest points are plotted last
-    if sort :
-        idx = z.argsort()
-        x, y, z = x[idx], y[idx], z[idx]
-
-    ax.scatter(x, y, c=z, **kwargs)
-
-    # norm = Normalize(vmin = np.min(z), vmax = np.max(z))
-    # cbar = fig.colorbar(cm.ScalarMappable(norm = norm), ax=ax)
-    # cbar.ax.set_ylabel('Density')
-
-    return ax
 
 from wk import hydrocolor as hc, wacodi as wa
 
@@ -77,6 +48,7 @@ for folder_main in folders:
         data_path = folder/pattern
         if not data_path.exists():
             continue
+        print("\n  ", data_path)
 
         # Load data
         water_path, sky_path, card_path = hc.generate_paths(data_path, camera.raw_extension)
@@ -134,95 +106,103 @@ for folder_main in folders:
         all_mean = all_RGBG.mean(axis=1)
         print("Calculated mean values per channel")
 
-        water_std = water_RGBG.std(axis=1)
-        sky_std = water_RGBG.std(axis=1)
-        card_std = water_RGBG.std(axis=1)
-        all_cov = np.cov(all_RGBG)
-        all_cov_R = np.zeros((13,13)) ; all_cov_R[:12,:12] = all_cov ; all_cov_R[12,12] = 0.01**2
-        print("Calculated standard deviations per channel")
+        # Calculate covariance, correlation matrices for the combined radiances
+        all_covariance = np.cov(all_RGBG)
+        all_correlation = np.corrcoef(all_RGBG)
+        not_diagonal = ~np.eye(12, dtype=bool)  # Off-diagonal elements
+        max_corr = np.nanmax(all_correlation[not_diagonal])
+        print(f"Calculated covariance and correlation matrices. Maximum off-diagonal correlation r = {max_corr:.2f}")
 
-        # Calculate correlation coefficients
-        all_corr = np.corrcoef(all_RGBG)
-        not_diagonal = ~np.eye(12, dtype=bool)  # Off-diagonal element indices
-        max_corr = np.nanmax(all_corr[not_diagonal])
+        # Plot correlation coefficients
+        hc.plot_correlation_matrix_radiance(all_correlation, x1=all_RGBG[4], y1=all_RGBG[5], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=all_RGBG[1], y2=all_RGBG[9], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_raw.pdf")
 
-        kwargs = {"cmap": plt.cm.get_cmap("cividis", 10), "s": 5, "rasterized": True}
+        # Average G and G2
+        M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
+                                   [0, 0.5, 0, 0.5],
+                                   [0, 0  , 1, 0  ]])
+        M_RGBG2_to_RGB_all_L = hc.block_diag(*[M_RGBG2_to_RGB]*3)  # Repeat three times along the diagonal, 0 elsewhere
 
-        fig, axs = plt.subplots(ncols=3, figsize=(7,3), dpi=600)
+        all_mean_RGB = M_RGBG2_to_RGB_all_L @ all_mean
+        all_covariance_RGB = M_RGBG2_to_RGB_all_L @ all_covariance @ M_RGBG2_to_RGB_all_L.T
+        all_correlation_RGB = hc.correlation_from_covariance(all_covariance_RGB)
 
-        divider = make_axes_locatable(axs[0])
-        cax = divider.append_axes('bottom', size='10%', pad=0.3)
-        im = axs[0].imshow(all_corr, extent=(0,12,12,0), cmap=plt.cm.get_cmap("cividis", 10), vmin=0, vmax=1, origin="lower")
-        fig.colorbar(im, cax=cax, orientation='horizontal', ticks=np.arange(0,1.1,0.2), label="Pearson $r$")
+        water_mean_RGB, sky_mean_RGB, card_mean_RGB = hc.split_combined_radiances(all_mean_RGB)
 
-        axs[0].set_xticks(np.arange(0.5,12))
-        axs[0].set_xticklabels(["R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$", "R", "G", "B", "G$_2$"], fontsize="small")
-        axs[0].set_yticks(np.arange(0,13,4))
-        axs[0].set_yticklabels(["\n\n$L_d$", "\n\n$L_s$", "\n\n$L_u$", ""])
+        # Add Rref to covariance matrix
+        all_covariance_RGB_Rref = hc.add_Rref_to_covariance(all_covariance_RGB)
 
-        density_scatter(all_RGBG[4], all_RGBG[5], ax=axs[1], **kwargs)
-        density_scatter(all_RGBG[1], all_RGBG[9], ax=axs[2], **kwargs)
-
-        axs[1].set_xlabel("$L_s$ (R) [a.u.]")
-        axs[1].set_ylabel("$L_s$ (G) [a.u.]")
-        axs[1].set_aspect("equal")
-        axs[1].set_title("$r =" + f"{all_corr[4,5]:.2f}" + "$")
-
-        axs[2].set_xlabel("$L_u$ (G) [a.u.]")
-        axs[2].set_ylabel("$L_d$ (G) [a.u.]")
-        axs[2].set_aspect("equal")
-        axs[2].set_title("$r =" + f"{all_corr[1,9]:.2f}" + "$")
-
-        plt.subplots_adjust(wspace=0.5)
-        plt.savefig("corr.pdf", bbox_inches="tight")
-        plt.close()
+        # Calculate Ed from Ld
+        Ld_covariance_RGB = all_covariance_RGB[-3:, -3:]  # Take only the Ld-Ld elements from the covariance matrix
+        Ed = hc.convert_Ld_to_Ed(card_mean_RGB)
+        Ed_covariance = hc.convert_Ld_to_Ed_covariance(Ld_covariance_RGB, Ed)
 
         # Convert to remote sensing reflectances
-        R_rs = hc.R_RS(water_mean, sky_mean, card_mean)
+        R_rs = hc.R_RS(water_mean_RGB, sky_mean_RGB, card_mean_RGB)
+        R_rs_covariance = hc.R_rs_covariance(all_covariance_RGB_Rref, R_rs, card_mean_RGB)
         print("Calculated remote sensing reflectances")
 
-        # Covariances
-        R_rs_covariance = hc.R_rs_covariance(all_cov_R, R_rs, card_mean)
+        # Derive naive uncertainty and correlation from covariance
+        R_rs_uncertainty = np.sqrt(np.diag(R_rs_covariance))  # Uncertainty per band, ignoring covariance
+        R_rs_correlation = hc.correlation_from_covariance(R_rs_covariance)
+
 
         # HydroColor
-
-        R_rs_err = hc.R_RS_error(water_mean, sky_mean, card_mean, water_std, sky_std, card_std)
-        print("Calculated error in remote sensing reflectances")
-
-        for R, R_err, c in zip(R_rs, R_rs_err, "RGB"):
-            print(f"{c}: R_rs = {R:.3f} +- {R_err:.3f} sr^-1")
+        for reflectance, reflectance_uncertainty, c in zip(R_rs, R_rs_uncertainty, "RGB"):
+            print(f"R_rs({c}) = ({reflectance:.3f} +- {reflectance_uncertainty:.3f}) sr^-1   ({100*reflectance_uncertainty/reflectance:.0f}% uncertainty)")
 
         # Plot the result
-        hc.plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err)
+        hc.plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_uncertainty)
 
         # Calculate band ratios
-        beta = (R_rs[1] + R_rs[3]) / (2 * R_rs[2])  # G/B
-        rho = (R_rs[1] + R_rs[3]) / (2 * R_rs[0])  # G/R
-        bandratios = np.array([beta, rho])
+        beta = R_rs[1] / R_rs[2]  # G/B
+        rho = R_rs[1] / R_rs[0]  # G/R
+        bandratios = np.array([rho, beta])
 
-        bandratios_J = np.array([[0            , -rho/R_rs[0]],
-                                 [1/R_rs[2]    , 1/R_rs[0]   ],
-                                 [-beta/R_rs[2], 0           ],
-                                 [1/R_rs[2]    , 1/R_rs[0]   ]])
+        bandratios_J = np.array([[-rho/R_rs[0], 1/R_rs[0], 0            ],
+                                 [0           , 1/R_rs[2], -beta/R_rs[2]]])
 
-        bandratios_covariance = bandratios_J.T @ R_rs_covariance @ bandratios_J
+        bandratios_covariance = bandratios_J @ R_rs_covariance @ bandratios_J.T
+        bandratios_uncertainty = np.sqrt(np.diag(bandratios_covariance))
+        bandratios_correlation = hc.correlation_from_covariance(bandratios_covariance)
+        print(f"Calculated average band ratios: R_rs(G)/R_rs(R) = {bandratios[0]:.2f} +- {bandratios_uncertainty[0]:.2f}    R_rs(G)/R_rs(B) = {bandratios[1]:.2f} +- {bandratios_uncertainty[1]:.2f}    (correlation r = {bandratios_correlation[0,1]:.2f})")
 
-        # # WACODI
 
-        # # Convert RGBG2 to RGB
-        # water_mean, sky_mean, card_mean = water_mean[:3], sky_mean[:3], card_mean[:3]
-        # water_std, sky_std, card_std = water_std[:3], sky_std[:3], card_std[:3]
+        # WACODI
 
-        # # Convert RGB to XYZ
-        # water_XYZ, sky_XYZ, card_XYZ = camera.convert_to_XYZ(water_mean, sky_mean, card_mean)
-        # water_XYZ_err, sky_XYZ_err, card_XYZ_err = wa.convert_errors_to_XYZ(camera.XYZ_matrix, water_std, sky_std, card_std)
+        # Convert RGB to XYZ
+        water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ = camera.convert_to_XYZ(water_mean_RGB, sky_mean_RGB, card_mean_RGB, R_rs)
+        R_rs_XYZ_covariance = camera.XYZ_matrix @ R_rs_covariance @ camera.XYZ_matrix.T
 
-        # # Calculate xy chromaticity
-        # water_xy, sky_xy, card_xy = wa.convert_XYZ_to_xy(water_XYZ, sky_XYZ, card_XYZ)
+        radiance_RGB_to_XYZ = hc.block_diag(*[camera.XYZ_matrix]*3)
+        all_mean_XYZ = radiance_RGB_to_XYZ @ all_mean_RGB
+        all_mean_XYZ_covariance = radiance_RGB_to_XYZ @ all_covariance_RGB @ radiance_RGB_to_XYZ.T
 
-        # # Calculate hue angle
-        # water_hue, sky_hue, card_hue = wa.convert_xy_to_hue_angle(water_xy, sky_xy, card_xy)
-        # water_hue_err, sky_hue_err, card_hue_err = [wa.convert_XYZ_error_to_hue_angle(XYZ_data, XYZ_error) for XYZ_data, XYZ_error in zip([water_XYZ, sky_XYZ, card_XYZ], [water_XYZ_err, sky_XYZ_err, card_XYZ_err])]
+        # Calculate xy chromaticity
+        water_xy, sky_xy, card_xy, R_rs_xy = wa.convert_XYZ_to_xy(water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ)
+        water_xy_covariance = wa.convert_XYZ_to_xy_covariance(all_mean_XYZ_covariance[:3,:3], water_XYZ)
+        R_rs_xy_covariance = wa.convert_XYZ_to_xy_covariance(R_rs_XYZ_covariance, R_rs_XYZ)
+
+        # Calculate correlation
+        R_rs_xy_correlation = hc.correlation_from_covariance(R_rs_xy_covariance)
+        water_xy_correlation = hc.correlation_from_covariance(water_xy_covariance)
+
+        print("Converted to xy:", f"xy R_rs = {R_rs_xy} +- {np.sqrt(np.diag(R_rs_xy_covariance))} (r = {R_rs_xy_correlation[0,1]:.2f})", f"xy L_u  = {water_xy} +- {np.sqrt(np.diag(water_xy_covariance))} (r = {water_xy_correlation[0,1]:.2f})", sep="\n")
+
+        # Plot chromaticity
+        wa.plot_xy_on_gamut_covariance(R_rs_xy, R_rs_xy_covariance)
+
+        # Calculate hue angle
+        water_hue, R_rs_hue = wa.convert_xy_to_hue_angle(water_xy, R_rs_xy)
+        water_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(water_xy_covariance, water_xy)
+        R_rs_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(R_rs_xy_covariance, R_rs_xy)
+        print("Calculated hue angles:", f"alpha R_rs = {R_rs_hue:.1f} +- {R_rs_hue_uncertainty:.1f} degrees", f"alpha L_u  = {water_hue:.1f} +- {water_hue_uncertainty:.1f} degrees", sep="\n")
+
+        # Convert to Forel-Ule index
+        water_FU, R_rs_FU = wa.convert_hue_angle_to_ForelUle([water_hue, R_rs_hue])
+        water_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(water_hue_uncertainty, water_hue)
+        R_rs_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(R_rs_hue_uncertainty, R_rs_hue)
+        print("Determined Forel-Ule indices:", f"FU R_rs = {R_rs_FU} [{R_rs_FU_range[0]}-{R_rs_FU_range[1]}]", f"FU L_u  = {water_FU} [{water_FU_range[0]}-{water_FU_range[1]}]", sep="\n")
+
 
         # Create a timestamp from EXIF (assume time zone UTC+2)
         # Time zone: UTC+2 for Balaton data, UTC for NZ data
@@ -233,4 +213,4 @@ for folder_main in folders:
 
         # Write the result to file
         saveto = data_path.with_name(data_path.stem + "_raw.csv")
-        hc.write_results(saveto, UTC, water_mean, water_std, sky_mean, sky_std, card_mean, card_std, R_rs, R_rs_err)
+        hc.write_results(saveto, UTC, all_mean_RGB, all_covariance_RGB, Ed, Ed_covariance, R_rs, R_rs_covariance, bandratios, bandratios_covariance, R_rs_xy, R_rs_xy_covariance, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range)

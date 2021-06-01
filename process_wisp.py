@@ -16,6 +16,8 @@ from astropy import table
 from sys import argv
 from pathlib import Path
 from datetime import datetime
+from spectacle import spectral
+from wk import wacodi as wa
 
 # Label that matches column header
 def label(text, wvl):
@@ -69,7 +71,7 @@ def load_wisp_data(wisp_filename, rho=0.028):
     header_Lsky = [label("Lsky", wvl) for wvl in wavelengths]
     header_Lu = [label("Lu", wvl) for wvl in wavelengths]
     header_Ed = [label("Ed", wvl) for wvl in wavelengths]
-    header_Rrs = [label("Rrs", wvl) for wvl in wavelengths]
+    header_Rrs = [label("R_rs", wvl) for wvl in wavelengths]
 
     data_table = table.Table(data=[timestamps, UTC, latitudes, longitudes, *Lsky, *Lu, *Ed, *Rrs], names=[*header_meta, *header_Lsky, *header_Lu, *header_Ed, *header_Rrs])
 
@@ -87,6 +89,9 @@ print("Input file:", filename.absolute())
 
 # Convert to table
 data = load_wisp_data(filename)
+
+# Add WACODI data - XYZ, xy, hue angle, Forel-Ule
+data = wa.add_colour_data_to_table(data)
 
 # Write to file
 filename_result = filename.with_name(filename.stem + "_table.csv")
