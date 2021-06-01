@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 from spectacle import io
 from astropy import table
 from datetime import datetime
-from wk import hydrocolor as hc
+from wk import hydrocolor as hc, wacodi as wa
 
 # Get the data folder from the command line
 path_phone1, path_phone2 = io.path_from_input(argv)
@@ -78,3 +78,5 @@ unit = "[ADU nm$^{-1}$ sr$^{-1}$]"
 hc.correlation_plot_RGB(radiance_phone1, radiance_phone2, "L ({c})", "L ({c})", xerrlabel="L_err ({c})", yerrlabel="L_err ({c})", xlabel=f"{phone1_name} {label} {unit}", ylabel=f"{phone2_name} {label} {unit}", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_L.pdf")
 
 hc.comparison_histogram(radiance_phone1, radiance_phone2, "L ({c})", xlabel=phone1_name, ylabel=phone2_name, quantity=label, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_L_hist.pdf")
+
+wa.correlation_plot_hue_angle_and_ForelUle(data_phone1["R_rs (hue)"], data_phone2["R_rs (hue)"], xlabel=phone1_name, ylabel=phone2_name, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_hueangle_ForelUle.pdf")

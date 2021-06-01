@@ -6,7 +6,7 @@ from matplotlib.patches import Ellipse
 from colorio._tools import plot_flat_gamut
 from astropy import table
 
-from .hydrocolor import correlation_from_covariance
+from .hydrocolor import correlation_from_covariance, correlation_plot_simple
 
 M_sRGB_to_XYZ = np.array([[0.4124564, 0.3575761, 0.1804375],
                           [0.2126729, 0.7151522, 0.0721750],
@@ -171,5 +171,56 @@ def plot_xy_on_gamut_covariance(xy, xy_covariance, covariance_scale=1):
     plt.xlabel("x")
     plt.ylabel("y")
     plt.axis("equal")
+    plt.show()
+    plt.close()
+
+
+def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="", ylabel="", saveto=None):
+    """
+    Make a correlation plot of hue angles (x and y).
+    Draw the equivalent Forel-Ule indices on the grid for reference.
+    """
+    xlabel_hue = f"{xlabel}\nHue angle $\\alpha$ (degrees)"
+    ylabel_hue = f"{ylabel}\nHue angle $\\alpha$ (degrees)"
+    xlabel_FU = f"{xlabel}\nForel-Ule index"
+    ylabel_FU = f"{ylabel}\nForel-Ule index"
+
+    fig, ax = plt.subplots(figsize=(4,4))
+
+    correlation_plot_simple(x, y, xerr=xerr, yerr=yerr, ax=ax, equal_aspect=True)
+
+    ax.set_xlabel(xlabel_hue)
+    ax.set_ylabel(ylabel_hue)
+    ax.grid(False)
+
+    line_kwargs = {"c": "k", "lw": 0.5}
+    for fu,angle in enumerate(FU_hueangles):
+        ax.axvline(angle, **line_kwargs)
+        ax.axhline(angle, **line_kwargs)
+        square = FU_hueangles[fu:fu+2]
+        ax.fill_between(square, *square, facecolor="0.5")
+
+    FU_middles = np.array([(a + b)/2 for a, b in zip(FU_hueangles, FU_hueangles[1:])])[::2]
+    FU_labels = np.arange(1,21)[::2]
+
+    ax2 = ax.twinx()
+    ax2.set_yticks(FU_middles)
+    ax2.set_yticklabels(FU_labels)
+    ax2.set_ylim(ax.get_ylim())
+    ax2.set_ylabel(ylabel_FU)
+    ax2.tick_params(axis="y", length=0)
+
+    ax3 = ax2.twiny()
+    ax3.set_xticks(FU_middles)
+    ax3.set_xticklabels(FU_labels)
+    ax3.set_xlim(ax.get_xlim())
+    ax3.set_xlabel(xlabel_FU)
+    ax3.tick_params(axis="x", length=0)
+
+    # Number of matches (Delta 0)
+    # Number of near-matches (Delta 1)
+
+    if saveto is not None:
+        plt.savefig(saveto, bbox_inches="tight")
     plt.show()
     plt.close()
