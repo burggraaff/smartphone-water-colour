@@ -5,7 +5,7 @@ Module with functions etc for HydroColor
 from spectacle import io, analyse, calibrate, spectral
 from spectacle.general import RMS
 import numpy as np
-from matplotlib import pyplot as plt, cm
+from matplotlib import pyplot as plt, cm, patheffects as pe
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from datetime import datetime, timedelta
 from astropy import table
@@ -482,7 +482,7 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
     elif regression == "rgb":
         for func, c in zip(regression_functions, plot_colours):
             y_plot = func(x_plot)
-            ax.plot(x_plot, y_plot, color=c, lw=2, zorder=10)
+            ax.plot(x_plot, y_plot, color=c, zorder=10, path_effects=[pe.Stroke(linewidth=3, foreground="k"), pe.Normal()])
 
     if setmax:
         if equal_aspect:
@@ -509,7 +509,10 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
 
     # Get statistics for title
     r_all, r_RGB = statistic_RGB(correlation, x, y, xdatalabel, ydatalabel)
-    title = f"$r$ = {r_all:.2f}"
+    if regression == "rgb":
+        title = "   ".join(f"$r_{c}$ = {r_RGB[j]:.2g}" for j, c in enumerate(colours))
+    else:
+        title = f"$r$ = {r_all:.2g}"
     plt.title(title)
 
     # Labels
