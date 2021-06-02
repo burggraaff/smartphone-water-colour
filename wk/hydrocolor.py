@@ -404,7 +404,7 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
 
     # Get statistics for title
     r = correlation(x, y)
-    title = f"$r$ = {r:.2f}"
+    title = f"$r$ = {r:.2g}"
     ax.set_title(title)
 
     # Labels for x and y axes
@@ -613,7 +613,7 @@ def comparison_histogram(x_table, y_table, param="Rrs {c}", xlabel="", ylabel=""
     axs[0].set_ylabel("Frequency")
 
     for ax, q in zip(axs, [ratio, diff]):
-        ax.set_title(f"$\mu$ = {np.nanmean(q):.3f}   $\sigma$ = {np.nanstd(q):.3f}")
+        ax.set_title(f"$\mu$ = {np.nanmean(q):.3g}   $\sigma$ = {np.nanstd(q):.3g}")
 
     if saveto:
         plt.savefig(saveto, bbox_inches="tight")
@@ -669,7 +669,7 @@ def plot_correlation_matrix_radiance(correlation_matrix, x1, y1, x2, y2, x1label
         density_scatter(x, y, ax=ax, **kwargs)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
-        ax.set_title("$r =" + f"{correlation(x,y):.2f}" + "$")
+        ax.set_title("$r =" + f"{correlation(x,y):.2g}" + "$")
 
         ax.set_aspect("equal")
         ax.grid(ls="--", c="0.5", alpha=0.5)
