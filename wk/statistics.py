@@ -48,7 +48,7 @@ def SSPB(x, y):
     return SSPB
 
 
-def ravel_table(data, key, loop_keys):
+def ravel_table(data, key, loop_keys="RGB"):
     """
     Apply np.ravel to a number of columns, e.g. to combine Rrs R, Rrs G, Rrs B
     into one array for all Rrs.
@@ -102,5 +102,5 @@ def full_statistics_for_title(x, y):
     zeta, and SSPB between x and y, and format them nicely.
     """
     r, mad, z, sspb = correlation(x, y), MAD(x, y), zeta(x, y), SSPB(x, y)
-    statistic_text = f"r = {r:.2f}     MAD = {mad:.2f}   \n$\zeta$ = {z:.1f}%   SSPB = {sspb:+.1f}%"
+    statistic_text = f"r = {r:.2g}     MAD = {mad:.2g}   \n$\zeta$ = {z:.2g}%   SSPB = {sspb:+.2g}%"
     return [r, mad, z, sspb], statistic_text
