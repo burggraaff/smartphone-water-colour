@@ -498,9 +498,8 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     MAPD_all, MAPD_RGB = statistic_RGB(MAPD, x, y, xdatalabel, ydatalabel)
     r_all, r_RGB = statistic_RGB(correlation, x, y, xdatalabel, ydatalabel)
 
-    title_r = f"$r$ = {r_all:.2f}"
-    title_MAD = f"    MAD = {MAD_all:.3f} sr$" + "^{-1}$" + f" ({MAPD_all:.0f}%)"
-    title = f"{title_r} {title_MAD}"
+    x_all, y_all = ravel_table(x, "R_rs ({c})"), ravel_table(y, "R_rs ({c})")
+    statistics_all, title = full_statistics_for_title(x_all, y_all)
     axs[0].set_title(title)
 
     # Labels
