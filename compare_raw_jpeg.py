@@ -31,13 +31,9 @@ units = ["[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1
 for param, label, unit in zip(parameters, labels, units):
     hc.correlation_plot_RGB(data1, data2, param+" ({c})", param+" ({c})", xerrlabel=param+"_err ({c})", yerrlabel=param+"_err ({c})", xlabel=f"{phone_name} {data_type1} {label} {unit}", ylabel=f"{phone_name} {data_type2} {label} {unit}", regression="rgb", saveto=f"results/comparison_{phone_name}_{data_type1}_X_{data_type2}_{param}.pdf")
 
-    hc.comparison_histogram(data1, data2, param+" ({c})", xlabel=f"{phone_name} {data_type1}", ylabel=f"{phone_name} {data_type2}", quantity=label, saveto=f"results/comparison_{phone_name}_{data_type1}_X_{data_type2}_{param}_hist.pdf")
-
 label_R_rs = "$R_{rs}$"
 unit_R_rs = "[sr$^{-1}$]"
 hc.correlation_plot_RGB_equal(data1, data2, "R_rs ({c})", "R_rs ({c})", xerrlabel="R_rs_err ({c})", yerrlabel="R_rs_err ({c})", xlabel=f"{phone_name} {data_type1} {label_R_rs} {unit_R_rs}", ylabel=f"{phone_name} {data_type2} {label_R_rs} {unit_R_rs}", regression="all", saveto=f"results/comparison_{phone_name}_{data_type1}_X_{data_type2}_R_rs.pdf")
-
-hc.comparison_histogram(data1, data2, "R_rs ({c})", xlabel=f"{phone_name} {data_type1}", ylabel=f"{phone_name} {data_type2}", quantity=label, saveto=f"results/comparison_{phone_name}_{data_type1}_X_{data_type2}_R_rs_hist.pdf")
 
 # Correlation plot: Band ratios
 hc.correlation_plot_bands(data1["R_rs (G/R)"], data2["R_rs (G/R)"], data1["R_rs (G/B)"], data2["R_rs (G/B)"], x_err_GR=data1["R_rs_err (G/R)"], y_err_GR=data2["R_rs_err (G/R)"], x_err_GB=data1["R_rs_err (G/B)"], y_err_GB=data2["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=f"{phone_name} {data_type1}", ylabel=f"{phone_name} {data_type2}", saveto=f"results/comparison_{phone_name}_{data_type1}_X_{data_type2}_band_ratio.pdf")
@@ -60,5 +56,3 @@ radiance2 = get_radiances(data2)
 label = "$L$"
 unit = "[ADU nm$^{-1}$ sr$^{-1}$]"
 hc.correlation_plot_RGB(radiance1, radiance2, "L ({c})", "L ({c})", xerrlabel="L_err ({c})", yerrlabel="L_err ({c})", xlabel=f"{phone_name} {data_type1} {label} {unit}", ylabel=f"{phone_name} {data_type2} {label} {unit}", regression="rgb", saveto=f"results/comparison_{phone_name}_{data_type1}_X_{data_type2}_L.pdf")
-
-hc.comparison_histogram(radiance1, radiance2, "L ({c})", xlabel=f"{phone_name} {data_type1}", ylabel=f"{phone_name} {data_type2}", quantity=label, saveto=f"results/comparison_{phone_name}_{data_type1}_X_{data_type2}_L_hist.pdf")

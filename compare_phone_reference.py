@@ -175,13 +175,9 @@ units_reference = ["[W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "[W m$^{-2}$ nm$^{-1}$ sr
 for param, label, unit_phone, unit_reference in zip(parameters, labels, units_phone, units_reference):
     hc.correlation_plot_RGB(data_reference, data_phone, param+" ({c})", param+" ({c})", xerrlabel=param+"_err ({c})", yerrlabel=param+"_err ({c})", xlabel=f"{reference} {label} {unit_reference}", ylabel=f"{cameralabel} {label} {unit_phone}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}.pdf")
 
-    hc.comparison_histogram(data_reference, data_phone, param+" ({c})", xlabel=reference, ylabel=cameralabel, quantity=label, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_{param}_hist.pdf")
-
 label_R_rs = "$R_{rs}$"
 unit_R_rs = "[sr$^{-1}$]"
 hc.correlation_plot_RGB_equal(data_reference, data_phone, "R_rs ({c})", "R_rs ({c})", xerrlabel="R_rs_err ({c})", yerrlabel="R_rs_err ({c})", xlabel=f"{reference} {label_R_rs} {unit_R_rs}", ylabel=f"{cameralabel}\n{label_R_rs} {unit_R_rs}", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_R_rs.pdf")
-
-hc.comparison_histogram(data_reference, data_phone, "R_rs ({c})", xlabel=reference, ylabel=cameralabel, quantity=label_R_rs, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_R_rs_hist.pdf")
 
 # Correlation plot: Band ratios
 hc.correlation_plot_bands(data_reference["R_rs (G/R)"], data_phone["R_rs (G/R)"], data_reference["R_rs (G/B)"], data_phone["R_rs (G/B)"], x_err_GR=None, y_err_GR=data_phone["R_rs_err (G/R)"], x_err_GB=None, y_err_GB=data_phone["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_band_ratio.pdf")
