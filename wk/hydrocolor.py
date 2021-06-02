@@ -341,7 +341,7 @@ def _correlation_plot_gridlines(ax=None):
     if ax is None:
         ax = plt.gca()
 
-    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--")  # Diagonal
+    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--", zorder=10)  # Diagonal
     ax.grid(True, ls="--")  # Grid lines
 
 
@@ -401,13 +401,20 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
         plt.close()
 
 
-def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False):
+def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False, regression="none"):
     """
     Plot data into a correlation plot.
     Helper function.
+
+    If `regression` is "none", don't do any linear regression.
+    If "all", do one on all data combined.
+    If "rgb", do a separate regression for each band.
     """
     xmax = 0.  # Maximum on x axis
     ymax = 0.  # Maximum on y axis
+
+    regression_functions = []
+    regression = regression.lower()
 
     # Loop over the colour bands and plot the relevant data points
     for c, pc in zip(colours, plot_colours):
@@ -432,6 +439,33 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
         xmax = max(xmax, np.nanmax(xdata))
         ymax = max(ymax, np.nanmax(ydata))
 
+        # If wanted, perform a linear regression
+        if regression == "rgb":
+            regression_functions.append(linear_regression(xdata, ydata, xerr, yerr)[2])
+
+    # If wanted, perform a linear regression and plot the result
+    x_plot = np.array([-1000., 1000.])
+    if regression == "all":
+        xdata, ydata = ravel_table(x, xdatalabel), ravel_table(y, ydatalabel)
+        try:
+            xerr = ravel_table(x, xerrlabel)
+        except (KeyError, AttributeError):
+            xerr = None
+        try:
+            yerr = ravel_table(y, yerrlabel)
+        except (KeyError, AttributeError):
+            yerr = None
+
+        func = linear_regression(xdata, ydata, xerr, yerr)[2]
+
+        y_plot = func(x_plot)
+        ax.plot(x_plot, y_plot, color="k", zorder=10)
+
+    elif regression == "rgb":
+        for func, c in zip(regression_functions, plot_colours):
+            y_plot = func(x_plot)
+            ax.plot(x_plot, y_plot, color=c, lw=2, zorder=10)
+
     if setmax:
         if equal_aspect:
             xmax = ymax = max(xmax, ymax)
@@ -439,7 +473,7 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
         ax.set_ylim(0, 1.05*ymax)
 
 
-def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", saveto=None):
+def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
     `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
@@ -450,7 +484,7 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
     plt.figure(figsize=(4,4), tight_layout=True)
 
     # Plot in the one panel
-    _correlation_plot_errorbars_RGB(plt.gca(), x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel)
+    _correlation_plot_errorbars_RGB(plt.gca(), x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, regression=regression)
 
     # y=x line and grid lines
     _correlation_plot_gridlines()
@@ -471,7 +505,7 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
     plt.close()
 
 
-def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", saveto=None):
+def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
     `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
@@ -485,7 +519,7 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     fig, axs = plt.subplots(figsize=(4,5), nrows=2, sharex=True, gridspec_kw={"height_ratios": [3,1]})
 
     # Plot in both panels
-    _correlation_plot_errorbars_RGB(axs[0], x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, equal_aspect=True)
+    _correlation_plot_errorbars_RGB(axs[0], x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, equal_aspect=True, regression=regression)
     _correlation_plot_errorbars_RGB(axs[1], x, residuals, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, setmax=False)
 
     # Plot the x=y line (top) and horizontal (bottom)

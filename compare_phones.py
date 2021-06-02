@@ -47,13 +47,13 @@ labels = ["$L_u$", "$L_{sky}$", "$L_d$", "$E_d$"]
 units = ["[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$]"]
 
 for param, label, unit in zip(parameters, labels, units):
-    hc.correlation_plot_RGB(data_phone1, data_phone2, param+" ({c})", param+" ({c})", xerrlabel=param+"_err ({c})", yerrlabel=param+"_err ({c})", xlabel=f"{phone1_name}\n{label} {unit}", ylabel=f"{phone2_name}\n{label} {unit}", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_{param}.pdf")
+    hc.correlation_plot_RGB(data_phone1, data_phone2, param+" ({c})", param+" ({c})", xerrlabel=param+"_err ({c})", yerrlabel=param+"_err ({c})", xlabel=f"{phone1_name}\n{label} {unit}", ylabel=f"{phone2_name}\n{label} {unit}", regression="all", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_{param}.pdf")
 
     hc.comparison_histogram(data_phone1, data_phone2, param+" ({c})", xlabel=phone1_name, ylabel=phone2_name, quantity=label, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_{param}_hist.pdf")
 
 label_R_rs = "$R_{rs}$"
 unit_R_rs = "[sr$^{-1}$]"
-hc.correlation_plot_RGB_equal(data_phone1, data_phone2, "R_rs ({c})", "R_rs ({c})", xerrlabel="R_rs_err ({c})", yerrlabel="R_rs_err ({c})", xlabel=f"{phone1_name} {label_R_rs} {unit_R_rs}", ylabel=f"{phone2_name}\n{label_R_rs} {unit_R_rs}", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_R_rs.pdf")
+hc.correlation_plot_RGB_equal(data_phone1, data_phone2, "R_rs ({c})", "R_rs ({c})", xerrlabel="R_rs_err ({c})", yerrlabel="R_rs_err ({c})", xlabel=f"{phone1_name} {label_R_rs} {unit_R_rs}", ylabel=f"{phone2_name}\n{label_R_rs} {unit_R_rs}", regression="all", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_R_rs.pdf")
 
 hc.comparison_histogram(data_phone1, data_phone2, "R_rs ({c})", xlabel=phone1_name, ylabel=phone2_name, quantity=label_R_rs, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_R_rs_hist.pdf")
 
@@ -75,7 +75,7 @@ radiance_phone2 = get_radiances(data_phone2)
 
 label = "$L$"
 unit = "[ADU nm$^{-1}$ sr$^{-1}$]"
-hc.correlation_plot_RGB(radiance_phone1, radiance_phone2, "L ({c})", "L ({c})", xerrlabel="L_err ({c})", yerrlabel="L_err ({c})", xlabel=f"{phone1_name} {label} {unit}", ylabel=f"{phone2_name} {label} {unit}", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_L.pdf")
+hc.correlation_plot_RGB(radiance_phone1, radiance_phone2, "L ({c})", "L ({c})", xerrlabel="L_err ({c})", yerrlabel="L_err ({c})", xlabel=f"{phone1_name} {label} {unit}", ylabel=f"{phone2_name} {label} {unit}", regression="all", saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_L.pdf")
 
 hc.comparison_histogram(radiance_phone1, radiance_phone2, "L ({c})", xlabel=phone1_name, ylabel=phone2_name, quantity=label, saveto=f"results/comparison_{phone1_name}_X_{phone2_name}_L_hist.pdf")
 
