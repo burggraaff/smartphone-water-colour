@@ -531,9 +531,7 @@ def correlation_plot_bands(x_GR, y_GR, x_GB, y_GB, x_err_GR=None, y_err_GR=None,
     # Calculate statistics
     for ax, x, y in zip (axs, [x_GR, x_GB], [y_GR, y_GB]):
         stats, statistic_text = full_statistics_for_title(x, y)
-
-    # Replace old title
-        ax.set_title(statistic_text, fontdict={"fontsize": "small"})
+        ax.set_title(statistic_text, fontdict={"fontsize": "small"})  # Replace old title
 
     if saveto:
         plt.savefig(saveto, bbox_inches="tight")
