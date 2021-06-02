@@ -94,3 +94,13 @@ def linear_regression(x, y, xerr=0, yerr=0):
     output_function = lambda x: linear(params, x)
 
     return params, params_cov, output_function
+
+
+def full_statistics_for_title(x, y):
+    """
+    Calculate the Pearson correlation r, median absolute deviation (MAD),
+    zeta, and SSPB between x and y, and format them nicely.
+    """
+    r, mad, z, sspb = correlation(x, y), MAD(x, y), zeta(x, y), SSPB(x, y)
+    statistic_text = f"r = {r:.2f}     MAD = {mad:.2f}   \n$\zeta$ = {z:.1f}%   SSPB = {sspb:+.1f}%"
+    return [r, mad, z, sspb], statistic_text

@@ -13,7 +13,7 @@ from scipy.linalg import block_diag
 from scipy.interpolate import interpn
 
 from . import colours
-from .statistics import correlation, MAD, MAPD, zeta, SSPB, ravel_table, statistic_RGB, linear_regression
+from .statistics import correlation, MAD, MAPD, zeta, SSPB, ravel_table, statistic_RGB, linear_regression, full_statistics_for_title
 
 plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255]]  # Plot colours from Okabe-Ito
 
@@ -530,8 +530,7 @@ def correlation_plot_bands(x_GR, y_GR, x_GB, y_GB, x_err_GR=None, y_err_GR=None,
 
     # Calculate statistics
     for ax, x, y in zip (axs, [x_GR, x_GB], [y_GR, y_GB]):
-        r, mad, z, sspb = correlation(x, y), MAD(x, y), zeta(x, y), SSPB(x, y)
-        statistic_text = f"r = {r:.2f}     MAD = {mad:.2f}   \n$\zeta$ = {z:.1f}%   SSPB = {sspb:+.1f}%"
+        stats, statistic_text = full_statistics_for_title(x, y)
 
     # Replace old title
         ax.set_title(statistic_text, fontdict={"fontsize": "small"})
