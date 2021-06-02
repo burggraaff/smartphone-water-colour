@@ -294,6 +294,24 @@ def effective_bandwidth(calibration_folder):
     return effective_bandwidths
 
 
+def get_radiances(data, parameters=["Lu", "Lsky", "Ld"]):
+    """
+    From a given data set containing radiances, return a table that has combined
+    all relevant entries.
+    """
+    # Use ravel_table to get the elements out. That function is normally used to
+    # ravel an RGB table for one parameter, e.g. combine Lu (R), Lu (G), Lu (B).
+    # Here, we have to flip the order of operations and use a different loop_keys
+    # argument to get the results in the right order.
+    radiance_RGB = [ravel_table(data, "{c} "+f"({c})", loop_keys=parameters) for c in colours]
+    radiance_RGB_err = [ravel_table(data, "{c}_err "+f"({c})", loop_keys=parameters) for c in colours]
+    cols = [f"L ({c})" for c in colours] + [f"L_err ({c})" for c in colours]
+    radiance = np.concatenate([radiance_RGB, radiance_RGB_err]).T
+
+    radiance = table.Table(data=radiance, names=cols)
+    return radiance
+
+
 def plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=None):
     plt.figure(figsize=(4,3))
     for j, c in enumerate(plot_colours[:3]):

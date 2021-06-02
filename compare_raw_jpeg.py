@@ -41,17 +41,8 @@ hc.correlation_plot_bands(data1["R_rs (G/R)"], data2["R_rs (G/R)"], data1["R_rs 
 wa.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=f"{phone_name} {data_type1}"+" $R_{rs}$", ylabel=f"{phone_name} {data_type2}"+" $R_{rs}$", saveto=f"results/comparison_{phone_name}_{data_type1}_X_{data_type2}_hueangle_ForelUle.pdf")
 
 # Correlation plot for all radiances combined
-def get_radiances(data):
-    radiance_RGB = [np.ravel([data[f"{param} ({c})"].data for param in parameters[:3]]) for c in hc.colours[:3]]
-    radiance_RGB_err = [np.ravel([data[f"{param}_err ({c})"].data for param in parameters[:3]]) for c in hc.colours[:3]]
-    cols = [f"L ({c})" for c in hc.colours[:3]] + [f"L_err ({c})" for c in hc.colours[:3]]
-    radiance = np.concatenate([radiance_RGB, radiance_RGB_err]).T
-
-    radiance = table.Table(data=radiance, names=cols)
-    return radiance
-
-radiance1 = get_radiances(data1)
-radiance2 = get_radiances(data2)
+radiance1 = hc.get_radiances(data1)
+radiance2 = hc.get_radiances(data2)
 
 label = "$L$"
 unit = "[ADU nm$^{-1}$ sr$^{-1}$]"

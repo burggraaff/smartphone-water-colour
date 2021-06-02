@@ -65,17 +65,8 @@ hc.correlation_plot_RGB_equal(data_phone1, data_phone2, "R_rs ({c})", "R_rs ({c}
 hc.correlation_plot_bands(data_phone1["R_rs (G/R)"], data_phone2["R_rs (G/R)"], data_phone1["R_rs (G/B)"], data_phone2["R_rs (G/B)"], x_err_GR=data_phone1["R_rs_err (G/R)"], y_err_GR=data_phone2["R_rs_err (G/R)"], x_err_GB=data_phone1["R_rs_err (G/B)"], y_err_GB=data_phone2["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=phone1_name, ylabel=phone2_name, saveto=f"{saveto_base}_band_ratio.pdf")
 
 # Correlation plot for all radiances combined
-def get_radiances(data):
-    radiance_RGB = [np.ravel([data[f"{param} ({c})"].data for param in parameters[:3]]) for c in hc.colours]
-    radiance_RGB_err = [np.ravel([data[f"{param}_err ({c})"].data for param in parameters[:3]]) for c in hc.colours]
-    cols = [f"L ({c})" for c in hc.colours] + [f"L_err ({c})" for c in hc.colours]
-    radiance = np.concatenate([radiance_RGB, radiance_RGB_err]).T
-
-    radiance = table.Table(data=radiance, names=cols)
-    return radiance
-
-radiance_phone1 = get_radiances(data_phone1)
-radiance_phone2 = get_radiances(data_phone2)
+radiance_phone1 = hc.get_radiances(data_phone1)
+radiance_phone2 = hc.get_radiances(data_phone2)
 
 # Correlation plot: Radiance (all combined)
 label = "$L$"
