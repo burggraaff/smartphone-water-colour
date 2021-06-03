@@ -3,8 +3,19 @@ Module with some statistics used in the analysis
 """
 import numpy as np
 from scipy import odr
+from robustats import weighted_median as weighted_median_original
 
 from . import colours
+
+
+def weighted_median(x, w=None):
+    """
+    Weighted median. If no weights are supplied, normal median.
+    """
+    if w is None:
+        return np.nanmedian(x)
+    else:
+        return weighted_median_original(x, w)
 
 
 def correlation_from_covariance(covariance):
