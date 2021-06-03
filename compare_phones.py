@@ -8,7 +8,6 @@ Command-line inputs:
 
 import numpy as np
 from sys import argv
-from matplotlib import pyplot as plt
 from spectacle import io
 from astropy import table
 from datetime import datetime
@@ -64,11 +63,10 @@ hc.correlation_plot_RGB_equal(data_phone1, data_phone2, "R_rs ({c})", "R_rs ({c}
 # Correlation plot: Band ratios
 hc.correlation_plot_bands(data_phone1["R_rs (G/R)"], data_phone2["R_rs (G/R)"], data_phone1["R_rs (G/B)"], data_phone2["R_rs (G/B)"], x_err_GR=data_phone1["R_rs_err (G/R)"], y_err_GR=data_phone2["R_rs_err (G/R)"], x_err_GB=data_phone1["R_rs_err (G/B)"], y_err_GB=data_phone2["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=phone1_name, ylabel=phone2_name, saveto=f"{saveto_base}_band_ratio.pdf")
 
-# Correlation plot for all radiances combined
+# Correlation plot: Radiance (all combined)
 radiance_phone1 = hc.get_radiances(data_phone1)
 radiance_phone2 = hc.get_radiances(data_phone2)
 
-# Correlation plot: Radiance (all combined)
 label = "$L$"
 unit = "[ADU nm$^{-1}$ sr$^{-1}$]"
 hc.correlation_plot_RGB(radiance_phone1, radiance_phone2, "L ({c})", "L ({c})", xerrlabel="L_err ({c})", yerrlabel="L_err ({c})", xlabel=f"{phone1_name} {label} {unit}", ylabel=f"{phone2_name} {label} {unit}", regression="all", saveto=f"{saveto_base}_L.pdf")
