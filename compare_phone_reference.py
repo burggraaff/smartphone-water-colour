@@ -135,7 +135,7 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
     row_reference = table.hstack([metadata, row_reference])
     print("----")
     print(f"Phone time: {phone_time} ; {reference} time: {reference_time}")
-    print(f"Number of matches: {row_reference['nr_matches'][0]}; Closest match: {row_reference['closest_match'][0]} s difference")
+    print(f"Number of matches: {row_reference['nr_matches'][0]:.0f}; Closest match: {row_reference['closest_match'][0]:.0f} s difference")
 
     # Store matched rows in lists
     data_phone.append(row)
