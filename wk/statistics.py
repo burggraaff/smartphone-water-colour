@@ -21,6 +21,7 @@ def correlation_from_covariance(covariance):
 
 # Pearson r correlation coefficient
 correlation = lambda x, y: np.corrcoef(x, y)[0, 1]
+correlation_weighted = lambda x, y, w: correlation_from_covariance(np.cov(x, y, aweights=w))[0, 1]
 
 
 def MAD(x, y):
