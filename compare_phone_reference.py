@@ -184,5 +184,13 @@ hc.correlation_plot_RGB_equal(data_reference, data_phone, "R_rs ({c})", "R_rs ({
 # Correlation plot: Band ratios
 hc.correlation_plot_bands(data_reference["R_rs (G/R)"], data_phone["R_rs (G/R)"], data_reference["R_rs (G/B)"], data_phone["R_rs (G/B)"], x_err_GR=None, y_err_GR=data_phone["R_rs_err (G/R)"], x_err_GB=None, y_err_GB=data_phone["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_band_ratio.pdf")
 
+# Correlation plot: Radiance (all combined)
+radiance_reference = hc.get_radiances(data_reference, parameters=["Lu", "Lsky"])
+radiance_phone = hc.get_radiances(data_phone, parameters=["Lu", "Lsky"])
+
+label = "$L$"
+unit = "[ADU nm$^{-1}$ sr$^{-1}$]"
+hc.correlation_plot_RGB(radiance_reference, radiance_phone, "L ({c})", "L ({c})", xerrlabel="L_err ({c})", yerrlabel="L_err ({c})", xlabel=f"{reference} {label} {unit}", ylabel=f"{cameralabel} {label} {unit}", regression="all", saveto=f"{saveto_base}_L.pdf")
+
 # Correlation plot: hue angle and Forel-Ule index
 wa.correlation_plot_hue_angle_and_ForelUle(data_reference["R_rs (hue)"], data_phone["R_rs (hue)"], xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_hueangle_ForelUle.pdf")
