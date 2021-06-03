@@ -391,7 +391,8 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
         ax.plot(x_plot, y_plot, color="k")
 
     # Get statistics for title
-    r = correlation(x, y)
+    weights = None if xerr is None else 1/xerr**2
+    r = correlation(x, y, w=weights)
     title = f"$r$ = {r:.2g}"
     ax.set_title(title)
 
