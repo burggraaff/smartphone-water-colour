@@ -6,6 +6,19 @@ from scipy import odr
 
 from . import colours
 
+
+def correlation_from_covariance(covariance):
+    """
+    Convert a covariance matrix into a correlation matrix
+    https://gist.github.com/wiso/ce2a9919ded228838703c1c7c7dad13b
+    """
+    v = np.sqrt(np.diag(covariance))
+    outer_v = np.outer(v, v)
+    correlation = covariance / outer_v
+    correlation[covariance == 0] = 0
+    return correlation
+
+
 # Pearson r correlation coefficient
 correlation = lambda x, y: np.corrcoef(x, y)[0, 1]
 

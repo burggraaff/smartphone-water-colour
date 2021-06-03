@@ -13,21 +13,9 @@ from scipy.linalg import block_diag
 from scipy.interpolate import interpn
 
 from . import colours
-from .statistics import correlation, MAD, MAPD, zeta, SSPB, ravel_table, statistic_RGB, linear_regression, full_statistics_for_title
+from .statistics import correlation_from_covariance, correlation, MAD, MAPD, zeta, SSPB, ravel_table, statistic_RGB, linear_regression, full_statistics_for_title
 
 plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255]]  # Plot colours from Okabe-Ito
-
-
-def correlation_from_covariance(covariance):
-    """
-    Convert a covariance matrix into a correlation matrix
-    https://gist.github.com/wiso/ce2a9919ded228838703c1c7c7dad13b
-    """
-    v = np.sqrt(np.diag(covariance))
-    outer_v = np.outer(v, v)
-    correlation = covariance / outer_v
-    correlation[covariance == 0] = 0
-    return correlation
 
 
 def add_Rref_to_covariance(covariance, Rref_uncertainty=0.01):
