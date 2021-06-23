@@ -12,8 +12,7 @@ from . import statistics as stats, colours
 from .hydrocolor import RGBG2_to_RGB
 from .wacodi import FU_hueangles, compare_FU_matches_from_hue_angle
 
-plot_colours = [[213/255,94/255,0], [0,158/255,115/255], [0/255,114/255,178/255]]  # Plot colours from Okabe-Ito
-
+from spectacle.plot import RGB_OkabeIto
 
 def histogram_raw(water_data, sky_data, card_data, saveto, camera=None):
     fig, axs = plt.subplots(nrows=3, ncols=5, figsize=(11,4), gridspec_kw={"hspace": 0.04, "wspace": 0.04}, sharex="col", sharey="col")
@@ -35,7 +34,7 @@ def histogram_raw(water_data, sky_data, card_data, saveto, camera=None):
                     data_RGBG = camera.demosaick(data)
 
                 data_RGB = RGBG2_to_RGB(data_RGBG)[0]
-                for j, c in enumerate(plot_colours[:3]):
+                for j, c in enumerate(RGB_OkabeIto[:3]):
                     ax.hist(data_RGB[j].ravel(), bins=bins, color=c, histtype="step")
 
             ax.set_xlim(xmin, xmax)
@@ -68,7 +67,7 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto, normalisation=255):
 
         for ax, data in zip(ax_col, [water, sky, card]):
             ax.hist(data.ravel(), bins=bins, color="k")
-            for j, c in enumerate(plot_colours[:3]):
+            for j, c in enumerate(RGB_OkabeIto[:3]):
                 ax.hist(data[...,j].ravel(), bins=bins, color=c, histtype="step")
             ax.set_xlim(0, normalisation)
             ax.grid(True, ls="--", alpha=0.7)
@@ -95,7 +94,7 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto, normalisation=255):
 
 def plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=None):
     plt.figure(figsize=(4,3))
-    for j, c in enumerate(plot_colours[:3]):
+    for j, c in enumerate(RGB_OkabeIto[:3]):
         plt.errorbar(RGB_wavelengths[j], R_rs[j], xerr=effective_bandwidths[j]/2, yerr=R_rs_err[j], c=c, fmt="o")
     plt.xlabel("Wavelength [nm]")
     plt.ylabel("Remote sensing reflectance [sr$^{-1}$]")
@@ -194,7 +193,7 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
     regression = regression.lower()
 
     # Loop over the colour bands and plot the relevant data points
-    for c, pc in zip(colours, plot_colours):
+    for c, pc in zip(colours, RGB_OkabeIto):
         try:
             xdata = x[xdatalabel.format(c=c)]
             ydata = y[ydatalabel.format(c=c)]
@@ -239,7 +238,7 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
         ax.plot(x_plot, y_plot, color="k", zorder=10)
 
     elif regression == "rgb":
-        for func, c in zip(regression_functions, plot_colours):
+        for func, c in zip(regression_functions, RGB_OkabeIto):
             y_plot = func(x_plot)
             ax.plot(x_plot, y_plot, color=c, zorder=10, path_effects=[pe.Stroke(linewidth=3, foreground="k"), pe.Normal()])
 
