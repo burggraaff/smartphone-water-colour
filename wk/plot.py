@@ -14,6 +14,34 @@ from .wacodi import FU_hueangles, compare_FU_matches_from_hue_angle
 
 from spectacle.plot import RGB_OkabeIto
 
+
+def _histogram_axis_settings(axs, column_labels):
+    """
+    Helper function.
+    Adjust the x- and y-axis labels on histogram panels.
+    """
+    for ax in axs.ravel():  # No ticks on the left in any panels
+        ax.tick_params(left=False, labelleft=False)
+    for ax in axs[:2].ravel():  # No ticks on the bottom for the top 2 rows
+        ax.tick_params(bottom=False, labelbottom=False)
+    for ax in axs[:,1:].ravel():  # Grid
+        ax.grid(True, ls="--", alpha=0.7)
+    for ax, label in zip(axs[:,0], ["Water", "Sky", "Grey card"]):  # Labels on the y-axes
+        ax.set_ylabel(label)
+    for ax, title in zip(axs[0], column_labels):  # Titles for the columns
+        ax.set_title(title)
+
+
+def _histogram_RGB(data_RGB, ax, **kwargs):
+    """
+    Helper function.
+    Draw line-type histograms of RGB data on an Axes object.
+    """
+    # Loop over the colour channels
+    for j, c in enumerate(RGB_OkabeIto[:3]):
+        ax.hist(data_RGB[j].ravel(), color=c, histtype="step", **kwargs)
+
+
 def histogram_raw(water_data, sky_data, card_data, saveto, camera=None):
     """
     Draw histograms of RAW water/sky/grey card data at various steps of processing.
@@ -51,22 +79,13 @@ def histogram_raw(water_data, sky_data, card_data, saveto, camera=None):
                 data_RGB = RGBG2_to_RGB(data_RGBG)[0]
 
                 # Plot the RGB histograms as lines on top of the black overall histograms
-                for j, c in enumerate(RGB_OkabeIto[:3]):
-                    ax.hist(data_RGB[j].ravel(), bins=bins, color=c, histtype="step")
+                _histogram_RGB(data_RGB, ax, bins=bins)
 
             # Plot settings
             ax.set_xlim(xmin, xmax)
-            ax.grid(True, ls="--", alpha=0.7)
 
     # Adjust the x- and y-axis ticks on the different panels
-    for ax in axs.ravel():  # No ticks on the left in any panels
-        ax.tick_params(left=False, labelleft=False)
-    for ax in axs[:2].ravel():  # No ticks on the bottom for the top 2 rows
-        ax.tick_params(bottom=False, labelbottom=False)
-    for ax, label in zip(axs[:,0], ["Water", "Sky", "Grey card"]):  # Labels on the y-axes
-        ax.set_ylabel(label)
-    for ax, title in zip(axs[0], ["Image", "Raw", "Bias-corrected", "Flat-fielded", "Central slice"]):  # Titles for the columns
-        ax.set_title(title)
+    _histogram_axis_settings(axs, ["Image", "Raw", "Bias-corrected", "Flat-fielded", "Central slice"])
 
     # Save the result
     plt.savefig(saveto, bbox_inches="tight")
@@ -99,22 +118,14 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto, normalisation=255):
             ax.hist(data.ravel(), bins=bins, color="k")
 
             # Plot the RGB histograms as lines on top of the black overall histograms
-            for j, c in enumerate(RGB_OkabeIto[:3]):
-                ax.hist(data[...,j].ravel(), bins=bins, color=c, histtype="step")
+            # Data array needs to be transposed so the colour axis is at the start
+            _histogram_RGB(data.T, ax, bins=bins)
 
             # Plot settings
             ax.set_xlim(0, normalisation)
-            ax.grid(True, ls="--", alpha=0.7)
 
     # Adjust the x- and y-axis ticks on the different panels
-    for ax in axs.ravel():  # No ticks on the left in any panels
-        ax.tick_params(left=False, labelleft=False)
-    for ax in axs[:2].ravel():  # No ticks on the bottom for the top 2 rows
-        ax.tick_params(bottom=False, labelbottom=False)
-    for ax, label in zip(axs[:,0], ["Water", "Sky", "Grey card"]):  # Labels on the y-axes
-        ax.set_ylabel(label)
-    for ax, title in zip(axs[0], ["Image", "JPEG (full)", "Central slice"]):  # Titles for the columns
-        ax.set_title(title)
+    _histogram_axis_settings(axs, ["Image", "JPEG (full)", "Central slice"])
 
     # Save the result
     plt.savefig(saveto, bbox_inches="tight")
