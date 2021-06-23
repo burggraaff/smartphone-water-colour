@@ -5,6 +5,7 @@ from spectacle.general import apply_to_multiple_args
 from spectacle.spectral import convolve_multi, cie_wavelengths, cie_xyz, convert_to_XYZ
 import numpy as np
 from astropy import table
+from .statistics import MAD
 
 M_sRGB_to_XYZ = np.array([[0.4124564, 0.3575761, 0.1804375],
                           [0.2126729, 0.7151522, 0.0721750],
@@ -142,8 +143,8 @@ def add_colour_data_to_table(data, key="R_rs"):
 def compare_FU_matches_from_hue_angle(x, y):
     """
     Count the percentage of matching FU colours in x and y.
-    Return the percentage that are the same (e.g. x=1, y=1)
-    and the percentage within 1 (e.g. x=1, y=2).
+    Return the percentage that are the same (e.g. 1,1)
+    the percentage within 1 (e.g. 1, 2), and the MAD.
     """
     assert len(x) == len(y), f"x and y have different lengths: {len(x)} and {len(y)}."
 
@@ -153,9 +154,10 @@ def compare_FU_matches_from_hue_angle(x, y):
     # Count the number of (near-)matching FU colours
     matches = np.where(x_FU == y_FU)[0]
     near_matches = np.where(np.abs(x_FU - y_FU) <= 1)[0]
+    mad = MAD(x_FU, y_FU)
 
     # Convert counts to percentages
     matches_percent = 100*len(matches)/len(x)
     near_matches_percent = 100*len(near_matches)/len(x)
 
-    return matches_percent, near_matches_percent
+    return matches_percent, near_matches_percent, mad
