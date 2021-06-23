@@ -163,21 +163,31 @@ def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=
 
 def _correlation_plot_gridlines(ax=None):
     """
-    Add grid lines and the y=x line to a plot.
+    Add grid lines to a plot.
     """
-    # Get the active Axes object
+    # Get the active Axes object if none was given
     if ax is None:
         ax = plt.gca()
 
-    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', zorder=10)  # Diagonal
-    ax.grid(True, ls="--")  # Grid lines
+    ax.grid(True, ls="--")
+
+
+def _plot_diagonal(ax=None, **kwargs):
+    """
+    Add the y=x line to a plot.
+    """
+    # Get the active Axes object if none was given
+    if ax is None:
+        ax = plt.gca()
+
+    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', zorder=10)
 
 
 def _plot_linear_regression(x, y, ax=None, color="k", **kwargs):
     """
     Helper function to plot linear regression lines consistently.
     """
-    # Get the ax object if none was given
+    # Get the active Axes object if none was given
     if ax is None:
         ax = plt.gca()
 
@@ -215,6 +225,7 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
 
     # Grid lines and y=x diagonal
     _correlation_plot_gridlines(ax)
+    _plot_diagonal(ax)
 
     # If wanted, perform a linear regression and plot the result
     if regression:
@@ -328,6 +339,7 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
 
     # y=x line and grid lines
     _correlation_plot_gridlines()
+    _plot_diagonal()
 
     # Get statistics for title
     r_all, r_RGB = stats.statistic_RGB(stats.correlation, x, y, xdatalabel, ydatalabel)
@@ -366,9 +378,10 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     _correlation_plot_errorbars_RGB(axs[1], x, residuals, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, setmax=False)
 
     # Plot the x=y line (top) and horizontal (bottom)
-    _correlation_plot_gridlines(axs[0])
+    for ax in axs:
+        _correlation_plot_gridlines(ax)
+    _plot_diagonal(axs[0])
     axs[1].axhline(0, c='k', ls="--")
-    axs[1].grid(True, ls="--")
 
     # Get statistics for title
     MAD_all, MAD_RGB = stats.statistic_RGB(stats.MAD, x, y, xdatalabel, ydatalabel)
