@@ -546,7 +546,7 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     mad_hueangle = stats.MAD(x, y)
     FU_matches, FU_near_matches, mad_FU = compare_FU_matches_from_hue_angle(x, y)
 
-    title = f"MAD = ${mad_hueangle:.1f} \\degree$ ({mad_FU:.1f} FU)\n{FU_matches:.0f}% $\Delta$FU$= 0$   {FU_near_matches:.0f}% $\Delta$FU$\leq 1$"
+    title = f"MAD = ${mad_hueangle:.1f} \\degree$ ({mad_FU:.0f} FU)\n{FU_matches:.0f}% $\Delta$FU$= 0$   {FU_near_matches:.0f}% $\Delta$FU$\leq 1$"
     ax.set_title(title)
 
     # Number of matches (Delta 0)
