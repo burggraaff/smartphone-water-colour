@@ -1,13 +1,10 @@
+"""
+Module with functions etc for WACODI
+"""
 from spectacle.general import apply_to_multiple_args
 from spectacle.spectral import convolve_multi, cie_wavelengths, cie_xyz, convert_to_XYZ
 import numpy as np
-from matplotlib import pyplot as plt, transforms
-from matplotlib.patches import Ellipse
-from colorio._tools import plot_flat_gamut
 from astropy import table
-
-from .statistics import correlation_from_covariance, MAD, MAPD
-from .hydrocolor import correlation_plot_simple
 
 M_sRGB_to_XYZ = np.array([[0.4124564, 0.3575761, 0.1804375],
                           [0.2126729, 0.7151522, 0.0721750],
@@ -142,40 +139,6 @@ def add_colour_data_to_table(data, key="R_rs"):
     return data
 
 
-def _confidence_ellipse(center, covariance, ax, covariance_scale=1, **kwargs):
-    """
-    Plot a confidence ellipse from a given (2x2) covariance matrix.
-    https://matplotlib.org/devdocs/gallery/statistics/confidence_ellipse.html
-    """
-    correlation = correlation_from_covariance(covariance)[0,1]
-    ell_radius_x = np.sqrt(1 + correlation)
-    ell_radius_y = np.sqrt(1 - correlation)
-    ellipse = Ellipse((0, 0), width=ell_radius_x*2, height=ell_radius_y*2, **kwargs)
-
-    scale_x = np.sqrt(covariance[0,0])*covariance_scale
-    scale_y = np.sqrt(covariance[1,1])*covariance_scale
-
-    transf = transforms.Affine2D().rotate_deg(45).scale(scale_x, scale_y).translate(*center)
-    ellipse.set_transform(transf + ax.transData)
-
-    return ax.add_patch(ellipse)
-
-
-def plot_xy_on_gamut_covariance(xy, xy_covariance, covariance_scale=1):
-    """
-    Plot xy coordinates on the gamut including their covariance ellipse.
-    """
-    fig = plt.figure(figsize=(3,3))
-    plot_flat_gamut(plot_planckian_locus=False, axes_labels=("", ""))
-    _confidence_ellipse(xy, xy_covariance, plt.gca(), covariance_scale=covariance_scale, edgecolor="k", fill=False, linestyle="--")
-    plt.scatter(*xy, c="k", s=5)
-    plt.xlabel("x")
-    plt.ylabel("y")
-    plt.axis("equal")
-    plt.show()
-    plt.close()
-
-
 def compare_FU_matches_from_hue_angle(x, y):
     """
     Count the percentage of matching FU colours in x and y.
@@ -196,77 +159,3 @@ def compare_FU_matches_from_hue_angle(x, y):
     near_matches_percent = 100*len(near_matches)/len(x)
 
     return matches_percent, near_matches_percent
-
-
-def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="", ylabel="", saveto=None):
-    """
-    Make a correlation plot of hue angles (x and y).
-    Draw the equivalent Forel-Ule indices on the grid for reference.
-    """
-    # Generate labels for the x and y axes
-    xlabel_hue = f"{xlabel}\nHue angle $\\alpha$ (degrees)"
-    ylabel_hue = f"{ylabel}\nHue angle $\\alpha$ (degrees)"
-    xlabel_FU = f"{xlabel}\nForel-Ule index"
-    ylabel_FU = f"{ylabel}\nForel-Ule index"
-
-    # Create figure
-    fig, ax = plt.subplots(figsize=(4,4))
-
-    # Plot the data
-    correlation_plot_simple(x, y, xerr=xerr, yerr=yerr, ax=ax, equal_aspect=True)
-
-    # Set the x and y labels for hue angle
-    ax.set_xlabel(xlabel_hue)
-    ax.set_ylabel(ylabel_hue)
-    ax.grid(False)
-
-    # Plot lines correspnding to the FU colour limits, and
-    # colour the squares along the x=y line.
-    line_kwargs = {"c": "k", "lw": 0.5}
-    for fu,angle in enumerate(FU_hueangles):
-        ax.axvline(angle, **line_kwargs)
-        ax.axhline(angle, **line_kwargs)
-        square = FU_hueangles[fu:fu+2]
-        ax.fill_between(square, *square, facecolor="0.5")
-
-    # Same ticks on x and y.
-    # Weird quirk in matplotlib: you need to do it twice (x->y then y->x)
-    # to actually get the same ticks on both axes.
-    ax.set_yticks(ax.get_xticks())
-    ax.set_xticks(ax.get_yticks())
-
-    # Labels for FU colours: every odd colour, in the middle of the range
-    FU_middles = np.array([(a + b)/2 for a, b in zip(FU_hueangles, FU_hueangles[1:])])[::2]
-    FU_labels = np.arange(1,21)[::2]
-
-    # Add a new x axis at the top with FU colours
-    ax2 = ax.twinx()
-    ax2.set_yticks(FU_middles)
-    ax2.set_yticklabels(FU_labels)
-    ax2.set_ylim(ax.get_ylim())
-    ax2.set_ylabel(ylabel_FU)
-    ax2.tick_params(axis="y", length=0)
-
-    # Add a new y axis on the right with FU colours
-    ax3 = ax2.twiny()
-    ax3.set_xticks(FU_middles)
-    ax3.set_xticklabels(FU_labels)
-    ax3.set_xlim(ax.get_xlim())
-    ax3.set_xlabel(xlabel_FU)
-    ax3.tick_params(axis="x", length=0)
-
-    mad = MAD(x, y)
-
-    FU_matches, FU_near_matches = compare_FU_matches_from_hue_angle(x, y)
-
-    title = f"MAD = ${mad:.1f} \\degree$\n{FU_matches:.0f}% $\Delta$FU$= 0$   {FU_near_matches:.0f}% $\Delta$FU$\leq 1$"
-    ax.set_title(title)
-
-    # Number of matches (Delta 0)
-    # Number of near-matches (Delta 1)
-
-    # Save and close the plot
-    if saveto is not None:
-        plt.savefig(saveto, bbox_inches="tight")
-    plt.show()
-    plt.close()

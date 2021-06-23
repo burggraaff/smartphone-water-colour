@@ -21,7 +21,7 @@ from matplotlib import pyplot as plt
 from spectacle import io, spectral, load_camera
 from astropy import table
 from datetime import datetime
-from wk import hydrocolor as hc, wacodi as wa
+from wk import hydrocolor as hc, wacodi as wa, plot
 
 # Time limit for inclusion
 max_time_diff = 60*5  # 5 minutes
@@ -150,7 +150,7 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
     plt.figure(figsize=(3.3,3.3), tight_layout=True)
     plt.plot(wavelengths, R_rs, c="k")
     plt.fill_between(wavelengths, R_rs-R_rs_err, R_rs+R_rs_err, facecolor="0.3")
-    for j, (c, pc) in enumerate(zip("RGB", hc.plot_colours)):
+    for j, (c, pc) in enumerate(zip("RGB", plot.plot_colours)):
         plt.errorbar(RGB_wavelengths[j], row[f"R_rs ({c})"], xerr=effective_bandwidths[j]/2, yerr=row[f"R_rs_err ({c})"], fmt="o", c=pc)
         plt.errorbar(RGB_wavelengths[j], row_reference[f"R_rs ({c})"][0], xerr=effective_bandwidths[j]/2, yerr=row_reference[f"R_rs_err ({c})"][0], fmt="^", c=pc)
     plt.grid(True, ls="--")
@@ -174,15 +174,15 @@ units_phone = ["[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU n
 units_reference = ["[W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "[W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "[W m$^{-2}$ nm$^{-1}$]"]
 
 for param, label, unit_phone, unit_reference in zip(parameters, labels, units_phone, units_reference):
-    hc.correlation_plot_RGB(data_reference, data_phone, param+" ({c})", param+" ({c})", xerrlabel=param+"_err ({c})", yerrlabel=param+"_err ({c})", xlabel=f"{reference} {label} {unit_reference}", ylabel=f"{cameralabel} {label} {unit_phone}", regression="all", saveto=f"{saveto_base}_{param}.pdf")
+    plot.correlation_plot_RGB(data_reference, data_phone, param+" ({c})", param+" ({c})", xerrlabel=param+"_err ({c})", yerrlabel=param+"_err ({c})", xlabel=f"{reference} {label} {unit_reference}", ylabel=f"{cameralabel} {label} {unit_phone}", regression="all", saveto=f"{saveto_base}_{param}.pdf")
 
 # Correlation plot: Remote sensing reflectance
 label_R_rs = "$R_{rs}$"
 unit_R_rs = "[sr$^{-1}$]"
-hc.correlation_plot_RGB_equal(data_reference, data_phone, "R_rs ({c})", "R_rs ({c})", xerrlabel="R_rs_err ({c})", yerrlabel="R_rs_err ({c})", xlabel=f"{reference} {label_R_rs} {unit_R_rs}", ylabel=f"{cameralabel}\n{label_R_rs} {unit_R_rs}", regression="all", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_R_rs.pdf")
+plot.correlation_plot_RGB_equal(data_reference, data_phone, "R_rs ({c})", "R_rs ({c})", xerrlabel="R_rs_err ({c})", yerrlabel="R_rs_err ({c})", xlabel=f"{reference} {label_R_rs} {unit_R_rs}", ylabel=f"{cameralabel}\n{label_R_rs} {unit_R_rs}", regression="all", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_R_rs.pdf")
 
 # Correlation plot: Band ratios
-hc.correlation_plot_bands(data_reference["R_rs (G/R)"], data_phone["R_rs (G/R)"], data_reference["R_rs (G/B)"], data_phone["R_rs (G/B)"], x_err_GR=None, y_err_GR=data_phone["R_rs_err (G/R)"], x_err_GB=None, y_err_GB=data_phone["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_band_ratio.pdf")
+plot.correlation_plot_bands(data_reference["R_rs (G/R)"], data_phone["R_rs (G/R)"], data_reference["R_rs (G/B)"], data_phone["R_rs (G/B)"], x_err_GR=None, y_err_GR=data_phone["R_rs_err (G/R)"], x_err_GB=None, y_err_GB=data_phone["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_band_ratio.pdf")
 
 # Correlation plot: Radiance (all combined)
 radiance_reference = hc.get_radiances(data_reference, parameters=["Lu", "Lsky"])
@@ -190,7 +190,7 @@ radiance_phone = hc.get_radiances(data_phone, parameters=["Lu", "Lsky"])
 
 label = "$L$"
 unit = "[ADU nm$^{-1}$ sr$^{-1}$]"
-hc.correlation_plot_RGB(radiance_reference, radiance_phone, "L ({c})", "L ({c})", xerrlabel="L_err ({c})", yerrlabel="L_err ({c})", xlabel=f"{reference} {label} {unit}", ylabel=f"{cameralabel} {label} {unit}", regression="all", saveto=f"{saveto_base}_L.pdf")
+plot.correlation_plot_RGB(radiance_reference, radiance_phone, "L ({c})", "L ({c})", xerrlabel="L_err ({c})", yerrlabel="L_err ({c})", xlabel=f"{reference} {label} {unit}", ylabel=f"{cameralabel} {label} {unit}", regression="all", saveto=f"{saveto_base}_L.pdf")
 
 # Correlation plot: hue angle and Forel-Ule index
-wa.correlation_plot_hue_angle_and_ForelUle(data_reference["R_rs (hue)"], data_phone["R_rs (hue)"], xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_hueangle_ForelUle.pdf")
+plot.correlation_plot_hue_angle_and_ForelUle(data_reference["R_rs (hue)"], data_phone["R_rs (hue)"], xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_hueangle_ForelUle.pdf")

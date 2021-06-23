@@ -20,9 +20,9 @@ np.set_printoptions(precision=2)
 from sys import argv
 from spectacle import io, load_camera
 from os import walk
-from matplotlib import pyplot as plt
 
-from wk import hydrocolor as hc, wacodi as wa
+from wk import hydrocolor as hc, wacodi as wa, plot
+from wk.statistics import correlation_from_covariance
 
 # Get the data folder from the command line
 calibration_folder, *folders = io.path_from_input(argv)
@@ -86,7 +86,7 @@ for folder_main in folders:
         sky_all = [sky_jpeg, sky_raw, sky_bias, sky_flat, sky_cut]
         card_all = [card_jpeg, card_raw, card_bias, card_flat, card_cut]
 
-        hc.histogram_raw(water_all, sky_all, card_all, camera=camera, saveto=data_path/"statistics_raw.pdf")
+        plot.histogram_raw(water_all, sky_all, card_all, camera=camera, saveto=data_path/"statistics_raw.pdf")
 
         # Reshape the central images to lists
         water_RGBG = water_cut.reshape(4, -1)
@@ -114,7 +114,7 @@ for folder_main in folders:
         print(f"Calculated covariance and correlation matrices. Maximum off-diagonal correlation r = {max_corr:.2f}")
 
         # Plot correlation coefficients
-        hc.plot_correlation_matrix_radiance(all_correlation, x1=all_RGBG[4], y1=all_RGBG[5], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=all_RGBG[1], y2=all_RGBG[9], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_raw.pdf")
+        plot.plot_correlation_matrix_radiance(all_correlation, x1=all_RGBG[4], y1=all_RGBG[5], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=all_RGBG[1], y2=all_RGBG[9], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_raw.pdf")
 
         # Average G and G2
         M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
@@ -124,8 +124,6 @@ for folder_main in folders:
 
         all_mean_RGB = M_RGBG2_to_RGB_all_L @ all_mean
         all_covariance_RGB = M_RGBG2_to_RGB_all_L @ all_covariance @ M_RGBG2_to_RGB_all_L.T
-        all_correlation_RGB = hc.correlation_from_covariance(all_covariance_RGB)
-
         water_mean_RGB, sky_mean_RGB, card_mean_RGB = hc.split_combined_radiances(all_mean_RGB)
 
         # Add Rref to covariance matrix
@@ -143,7 +141,6 @@ for folder_main in folders:
 
         # Derive naive uncertainty and correlation from covariance
         R_rs_uncertainty = np.sqrt(np.diag(R_rs_covariance))  # Uncertainty per band, ignoring covariance
-        R_rs_correlation = hc.correlation_from_covariance(R_rs_covariance)
 
 
         # HydroColor
@@ -151,7 +148,7 @@ for folder_main in folders:
             print(f"R_rs({c}) = ({reflectance:.3f} +- {reflectance_uncertainty:.3f}) sr^-1   ({100*reflectance_uncertainty/reflectance:.0f}% uncertainty)")
 
         # Plot the result
-        hc.plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_uncertainty)
+        plot.plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_uncertainty)
 
         # Calculate band ratios
         beta = R_rs[1] / R_rs[2]  # G/B
@@ -163,7 +160,7 @@ for folder_main in folders:
 
         bandratios_covariance = bandratios_J @ R_rs_covariance @ bandratios_J.T
         bandratios_uncertainty = np.sqrt(np.diag(bandratios_covariance))
-        bandratios_correlation = hc.correlation_from_covariance(bandratios_covariance)
+        bandratios_correlation = correlation_from_covariance(bandratios_covariance)
         print(f"Calculated average band ratios: R_rs(G)/R_rs(R) = {bandratios[0]:.2f} +- {bandratios_uncertainty[0]:.2f}    R_rs(G)/R_rs(B) = {bandratios[1]:.2f} +- {bandratios_uncertainty[1]:.2f}    (correlation r = {bandratios_correlation[0,1]:.2f})")
 
 
@@ -183,13 +180,13 @@ for folder_main in folders:
         R_rs_xy_covariance = wa.convert_XYZ_to_xy_covariance(R_rs_XYZ_covariance, R_rs_XYZ)
 
         # Calculate correlation
-        R_rs_xy_correlation = hc.correlation_from_covariance(R_rs_xy_covariance)
-        water_xy_correlation = hc.correlation_from_covariance(water_xy_covariance)
+        R_rs_xy_correlation = correlation_from_covariance(R_rs_xy_covariance)
+        water_xy_correlation = correlation_from_covariance(water_xy_covariance)
 
         print("Converted to xy:", f"xy R_rs = {R_rs_xy} +- {np.sqrt(np.diag(R_rs_xy_covariance))} (r = {R_rs_xy_correlation[0,1]:.2f})", f"xy L_u  = {water_xy} +- {np.sqrt(np.diag(water_xy_covariance))} (r = {water_xy_correlation[0,1]:.2f})", sep="\n")
 
         # Plot chromaticity
-        wa.plot_xy_on_gamut_covariance(R_rs_xy, R_rs_xy_covariance)
+        plot.plot_xy_on_gamut_covariance(R_rs_xy, R_rs_xy_covariance)
 
         # Calculate hue angle
         water_hue, R_rs_hue = wa.convert_xy_to_hue_angle(water_xy, R_rs_xy)

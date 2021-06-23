@@ -9,7 +9,7 @@ Command-line inputs:
 import numpy as np
 from sys import argv
 from spectacle import io
-from wk import hydrocolor as hc, wacodi as wa
+from wk import hydrocolor as hc, wacodi as wa, plot
 
 # Get the data folder from the command line
 path_data1, path_data2 = io.path_from_input(argv)
@@ -35,15 +35,15 @@ labels = ["$L_u$", "$L_{sky}$", "$L_d$", "$E_d$"]
 units = ["[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$]"]
 
 for param, label, unit in zip(parameters, labels, units):
-    hc.correlation_plot_RGB(data1, data2, param+" ({c})", param+" ({c})", xerrlabel=param+"_err ({c})", yerrlabel=param+"_err ({c})", xlabel=f"{phone_name} {data_type1} {label} {unit}", ylabel=f"{phone_name} {data_type2} {label} {unit}", regression="rgb", saveto=f"{saveto_base}_{param}.pdf")
+    plot.correlation_plot_RGB(data1, data2, param+" ({c})", param+" ({c})", xerrlabel=param+"_err ({c})", yerrlabel=param+"_err ({c})", xlabel=f"{phone_name} {data_type1} {label} {unit}", ylabel=f"{phone_name} {data_type2} {label} {unit}", regression="rgb", saveto=f"{saveto_base}_{param}.pdf")
 
 # Correlation plot: Remote sensing reflectance
 label_R_rs = "$R_{rs}$"
 unit_R_rs = "[sr$^{-1}$]"
-hc.correlation_plot_RGB_equal(data1, data2, "R_rs ({c})", "R_rs ({c})", xerrlabel="R_rs_err ({c})", yerrlabel="R_rs_err ({c})", xlabel=f"{phone_name} {data_type1} {label_R_rs} {unit_R_rs}", ylabel=f"{phone_name} {data_type2} {label_R_rs} {unit_R_rs}", regression="all", saveto=f"{saveto_base}_R_rs.pdf")
+plot.correlation_plot_RGB_equal(data1, data2, "R_rs ({c})", "R_rs ({c})", xerrlabel="R_rs_err ({c})", yerrlabel="R_rs_err ({c})", xlabel=f"{phone_name} {data_type1} {label_R_rs} {unit_R_rs}", ylabel=f"{phone_name} {data_type2} {label_R_rs} {unit_R_rs}", regression="all", saveto=f"{saveto_base}_R_rs.pdf")
 
 # Correlation plot: Band ratios
-hc.correlation_plot_bands(data1["R_rs (G/R)"], data2["R_rs (G/R)"], data1["R_rs (G/B)"], data2["R_rs (G/B)"], x_err_GR=data1["R_rs_err (G/R)"], y_err_GR=data2["R_rs_err (G/R)"], x_err_GB=data1["R_rs_err (G/B)"], y_err_GB=data2["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=f"{phone_name} {data_type1}", ylabel=f"{phone_name} {data_type2}", saveto=f"{saveto_base}_band_ratio.pdf")
+plot.correlation_plot_bands(data1["R_rs (G/R)"], data2["R_rs (G/R)"], data1["R_rs (G/B)"], data2["R_rs (G/B)"], x_err_GR=data1["R_rs_err (G/R)"], y_err_GR=data2["R_rs_err (G/R)"], x_err_GB=data1["R_rs_err (G/B)"], y_err_GB=data2["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=f"{phone_name} {data_type1}", ylabel=f"{phone_name} {data_type2}", saveto=f"{saveto_base}_band_ratio.pdf")
 
 # Correlation plot: Radiance (all combined)
 radiance1 = hc.get_radiances(data1)
@@ -51,7 +51,7 @@ radiance2 = hc.get_radiances(data2)
 
 label = "$L$"
 unit = "[ADU nm$^{-1}$ sr$^{-1}$]"
-hc.correlation_plot_RGB(radiance1, radiance2, "L ({c})", "L ({c})", xerrlabel="L_err ({c})", yerrlabel="L_err ({c})", xlabel=f"{phone_name} {data_type1} {label} {unit}", ylabel=f"{phone_name} {data_type2} {label} {unit}", regression="rgb", saveto=f"{saveto_base}_L.pdf")
+plot.correlation_plot_RGB(radiance1, radiance2, "L ({c})", "L ({c})", xerrlabel="L_err ({c})", yerrlabel="L_err ({c})", xlabel=f"{phone_name} {data_type1} {label} {unit}", ylabel=f"{phone_name} {data_type2} {label} {unit}", regression="rgb", saveto=f"{saveto_base}_L.pdf")
 
 # Correlation plot: hue angle and Forel-Ule index
-wa.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=f"{phone_name} {data_type1}"+" $R_{rs}$", ylabel=f"{phone_name} {data_type2}"+" $R_{rs}$", saveto=f"{saveto_base}_hueangle_ForelUle.pdf")
+plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=f"{phone_name} {data_type1}"+" $R_{rs}$", ylabel=f"{phone_name} {data_type2}"+" $R_{rs}$", saveto=f"{saveto_base}_hueangle_ForelUle.pdf")

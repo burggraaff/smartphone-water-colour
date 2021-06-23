@@ -4,6 +4,9 @@ Module with some statistics used in the analysis
 import numpy as np
 from scipy import odr
 from robustats import weighted_median as weighted_median_original
+from spectacle.analyse import symmetric_percentiles
+from spectacle.general import RMS
+from scipy.interpolate import interpn
 
 from . import colours
 
@@ -101,6 +104,29 @@ def statistic_RGB(func, data1, data2, xdatalabel, ydatalabel):
     stat_all = func(data1_combined, data2_combined)
 
     return stat_all, stat_RGB
+
+
+def residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None):
+    """
+    Calculate the column-wise RGB residuals between two tables for given labels
+    `xdatalabel` and `ydatalabel` (e.g. "Rrs {c}"). If errors are included,
+    propagate them (sum of squares).
+    Returns a new table with differences.
+    """
+    # Use a copy of x to store the residuals in
+    result = x.copy()
+
+    # Remove columns that are in x but not in y
+    keys_not_overlapping = [key for key in result.keys() if key not in y.keys()]
+    result.remove_columns(keys_not_overlapping)
+
+    # Loop over the keys and update them to include x-y instead of just x
+    for c in colours:
+        result[xdatalabel.format(c=c)] = y[ydatalabel.format(c=c)] - x[xdatalabel.format(c=c)]
+        if xerrlabel and yerrlabel:
+            result[xerrlabel.format(c=c)] = np.sqrt(x[xerrlabel.format(c=c)]**2 + y[yerrlabel.format(c=c)]**2)
+
+    return result
 
 
 def linear_regression(x, y, xerr=0, yerr=0):
