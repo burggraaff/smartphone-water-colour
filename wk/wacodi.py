@@ -6,7 +6,8 @@ from matplotlib.patches import Ellipse
 from colorio._tools import plot_flat_gamut
 from astropy import table
 
-from .hydrocolor import correlation_from_covariance, correlation_plot_simple, MAD, MAPD
+from .statistics import correlation_from_covariance, MAD, MAPD
+from .hydrocolor import correlation_plot_simple
 
 M_sRGB_to_XYZ = np.array([[0.4124564, 0.3575761, 0.1804375],
                           [0.2126729, 0.7151522, 0.0721750],
