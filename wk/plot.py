@@ -15,16 +15,30 @@ from .wacodi import FU_hueangles, compare_FU_matches_from_hue_angle
 from spectacle.plot import RGB_OkabeIto
 
 def histogram_raw(water_data, sky_data, card_data, saveto, camera=None):
+    """
+    Draw histograms of RAW water/sky/grey card data at various steps of processing.
+    """
+    # Create the figure
     fig, axs = plt.subplots(nrows=3, ncols=5, figsize=(11,4), gridspec_kw={"hspace": 0.04, "wspace": 0.04}, sharex="col", sharey="col")
 
+    # Plot the original images in the left-most column
+    for ax, img in zip(axs[:,0], [water_data[0], sky_data[0], card_data[0]]):
+        ax.imshow(img)
+        ax.tick_params(bottom=False, labelbottom=False)
+
+    # Loop over the columns representing processing steps
     for ax_col, water, sky, card in zip(axs[:,1:].T, water_data[1:], sky_data[1:], card_data[1:]):
+        # Determine histogram bins that suit all data in this column
         data_combined = np.ravel([water, sky, card])
         xmin, xmax = stats.symmetric_percentiles(data_combined, percent=0.001)
         bins = np.linspace(xmin, xmax, 150)
 
+        # Loop over the three data sets (water/sky/grey card) and plot them in the three rows
         for ax, data in zip(ax_col, [water, sky, card]):
+            # Draw the histogram
             ax.hist(data.ravel(), bins=bins, color="k")
 
+            # If camera information was provided, also include RGB(G2) histograms
             if camera is not None:
                 # If the data are already in RGBG format, use them
                 if len(data.shape) == 3:
@@ -33,25 +47,28 @@ def histogram_raw(water_data, sky_data, card_data, saveto, camera=None):
                 else:
                     data_RGBG = camera.demosaick(data)
 
+                # Combine the G and G2 channels
                 data_RGB = RGBG2_to_RGB(data_RGBG)[0]
+
+                # Plot the RGB histograms as lines on top of the black overall histograms
                 for j, c in enumerate(RGB_OkabeIto[:3]):
                     ax.hist(data_RGB[j].ravel(), bins=bins, color=c, histtype="step")
 
+            # Plot settings
             ax.set_xlim(xmin, xmax)
             ax.grid(True, ls="--", alpha=0.7)
 
-    for ax, img in zip(axs[:,0], [water_data[0], sky_data[0], card_data[0]]):
-        ax.imshow(img)
-        ax.tick_params(bottom=False, labelbottom=False)
-    for ax in axs.ravel():
+    # Adjust the x- and y-axis ticks on the different panels
+    for ax in axs.ravel():  # No ticks on the left in any panels
         ax.tick_params(left=False, labelleft=False)
-    for ax in axs[:2].ravel():
+    for ax in axs[:2].ravel():  # No ticks on the bottom for the top 2 rows
         ax.tick_params(bottom=False, labelbottom=False)
-    for ax, label in zip(axs[:,0], ["Water", "Sky", "Grey card"]):
+    for ax, label in zip(axs[:,0], ["Water", "Sky", "Grey card"]):  # Labels on the y-axes
         ax.set_ylabel(label)
-    for ax, title in zip(axs[0], ["Image", "Raw", "Bias-corrected", "Flat-fielded", "Central slice"]):
+    for ax, title in zip(axs[0], ["Image", "Raw", "Bias-corrected", "Flat-fielded", "Central slice"]):  # Titles for the columns
         ax.set_title(title)
 
+    # Save the result
     plt.savefig(saveto, bbox_inches="tight")
     plt.show()
     plt.close()
@@ -60,31 +77,46 @@ def histogram_raw(water_data, sky_data, card_data, saveto, camera=None):
 
 
 def histogram_jpeg(water_data, sky_data, card_data, saveto, normalisation=255):
+    """
+    Draw histograms of RAW water/sky/grey card data at various steps of processing.
+    """
+    # Create the figure
     fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(9,4), gridspec_kw={"hspace": 0.04, "wspace": 0.04}, sharex="col", sharey="col")
 
-    for ax_col, water, sky, card in zip(axs.T[1:], water_data, sky_data, card_data):
-        bins = np.linspace(0, normalisation, 50)
-
-        for ax, data in zip(ax_col, [water, sky, card]):
-            ax.hist(data.ravel(), bins=bins, color="k")
-            for j, c in enumerate(RGB_OkabeIto[:3]):
-                ax.hist(data[...,j].ravel(), bins=bins, color=c, histtype="step")
-            ax.set_xlim(0, normalisation)
-            ax.grid(True, ls="--", alpha=0.7)
-
+    # Plot the original images in the left-most column
     for ax, image in zip(axs[:,0], [water_data[0], sky_data[0], card_data[0]]):
         ax.imshow(image)
         ax.tick_params(bottom=False, labelbottom=False)
 
-    for ax in axs.ravel():
+    # Loop over the columns representing processing steps
+    for ax_col, water, sky, card in zip(axs.T[1:], water_data, sky_data, card_data):
+        # Always use the same bins, spanning the whole 8-bit range
+        bins = np.linspace(0, normalisation, 50)
+
+        # Loop over the three data sets (water/sky/grey card) and plot them in the three rows
+        for ax, data in zip(ax_col, [water, sky, card]):
+            # Draw the histogram
+            ax.hist(data.ravel(), bins=bins, color="k")
+
+            # Plot the RGB histograms as lines on top of the black overall histograms
+            for j, c in enumerate(RGB_OkabeIto[:3]):
+                ax.hist(data[...,j].ravel(), bins=bins, color=c, histtype="step")
+
+            # Plot settings
+            ax.set_xlim(0, normalisation)
+            ax.grid(True, ls="--", alpha=0.7)
+
+    # Adjust the x- and y-axis ticks on the different panels
+    for ax in axs.ravel():  # No ticks on the left in any panels
         ax.tick_params(left=False, labelleft=False)
-    for ax in axs[:2].ravel():
+    for ax in axs[:2].ravel():  # No ticks on the bottom for the top 2 rows
         ax.tick_params(bottom=False, labelbottom=False)
-    for ax, label in zip(axs[:,0], ["Water", "Sky", "Grey card"]):
+    for ax, label in zip(axs[:,0], ["Water", "Sky", "Grey card"]):  # Labels on the y-axes
         ax.set_ylabel(label)
-    for ax, title in zip(axs[0], ["Image", "JPEG (full)", "Central slice"]):
+    for ax, title in zip(axs[0], ["Image", "JPEG (full)", "Central slice"]):  # Titles for the columns
         ax.set_title(title)
 
+    # Save the result
     plt.savefig(saveto, bbox_inches="tight")
     plt.show()
     plt.close()
