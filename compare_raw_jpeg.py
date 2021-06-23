@@ -6,10 +6,9 @@ Command-line inputs:
     * path_data2: path to second table with data summary (e.g. JPEG)
 """
 
-import numpy as np
 from sys import argv
 from spectacle import io
-from wk import hydrocolor as hc, wacodi as wa, plot
+from wk import hydrocolor as hc, plot
 
 # Get the data folder from the command line
 path_data1, path_data2 = io.path_from_input(argv)

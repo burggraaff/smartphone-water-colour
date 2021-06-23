@@ -11,7 +11,7 @@ from sys import argv
 from spectacle import io
 from astropy import table
 from datetime import datetime
-from wk import hydrocolor as hc, wacodi as wa, plot
+from wk import hydrocolor as hc, plot
 
 # Get the data folder from the command line
 path_phone1, path_phone2 = io.path_from_input(argv)

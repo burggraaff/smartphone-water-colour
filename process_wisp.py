@@ -11,12 +11,10 @@ Outputs:
 """
 
 import numpy as np
-from matplotlib import pyplot as plt
 from astropy import table
 from sys import argv
 from pathlib import Path
 from datetime import datetime
-from spectacle import spectral
 from wk import wacodi as wa
 
 # Label that matches column header

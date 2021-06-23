@@ -21,7 +21,7 @@ from matplotlib import pyplot as plt
 from spectacle import io, spectral, load_camera
 from astropy import table
 from datetime import datetime
-from wk import hydrocolor as hc, wacodi as wa, plot
+from wk import hydrocolor as hc, plot
 
 # Time limit for inclusion
 max_time_diff = 60*5  # 5 minutes

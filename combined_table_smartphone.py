@@ -6,7 +6,6 @@ Command-line inputs:
     * folders: Any number of paths to folders containing data
 """
 
-import numpy as np
 from sys import argv
 from spectacle import io
 from astropy import table
