@@ -339,7 +339,6 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
 
     # y=x line and grid lines
     _correlation_plot_gridlines()
-    _plot_diagonal()
 
     # Get statistics for title
     r_all, r_RGB = stats.statistic_RGB(stats.correlation, x, y, xdatalabel, ydatalabel)
