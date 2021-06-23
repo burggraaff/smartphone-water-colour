@@ -1,1 +1,1 @@
-colours = "RGB"  # Smartphone bands
+from spectacle.plot import RGB as colours  # Smartphone bands (RGB)
