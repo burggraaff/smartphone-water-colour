@@ -1,5 +1,5 @@
 from spectacle.general import apply_to_multiple_args
-from spectacle.spectral import convolve_multi, cie_wavelengths, cie_xyz
+from spectacle.spectral import convolve_multi, cie_wavelengths, cie_xyz, convert_to_XYZ
 import numpy as np
 from matplotlib import pyplot as plt, transforms
 from matplotlib.patches import Ellipse

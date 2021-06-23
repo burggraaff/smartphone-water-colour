@@ -141,7 +141,7 @@ for folder_main in folders:
         # WACODI
 
         # Convert RGB to XYZ
-        water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ = wa.M_sRGB_to_XYZ_E @ water_mean, wa.M_sRGB_to_XYZ_E @ sky_mean, wa.M_sRGB_to_XYZ_E @ card_mean, wa.M_sRGB_to_XYZ_E @ R_rs
+        water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ = wa.convert_to_XYZ(wa.M_sRGB_to_XYZ_E, water_mean, sky_mean, card_mean, R_rs)
         R_rs_XYZ_covariance = wa.M_sRGB_to_XYZ_E @ R_rs_covariance @ wa.M_sRGB_to_XYZ_E.T
 
         radiance_RGB_to_XYZ = hc.block_diag(*[wa.M_sRGB_to_XYZ_E.T]*3)
