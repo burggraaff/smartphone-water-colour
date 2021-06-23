@@ -135,16 +135,26 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto, normalisation=255):
     print(f"Saved statistics plot to `{saveto}`")
 
 
-def plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=None):
-    plt.figure(figsize=(4,3))
+def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=None):
+    """
+    Plot RGB R_rs data.
+    """
+    # Create the figure
+    plt.figure(figsize=(3,2))
+
+    # Plot the RGB bands
     for j, c in enumerate(RGB_OkabeIto[:3]):
         plt.errorbar(RGB_wavelengths[j], R_rs[j], xerr=effective_bandwidths[j]/2, yerr=R_rs_err[j], c=c, fmt="o")
+
+    # Plot settings
     plt.xlabel("Wavelength [nm]")
-    plt.ylabel("Remote sensing reflectance [sr$^{-1}$]")
+    plt.ylabel("R$_{rs}$ [sr$^{-1}$]")
     plt.xlim(390, 700)
     plt.ylim(0, 0.1)
     plt.yticks(np.arange(0, 0.12, 0.02))
     plt.grid(ls="--")
+
+    # Save the result
     if saveto is not None:
         plt.savefig(saveto, bbox_inches="tight")
     plt.show()

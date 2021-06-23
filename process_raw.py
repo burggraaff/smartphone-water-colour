@@ -148,7 +148,7 @@ for folder_main in folders:
             print(f"R_rs({c}) = ({reflectance:.3f} +- {reflectance_uncertainty:.3f}) sr^-1   ({100*reflectance_uncertainty/reflectance:.0f}% uncertainty)")
 
         # Plot the result
-        plot.plot_R_rs(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_uncertainty)
+        plot.plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_uncertainty)
 
         # Calculate band ratios
         beta = R_rs[1] / R_rs[2]  # G/B
