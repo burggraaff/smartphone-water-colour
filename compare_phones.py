@@ -10,7 +10,6 @@ import numpy as np
 from sys import argv
 from spectacle import io
 from astropy import table
-from datetime import datetime
 from wk import hydrocolor as hc, plot
 
 # Get the data folder from the command line
@@ -35,8 +34,8 @@ for row in table_phone1:  # Loop over the first table to look for matches
     time_diff = time_differences[closest]
     if time_diff > 100:  # Only consider it a match-up if it is within this many seconds
         continue
-    phone1_time = datetime.fromtimestamp(row['UTC']).isoformat()
-    phone2_time = datetime.fromtimestamp(table_phone2[closest]["UTC"]).isoformat()
+    phone1_time = hc.iso_timestamp(row['UTC'])
+    phone2_time = hc.iso_timestamp(table_phone2[closest]["UTC"])
     print(f"{phone1_name} time: {phone1_time} ; {phone2_name} time: {phone2_time} ; Difference: {time_diff:.1f} seconds")
 
     # Put the matching rows into the aforementioned lists

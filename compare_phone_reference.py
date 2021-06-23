@@ -20,7 +20,6 @@ from sys import argv
 from matplotlib import pyplot as plt
 from spectacle import io, spectral, load_camera
 from astropy import table
-from datetime import datetime
 from wk import hydrocolor as hc, plot
 
 # Time limit for inclusion
@@ -110,8 +109,8 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
     min_time_diff = time_differences[closest]
     if min_time_diff > max_time_diff:  # If no close enough matches are found, skip this observation
         continue
-    phone_time = datetime.fromtimestamp(row['UTC']).isoformat()
-    reference_time = datetime.fromtimestamp(table_reference[closest]["UTC"]).isoformat()
+    phone_time = hc.iso_timestamp(row['UTC'])
+    reference_time = hc.iso_timestamp(table_reference[closest]["UTC"])
 
     # Calculate the median Lu/Lsky/Ed/R_rs within the matching observations, and uncertainty on this spectrum
     row_reference = table.Table(table_reference[closest])

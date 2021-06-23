@@ -215,6 +215,13 @@ def get_radiances(data, parameters=["Lu", "Lsky", "Ld"]):
     return radiance
 
 
+def iso_timestamp(utc):
+    """
+    Convert a UTC timestamp from the data to ISO format.
+    """
+    return datetime.fromtimestamp(utc).isoformat()
+
+
 def UTC_timestamp(water_exif, conversion_to_utc=timedelta(hours=2)):
     try:
         timestamp = water_exif["EXIF DateTimeOriginal"].values
