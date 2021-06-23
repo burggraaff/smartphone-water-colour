@@ -1,7 +1,7 @@
 """
 Module with common plotting functions
 """
-from matplotlib import pyplot as plt, cm, transforms, patheffects as pe
+from matplotlib import pyplot as plt, transforms, patheffects as pe
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.patches import Ellipse
 
