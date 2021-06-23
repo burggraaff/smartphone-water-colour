@@ -116,8 +116,19 @@ def _correlation_plot_gridlines(ax=None):
     if ax is None:
         ax = plt.gca()
 
-    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', ls="--", zorder=10)  # Diagonal
+    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', zorder=10)  # Diagonal
     ax.grid(True, ls="--")  # Grid lines
+
+
+def _plot_linear_regression(x, y, ax=None, color="k", **kwargs):
+    """
+    Helper function to plot linear regression lines consistently.
+    """
+    # Get the ax object if none was given
+    if ax is None:
+        ax = plt.gca()
+
+    ax.plot(x, y, color=color, ls="--", zorder=10, **kwargs)
 
 
 def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax=None, equal_aspect=False, minzero=False, setmax=True, regression=False, saveto=None):
@@ -157,7 +168,7 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
         params, params_cov, func = stats.linear_regression(x, y, xerr, yerr)
         x_plot = np.array([-1000., 1000.])
         y_plot = func(x_plot)
-        ax.plot(x_plot, y_plot, color="k")
+        _plot_linear_regression(x_plot, y_plot, ax)
 
     # Get statistics for title
     weights = None if xerr is None else 1/xerr**2
@@ -235,12 +246,12 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
         func = stats.linear_regression(xdata, ydata, xerr, yerr)[2]
 
         y_plot = func(x_plot)
-        ax.plot(x_plot, y_plot, color="k", zorder=10)
+        _plot_linear_regression(x_plot, y_plot, ax)
 
     elif regression == "rgb":
         for func, c in zip(regression_functions, RGB_OkabeIto):
             y_plot = func(x_plot)
-            ax.plot(x_plot, y_plot, color=c, zorder=10, path_effects=[pe.Stroke(linewidth=3, foreground="k"), pe.Normal()])
+            _plot_linear_regression(x_plot, y_plot, ax, color=c, path_effects=[pe.Stroke(linewidth=3, foreground="k"), pe.Normal()])
 
     if setmax:
         if equal_aspect:
