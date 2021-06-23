@@ -150,7 +150,7 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
     plt.figure(figsize=(3.3,3.3), tight_layout=True)
     plt.plot(wavelengths, R_rs, c="k")
     plt.fill_between(wavelengths, R_rs-R_rs_err, R_rs+R_rs_err, facecolor="0.3")
-    for j, (c, pc) in enumerate(zip("RGB", plot.plot_colours)):
+    for j, (c, pc) in enumerate(zip("RGB", plot.RGB_OkabeIto)):
         plt.errorbar(RGB_wavelengths[j], row[f"R_rs ({c})"], xerr=effective_bandwidths[j]/2, yerr=row[f"R_rs_err ({c})"], fmt="o", c=pc)
         plt.errorbar(RGB_wavelengths[j], row_reference[f"R_rs ({c})"][0], xerr=effective_bandwidths[j]/2, yerr=row_reference[f"R_rs_err ({c})"][0], fmt="^", c=pc)
     plt.grid(True, ls="--")
