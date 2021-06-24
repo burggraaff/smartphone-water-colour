@@ -324,21 +324,26 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
         ax.set_ylim(0, 1.05*ymax)
 
 
-def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None):
+def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, ax=None, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
     `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
     For example, if `xlabel` == `f"R_rs ({c})"` then the columns "R_rs (R)",
     "R_rs (G)", and "R_rs (B)" will be used.
     """
-    # Create figure
-    plt.figure(figsize=(4,4), tight_layout=True)
+    # Create figure if none was given
+    if ax is None:
+        newfig = True
+        plt.figure(figsize=(4,4), tight_layout=True)
+        ax = plt.gca()
+    else:
+        newfig = False
 
     # Plot in the one panel
-    _correlation_plot_errorbars_RGB(plt.gca(), x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, regression=regression)
+    _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, regression=regression)
 
     # y=x line and grid lines
-    _correlation_plot_gridlines()
+    _correlation_plot_gridlines(ax)
 
     # Get statistics for title
     r_all, r_RGB = stats.statistic_RGB(stats.correlation, x, y, xdatalabel, ydatalabel)
@@ -346,17 +351,18 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
         title = "   ".join(f"$r_{c}$ = {r_RGB[j]:.2g}" for j, c in enumerate(colours))
     else:
         title = f"$r$ = {r_all:.2g}"
-    plt.title(title)
+    ax.set_title(title)
 
     # Labels
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
 
     # Save, show, close plot
-    if saveto:
-        plt.savefig(saveto, bbox_inches="tight")
-    plt.show()
-    plt.close()
+    if newfig:
+        if saveto:
+            plt.savefig(saveto, bbox_inches="tight")
+        plt.show()
+        plt.close()
 
 
 def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None):
@@ -398,6 +404,36 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
 
     # Save, show, close plot
     fig.subplots_adjust(hspace=0.1)
+    if saveto:
+        plt.savefig(saveto, bbox_inches="tight")
+    plt.show()
+    plt.close()
+
+
+def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", xunit="[ADU nm$^{-1}$ sr$^{-1}$]", yunit="[ADU nm$^{-1}$ sr$^{-1}$]", saveto=None):
+    """
+    Make a multi-panel plot comparing radiances.
+    Each panel represents one of the keys, for example upwelling, sky, and downwelling radiance.
+    If `combine` is True then also add a panel combining all the keys.
+    Do a combined linear regression and plot the result in each figure.
+    """
+    # How many panels to plot: one for each key, and one if `combine` is True.
+    nr_panels = len(keys) + combine
+
+    # Create the figure and panels
+    fig, axs = plt.subplots(nrows=nr_panels, figsize=(4, nr_panels*3), sharex=True, sharey=True, gridspec_kw={"hspace": 0.05, "wspace": 0})
+
+    # Plot each key
+    for ax, key in zip(axs, keys):
+        key_c = key + " ({c})"  # RGB-aware key
+        key_c_err = key + "_err ({c})"
+        correlation_plot_RGB(x, y, key_c, key_c, ax=ax, xerrlabel=key_c_err, yerrlabel=key_c_err, xlabel=None, ylabel=ylabel)
+        ax.set_title(None)
+
+    # Labels
+    axs[-1].set_xlabel(xlabel)
+
+    # Save, show, close plot
     if saveto:
         plt.savefig(saveto, bbox_inches="tight")
     plt.show()

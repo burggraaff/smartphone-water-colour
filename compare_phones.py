@@ -54,6 +54,8 @@ units = ["[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1
 for param, label, unit in zip(parameters, labels, units):
     plot.correlation_plot_RGB(data1, data2, param+" ({c})", param+" ({c})", xerrlabel=param+"_err ({c})", yerrlabel=param+"_err ({c})", xlabel=f"{phone1_name}\n{label} {unit}", ylabel=f"{phone2_name}\n{label} {unit}", regression="all", saveto=f"{saveto_base}_{param}.pdf")
 
+plot.correlation_plot_radiance(data1, data2, xlabel=phone1_name, ylabel=phone2_name, saveto=f"{saveto_base}_radiance.pdf")
+
 # Correlation plot: Remote sensing reflectance
 label_R_rs = "$R_{rs}$"
 unit_R_rs = "[sr$^{-1}$]"
