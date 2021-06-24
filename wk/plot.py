@@ -451,6 +451,16 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
         key_c_err = "L_err ({c})"
         correlation_plot_RGB(x_radiance, y_radiance, key_c, key_c, ax=axs[-1], xerrlabel=key_c_err, yerrlabel=key_c_err, xlabel=None, ylabel=ylabel)
 
+    # Combined linear regression
+    xdata, ydata = stats.ravel_table(x_radiance, "L ({c})"), stats.ravel_table(y_radiance, "L ({c})")
+    xerr, yerr = stats.ravel_table(x_radiance, "L_err ({c})"), stats.ravel_table(y_radiance, "L_err ({c})")
+
+    func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)[2]
+    x_plot = np.array([-1000., 1000.])
+    y_plot = func_linear(x_plot)
+    for ax in axs:
+        _plot_linear_regression(x_plot, y_plot, ax)
+
     # Plot settings
     axs[0].set_xlim(_axis_limit_RGB(x_radiance, "L ({c})"))
     axs[0].set_ylim(_axis_limit_RGB(y_radiance, "L ({c})"))
