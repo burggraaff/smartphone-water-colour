@@ -46,7 +46,7 @@ for row in table_phone1:  # Loop over the first table to look for matches
 data1 = table.vstack(data1)
 data2 = table.vstack(data2)
 
-# Correlation plot: Radiances and irradiance
+# Correlation plot: Radiances
 plot.correlation_plot_radiance(data1, data2, xlabel=phone1_name, ylabel=phone2_name, saveto=f"{saveto_base}_radiance.pdf")
 
 # Correlation plot: Remote sensing reflectance
