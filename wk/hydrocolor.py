@@ -271,6 +271,18 @@ def _generic_header(elements, prefix=""):
     return header
 
 
+def extend_keys_to_RGB(keys):
+    """
+    For a given set of keys, e.g. ["Lu", "Lsky"], generate variants
+    for each RGB band.
+    """
+    list_RGB = [key + " ({c})" for key in keys]
+    list_RGB_full = [[s.format(c=c) for c in colours] for s in list_RGB]
+    list_RGB_flat = [item for sublist in list_RGB_full for item in sublist]
+
+    return list_RGB_flat
+
+
 def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_covariance, R_rs, R_rs_covariance, band_ratios, band_ratios_covariance, R_rs_xy, R_rs_xy_covariance, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range):
     # assert len(water) == len(water_err) == len(sky) == len(sky_err) == len(grey) == len(grey_err) == len(Rrs) == len(Rrs_err), "Not all input arrays have the same length"
 
@@ -289,11 +301,10 @@ def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_cov
     R_rs_xy_covariance_header = _generic_header(R_rs_xy_covariance_list, "cov_R_rs_xy")
 
     # Make a header with the relevant items
-    header_RGB = ["Lu ({c})", "Lsky ({c})", "Ld ({c})", "Ed ({c})", "R_rs ({c})"]
-    bands = "RGB"
-    header_RGB_full = [[s.format(c=c) for c in bands] for s in header_RGB]
+    keys_RGB = ["Lu", "Lsky", "Ld", "Ed", "R_rs"]
+    header_RGB = extend_keys_to_RGB(keys_RGB)
     header_hue = ["R_rs (G/R)", "R_rs (G/B)", "R_rs (x)", "R_rs (y)", "R_rs (hue)", "R_rs_err (hue)", "R_rs (FU)", "R_rs_min (FU)", "R_rs_max (FU)"]
-    header = ["UTC", "UTC (ISO)"] + [item for sublist in header_RGB_full for item in sublist] + header_hue + radiances_covariance_header + Ed_covariance_header + R_rs_covariance_header + band_ratios_covariance_header + R_rs_xy_covariance_header
+    header = ["UTC", "UTC (ISO)"] + header_RGB + header_hue + radiances_covariance_header + Ed_covariance_header + R_rs_covariance_header + band_ratios_covariance_header + R_rs_xy_covariance_header
 
     # Add the data to a row, and that row to a table
     data = [[timestamp.timestamp(), timestamp.isoformat(), *radiances, *Ed, *R_rs, *band_ratios, *R_rs_xy, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, *R_rs_FU_range, *radiances_covariance_list, *Ed_covariance_list, *R_rs_covariance_list, *band_ratios_covariance_list, *R_rs_xy_covariance_list]]
