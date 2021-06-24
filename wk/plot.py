@@ -406,7 +406,7 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     _saveshow(saveto, bbox_inches="tight")
 
 
-def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", xunit="[ADU nm$^{-1}$ sr$^{-1}$]", yunit="[ADU nm$^{-1}$ sr$^{-1}$]", saveto=None):
+def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", xunit=ADUnmsr, yunit=ADUnmsr, saveto=None):
     """
     Make a multi-panel plot comparing radiances.
     Each panel represents one of the keys, for example upwelling, sky, and downwelling radiance.
@@ -445,9 +445,12 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
     axs[0].set_ylim(_axis_limit_RGB(y_radiance, "L ({c})"))
 
     # Labels
+    if combine:
+        keys = keys + ["L"]  # Don't use append because it changes the original object
     axs[-1].set_xlabel(xlabel)
-    for ax in axs:
+    for ax, key in zip(axs, keys):
         ax.set_title(None)  # Remove default titles
+        ax.text(0.05, 0.9, keys_latex[key], transform=ax.transAxes, fontsize=14)
 
     # Save the result
     _saveshow(saveto, bbox_inches="tight")
