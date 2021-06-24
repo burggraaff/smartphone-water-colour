@@ -476,34 +476,6 @@ def correlation_plot_bands(x_GR, y_GR, x_GB, y_GB, x_err_GR=None, y_err_GR=None,
     plt.close()
 
 
-def comparison_histogram(x_table, y_table, param="Rrs {c}", xlabel="", ylabel="", quantity="", saveto=None):
-    """
-    Make a histogram of the ratio and difference in a given `param` for `x` and `y`
-    """
-    x = stats.ravel_table(x_table, param, colours)
-    y = stats.ravel_table(y_table, param, colours)
-
-    ratio = y/x
-    diff = y-x
-
-    fig, axs = plt.subplots(ncols=2, sharey=True, figsize=(5,2), gridspec_kw={"hspace": 0.1, "wspace": 0.1}, constrained_layout=True)
-    axs[0].hist(ratio, bins=10, facecolor="k")
-    axs[1].hist(diff, bins=10, facecolor="k")
-
-    fig.suptitle(f"{quantity}: {xlabel} vs {ylabel}")
-    axs[0].set_xlabel("Ratio")
-    axs[1].set_xlabel("Difference")
-    axs[0].set_ylabel("Frequency")
-
-    for ax, q in zip(axs, [ratio, diff]):
-        ax.set_title(f"$\mu$ = {np.nanmean(q):.3g}   $\sigma$ = {np.nanstd(q):.3g}")
-
-    if saveto:
-        plt.savefig(saveto, bbox_inches="tight")
-    plt.show()
-    plt.close()
-
-
 def density_scatter(x, y, ax = None, sort = True, bins = 20, **kwargs):
     # https://stackoverflow.com/a/53865762
     """
