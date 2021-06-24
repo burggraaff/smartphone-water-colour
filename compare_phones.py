@@ -48,8 +48,8 @@ data2 = table.vstack(data2)
 
 # Correlation plot: Radiances and irradiance
 parameters = ["Lu", "Lsky", "Ld", "Ed"]
-labels = ["$L_u$", "$L_{sky}$", "$L_d$", "$E_d$"]
-units = ["[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$]"]
+labels = [plot.keys_latex[param] for param in parameters]
+units = [plot.ADUnmsr, plot.ADUnmsr, plot.ADUnmsr, plot.ADUnm]
 
 for param, label, unit in zip(parameters, labels, units):
     plot.correlation_plot_RGB(data1, data2, param+" ({c})", param+" ({c})", xerrlabel=param+"_err ({c})", yerrlabel=param+"_err ({c})", xlabel=f"{phone1_name}\n{label} {unit}", ylabel=f"{phone2_name}\n{label} {unit}", regression="all", saveto=f"{saveto_base}_{param}.pdf")
@@ -57,9 +57,8 @@ for param, label, unit in zip(parameters, labels, units):
 plot.correlation_plot_radiance(data1, data2, xlabel=phone1_name, ylabel=phone2_name, saveto=f"{saveto_base}_radiance.pdf")
 
 # Correlation plot: Remote sensing reflectance
-label_R_rs = "$R_{rs}$"
-unit_R_rs = "[sr$^{-1}$]"
-plot.correlation_plot_RGB_equal(data1, data2, "R_rs ({c})", "R_rs ({c})", xerrlabel="R_rs_err ({c})", yerrlabel="R_rs_err ({c})", xlabel=f"{phone1_name} {label_R_rs} {unit_R_rs}", ylabel=f"{phone2_name}\n{label_R_rs} {unit_R_rs}", regression="all", saveto=f"{saveto_base}_R_rs.pdf")
+label_R_rs = plot.keys_latex["R_rs"]
+plot.correlation_plot_RGB_equal(data1, data2, "R_rs ({c})", "R_rs ({c})", xerrlabel="R_rs_err ({c})", yerrlabel="R_rs_err ({c})", xlabel=f"{phone1_name} {label_R_rs} {plot.persr}", ylabel=f"{phone2_name}\n{label_R_rs} {plot.persr}", regression="all", saveto=f"{saveto_base}_R_rs.pdf")
 
 # Correlation plot: Band ratios
 plot.correlation_plot_bands(data1["R_rs (G/R)"], data2["R_rs (G/R)"], data1["R_rs (G/B)"], data2["R_rs (G/B)"], x_err_GR=data1["R_rs_err (G/R)"], y_err_GR=data2["R_rs_err (G/R)"], x_err_GB=data1["R_rs_err (G/B)"], y_err_GB=data2["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=phone1_name, ylabel=phone2_name, saveto=f"{saveto_base}_band_ratio.pdf")
@@ -68,9 +67,8 @@ plot.correlation_plot_bands(data1["R_rs (G/R)"], data2["R_rs (G/R)"], data1["R_r
 radiance_phone1 = hc.get_radiances(data1)
 radiance_phone2 = hc.get_radiances(data2)
 
-label = "$L$"
-unit = "[ADU nm$^{-1}$ sr$^{-1}$]"
-plot.correlation_plot_RGB(radiance_phone1, radiance_phone2, "L ({c})", "L ({c})", xerrlabel="L_err ({c})", yerrlabel="L_err ({c})", xlabel=f"{phone1_name} {label} {unit}", ylabel=f"{phone2_name} {label} {unit}", regression="all", saveto=f"{saveto_base}_L.pdf")
+label = plot.keys_latex["L"]
+plot.correlation_plot_RGB(radiance_phone1, radiance_phone2, "L ({c})", "L ({c})", xerrlabel="L_err ({c})", yerrlabel="L_err ({c})", xlabel=f"{phone1_name} {label} {plot.ADUnmsr}", ylabel=f"{phone2_name} {label} {plot.ADUnmsr}", regression="all", saveto=f"{saveto_base}_L.pdf")
 
 # Correlation plot: hue angle and Forel-Ule index
-plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=phone1_name+" $R_{rs}$", ylabel=phone2_name+" $R_{rs}$", saveto=f"{saveto_base}_hueangle_ForelUle.pdf")
+plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=f"{phone1_name} {label_R_rs}", ylabel=f"{phone2_name} {label_R_rs}", saveto=f"{saveto_base}_hueangle_ForelUle.pdf")

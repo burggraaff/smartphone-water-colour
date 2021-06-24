@@ -14,6 +14,15 @@ from .wacodi import FU_hueangles, compare_FU_matches_from_hue_angle
 from spectacle.plot import RGB_OkabeIto
 
 
+# Commonly used unit strings
+ADUnmsr = "[ADU nm$^{-1}$ sr$^{-1}$]"
+ADUnm = "[ADU nm$^{-1}$]"
+persr = "[sr$^{-1}$]"
+
+# Dictionary mapping keys to LaTeX strings
+keys_latex = {"Lu": "$L_u$", "Lsky": "$L_{sky}$", "Ld": "$L_d$", "Ed": "$E_d$", "L": "$L$", "R_rs": "$R_{rs}$"}
+
+
 def _histogram_axis_settings(axs, column_labels):
     """
     Helper function.
