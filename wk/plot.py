@@ -463,8 +463,14 @@ def correlation_plot_bands(x_GR, y_GR, x_GB, y_GB, x_err_GR=None, y_err_GR=None,
     Make a correlation plot between the band ratios G/R and G/B.
     """
     fig, axs = plt.subplots(ncols=2, sharex=True, sharey=True, figsize=(4,2), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
-    correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[0], xlabel=f"{quantity} G/R\n({xlabel})", ylabel=f"{quantity} G/R\n({ylabel})", equal_aspect=True, minzero=False, setmax=True)
-    correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[1], xlabel=f"{quantity} G/B\n({xlabel})", ylabel=f"{quantity} G/B\n({ylabel})", equal_aspect=True, minzero=False, setmax=True)
+    correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[0], xlabel=f"{quantity} G/B\n({xlabel})", ylabel=f"{quantity} G/B\n({ylabel})", equal_aspect=True)
+    correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[1], xlabel=f"{quantity} G/R\n({xlabel})", ylabel=f"{quantity} G/R\n({ylabel})", equal_aspect=True)
+
+    # Axis settings
+    xmin, xmax = np.nanmin([x_GR, x_GB])-0.05, np.nanmax([x_GR, x_GB])+0.05
+    ymin, ymax = np.nanmin([y_GR, y_GB])-0.05, np.nanmax([y_GR, y_GB])+0.05
+    axs[0].set_xlim(xmin, xmax)
+    axs[0].set_ylim(ymin, ymax)
 
     # Switch ytick labels on the right plot to the right
     axs[1].tick_params(axis="y", left=False, labelleft=False, right=True, labelright=True)
