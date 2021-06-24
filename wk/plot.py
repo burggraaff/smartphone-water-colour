@@ -251,6 +251,16 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
         plt.close()
 
 
+def _axis_limit_RGB(data, key):
+    """
+    Get axis limits for RGB data, based on the maximum value in those data.
+    `data` is a table, `key` is an RGB-aware key like "L ({c})" for radiance.
+    """
+    xmin = 0
+    xmax = 1.05*np.nanmax(stats.ravel_table(data, key))
+    return (xmin, xmax)
+
+
 def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False, regression="none"):
     """
     Plot data into a correlation plot.
@@ -260,9 +270,6 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
     If "all", do one on all data combined.
     If "rgb", do a separate regression for each band.
     """
-    xmax = 0.  # Maximum on x axis
-    ymax = 0.  # Maximum on y axis
-
     regression_functions = []
     regression = regression.lower()
 
@@ -286,8 +293,6 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
         except (KeyError, AttributeError):
             yerr = None
         ax.errorbar(xdata, ydata, xerr=xerr, yerr=yerr, color=pc, fmt="o")
-        xmax = max(xmax, np.nanmax(xdata))
-        ymax = max(ymax, np.nanmax(ydata))
 
         # If wanted, perform a linear regression
         if regression == "rgb":
@@ -317,6 +322,8 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
             _plot_linear_regression(x_plot, y_plot, ax, color=c, path_effects=[pe.Stroke(linewidth=3, foreground="k"), pe.Normal()])
 
     if setmax:
+        xmax = _axis_limit_RGB(x, xdatalabel)[1]
+        ymax = _axis_limit_RGB(y, ydatalabel)[1]
         if equal_aspect:
             xmax = ymax = max(xmax, ymax)
         ax.set_xlim(0, 1.05*xmax)
@@ -436,10 +443,8 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
         correlation_plot_RGB(x_radiance, y_radiance, key_c, key_c, ax=axs[-1], xerrlabel=key_c_err, yerrlabel=key_c_err, xlabel=None, ylabel=ylabel)
 
     # Plot settings
-    xmax = 1.05*np.nanmax(stats.ravel_table(x_radiance, "L ({c})"))
-    ymax = 1.05*np.nanmax(stats.ravel_table(y_radiance, "L ({c})"))
-    axs[0].set_xlim(0, xmax)
-    axs[0].set_ylim(0, ymax)
+    axs[0].set_xlim(_axis_limit_RGB(x_radiance, "L ({c})"))
+    axs[0].set_ylim(_axis_limit_RGB(y_radiance, "L ({c})"))
 
     # Labels
     axs[-1].set_xlabel(xlabel)
