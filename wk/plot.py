@@ -8,8 +8,7 @@ from matplotlib.patches import Ellipse
 import numpy as np
 from colorio._tools import plot_flat_gamut
 
-from . import statistics as stats, colours
-from .hydrocolor import RGBG2_to_RGB
+from . import statistics as stats, colours, hydrocolor as hc
 from .wacodi import FU_hueangles, compare_FU_matches_from_hue_angle
 
 from spectacle.plot import RGB_OkabeIto
@@ -76,7 +75,7 @@ def histogram_raw(water_data, sky_data, card_data, saveto, camera=None):
                     data_RGBG = camera.demosaick(data)
 
                 # Combine the G and G2 channels
-                data_RGB = RGBG2_to_RGB(data_RGBG)[0]
+                data_RGB = hc.RGBG2_to_RGB(data_RGBG)[0]
 
                 # Plot the RGB histograms as lines on top of the black overall histograms
                 _histogram_RGB(data_RGB, ax, bins=bins)
@@ -428,10 +427,24 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
         key_c = key + " ({c})"  # RGB-aware key
         key_c_err = key + "_err ({c})"
         correlation_plot_RGB(x, y, key_c, key_c, ax=ax, xerrlabel=key_c_err, yerrlabel=key_c_err, xlabel=None, ylabel=ylabel)
-        ax.set_title(None)
+
+    # Generate a combined radiance table (always) and plot it (if `combine`)
+    x_radiance, y_radiance = hc.get_radiances(x, keys), hc.get_radiances(y, keys)
+    if combine:
+        key_c = "L ({c})"
+        key_c_err = "L_err ({c})"
+        correlation_plot_RGB(x_radiance, y_radiance, key_c, key_c, ax=axs[-1], xerrlabel=key_c_err, yerrlabel=key_c_err, xlabel=None, ylabel=ylabel)
+
+    # Plot settings
+    xmax = 1.05*np.nanmax(stats.ravel_table(x_radiance, "L ({c})"))
+    ymax = 1.05*np.nanmax(stats.ravel_table(y_radiance, "L ({c})"))
+    axs[0].set_xlim(0, xmax)
+    axs[0].set_ylim(0, ymax)
 
     # Labels
     axs[-1].set_xlabel(xlabel)
+    for ax in axs:
+        ax.set_title(None)  # Remove default titles
 
     # Save, show, close plot
     if saveto:
