@@ -11,7 +11,7 @@ from colorio._tools import plot_flat_gamut
 from . import statistics as stats, colours, hydrocolor as hc
 from .wacodi import FU_hueangles, compare_FU_matches_from_hue_angle
 
-from spectacle.plot import RGB_OkabeIto
+from spectacle.plot import RGB_OkabeIto, _saveshow
 
 
 # Commonly used unit strings
@@ -50,7 +50,7 @@ def _histogram_RGB(data_RGB, ax, **kwargs):
         ax.hist(data_RGB[j].ravel(), color=c, histtype="step", **kwargs)
 
 
-def histogram_raw(water_data, sky_data, card_data, saveto, camera=None):
+def histogram_raw(water_data, sky_data, card_data, saveto=None, camera=None):
     """
     Draw histograms of RAW water/sky/grey card data at various steps of processing.
     """
@@ -96,14 +96,12 @@ def histogram_raw(water_data, sky_data, card_data, saveto, camera=None):
     _histogram_axis_settings(axs, ["Image", "Raw", "Bias-corrected", "Flat-fielded", "Central slice"])
 
     # Save the result
-    plt.savefig(saveto, bbox_inches="tight")
-    plt.show()
-    plt.close()
-
-    print(f"Saved statistics plot to `{saveto}`")
+    _saveshow(saveto, bbox_inches="tight")
+    if saveto is not None:
+        print(f"Saved statistics plot to `{saveto}`")
 
 
-def histogram_jpeg(water_data, sky_data, card_data, saveto, normalisation=255):
+def histogram_jpeg(water_data, sky_data, card_data, saveto=None, normalisation=255):
     """
     Draw histograms of RAW water/sky/grey card data at various steps of processing.
     """
@@ -136,11 +134,9 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto, normalisation=255):
     _histogram_axis_settings(axs, ["Image", "JPEG (full)", "Central slice"])
 
     # Save the result
-    plt.savefig(saveto, bbox_inches="tight")
-    plt.show()
-    plt.close()
-
-    print(f"Saved statistics plot to `{saveto}`")
+    _saveshow(saveto, bbox_inches="tight")
+    if saveto is not None:
+        print(f"Saved statistics plot to `{saveto}`")
 
 
 def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=None):
@@ -163,10 +159,7 @@ def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=
     plt.grid(ls="--")
 
     # Save the result
-    if saveto is not None:
-        plt.savefig(saveto, bbox_inches="tight")
-    plt.show()
-    plt.close()
+    _saveshow(saveto, bbox_inches="tight")
 
 
 def _correlation_plot_gridlines(ax=None):
@@ -252,12 +245,9 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
-    # Save, show, close plot (if a new plot was made)
+    # Save the result (if a new plot was made)
     if newaxes:
-        if saveto:
-            plt.savefig(saveto, bbox_inches="tight")
-        plt.show()
-        plt.close()
+        _saveshow(saveto, bbox_inches="tight")
 
 
 def _axis_limit_RGB(data, key):
@@ -369,12 +359,9 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, ax=None, xerrlabel=None, 
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
-    # Save, show, close plot
+    # Save the result (if a new plot was made)
     if newfig:
-        if saveto:
-            plt.savefig(saveto, bbox_inches="tight")
-        plt.show()
-        plt.close()
+        _saveshow(saveto, bbox_inches="tight")
 
 
 def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None):
@@ -414,12 +401,9 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     axs[1].set_ylabel("Difference")
     axs[0].set_ylabel(ylabel)
 
-    # Save, show, close plot
+    # Save the result
     fig.subplots_adjust(hspace=0.1)
-    if saveto:
-        plt.savefig(saveto, bbox_inches="tight")
-    plt.show()
-    plt.close()
+    _saveshow(saveto, bbox_inches="tight")
 
 
 def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", xunit="[ADU nm$^{-1}$ sr$^{-1}$]", yunit="[ADU nm$^{-1}$ sr$^{-1}$]", saveto=None):
@@ -465,11 +449,8 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
     for ax in axs:
         ax.set_title(None)  # Remove default titles
 
-    # Save, show, close plot
-    if saveto:
-        plt.savefig(saveto, bbox_inches="tight")
-    plt.show()
-    plt.close()
+    # Save the result
+    _saveshow(saveto, bbox_inches="tight")
 
 
 def correlation_plot_bands(x_GR, y_GR, x_GB, y_GB, x_err_GR=None, y_err_GR=None, x_err_GB=None, y_err_GB=None, quantity="$R_{rs}$", xlabel="", ylabel="", saveto=None):
@@ -495,10 +476,8 @@ def correlation_plot_bands(x_GR, y_GR, x_GB, y_GB, x_err_GR=None, y_err_GR=None,
         _, statistic_text = stats.full_statistics_for_title(x, y)
         ax.set_title(statistic_text, fontdict={"fontsize": "small"})  # Replace old title
 
-    if saveto:
-        plt.savefig(saveto, bbox_inches="tight")
-    plt.show()
-    plt.close()
+    # Save the result
+    _saveshow(saveto, bbox_inches="tight")
 
 
 def density_scatter(x, y, ax = None, sort = True, bins = 20, **kwargs):
@@ -558,9 +537,8 @@ def plot_correlation_matrix_radiance(correlation_matrix, x1, y1, x2, y2, x1label
     axs[2].yaxis.tick_right()
 
     plt.subplots_adjust(wspace=0.5)
-    if saveto:
-        plt.savefig(saveto, bbox_inches="tight")
-    plt.close()
+    # Save the result
+    _saveshow(saveto, bbox_inches="tight")
 
 
 def _confidence_ellipse(center, covariance, ax, covariance_scale=1, **kwargs):
@@ -582,7 +560,7 @@ def _confidence_ellipse(center, covariance, ax, covariance_scale=1, **kwargs):
     return ax.add_patch(ellipse)
 
 
-def plot_xy_on_gamut_covariance(xy, xy_covariance, covariance_scale=1):
+def plot_xy_on_gamut_covariance(xy, xy_covariance, covariance_scale=1, saveto=None):
     """
     Plot xy coordinates on the gamut including their covariance ellipse.
     """
@@ -593,8 +571,9 @@ def plot_xy_on_gamut_covariance(xy, xy_covariance, covariance_scale=1):
     plt.xlabel("x")
     plt.ylabel("y")
     plt.axis("equal")
-    plt.show()
-    plt.close()
+
+    # Save the result
+    _saveshow(saveto, bbox_inches="tight")
 
 
 def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="", ylabel="", saveto=None):
@@ -663,8 +642,5 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     # Number of matches (Delta 0)
     # Number of near-matches (Delta 1)
 
-    # Save and close the plot
-    if saveto is not None:
-        plt.savefig(saveto, bbox_inches="tight")
-    plt.show()
-    plt.close()
+    # Save the result
+    _saveshow(saveto, bbox_inches="tight")
