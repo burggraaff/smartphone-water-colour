@@ -191,14 +191,16 @@ def _plot_diagonal(ax=None, **kwargs):
     ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', zorder=10)
 
 
-def _plot_linear_regression(x, y, ax=None, color="k", **kwargs):
+def _plot_linear_regression(func, ax=None, color="k", x=np.array([-1000., 1000.]), **kwargs):
     """
     Helper function to plot linear regression lines consistently.
+    `func` is a function describing how to map `x` to y.
     """
     # Get the active Axes object if none was given
     if ax is None:
         ax = plt.gca()
 
+    y = func(x)
     ax.plot(x, y, color=color, ls="--", zorder=10, **kwargs)
 
 
@@ -238,9 +240,7 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
     # If wanted, perform a linear regression and plot the result
     if regression:
         params, params_cov, func = stats.linear_regression(x, y, xerr, yerr)
-        x_plot = np.array([-1000., 1000.])
-        y_plot = func(x_plot)
-        _plot_linear_regression(x_plot, y_plot, ax)
+        _plot_linear_regression(func, ax)
 
     # Get statistics for title
     weights = None if xerr is None else 1/xerr**2
@@ -321,14 +321,11 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
             yerr = None
 
         func = stats.linear_regression(xdata, ydata, xerr, yerr)[2]
-
-        y_plot = func(x_plot)
-        _plot_linear_regression(x_plot, y_plot, ax)
+        _plot_linear_regression(func, ax)
 
     elif regression == "rgb":
         for func, c in zip(regression_functions, RGB_OkabeIto):
-            y_plot = func(x_plot)
-            _plot_linear_regression(x_plot, y_plot, ax, color=c, path_effects=[pe.Stroke(linewidth=3, foreground="k"), pe.Normal()])
+            _plot_linear_regression(func, ax, color=c, path_effects=[pe.Stroke(linewidth=3, foreground="k"), pe.Normal()])
 
     if setmax:
         xmax = _axis_limit_RGB(x, xdatalabel)[1]
@@ -456,10 +453,8 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
     xerr, yerr = stats.ravel_table(x_radiance, "L_err ({c})"), stats.ravel_table(y_radiance, "L_err ({c})")
 
     func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)[2]
-    x_plot = np.array([-1000., 1000.])
-    y_plot = func_linear(x_plot)
     for ax in axs:
-        _plot_linear_regression(x_plot, y_plot, ax)
+        _plot_linear_regression(func_linear, ax)
 
     # Plot settings
     axs[0].set_xlim(_axis_limit_RGB(x_radiance, "L ({c})"))
