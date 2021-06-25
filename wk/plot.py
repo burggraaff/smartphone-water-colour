@@ -479,10 +479,22 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
     _saveshow(saveto, bbox_inches="tight")
 
 
-def correlation_plot_bands(x_GR, y_GR, x_GB, y_GB, x_err_GR=None, y_err_GR=None, x_err_GB=None, y_err_GB=None, quantity="$R_{rs}$", xlabel="", ylabel="", saveto=None):
+def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{rs}$", xlabel="", ylabel="", saveto=None):
     """
     Make a correlation plot between the band ratios G/R and G/B.
     """
+    # Get the data out of the input tables
+    GB_label, GR_label = [f"{datalabel} (G/{c})" for c in "BR"]
+    x_GB, y_GB = x[GB_label], y[GB_label]
+    x_GR, y_GR = x[GR_label], y[GR_label]
+
+    # Get the uncertainties out of the input tables if available
+    if errlabel is not None:
+        GB_err_label, GR_err_label = [f"{errlabel} (G/{c})" for c in "BR"]
+        x_err_GB, y_err_GB = x[GB_err_label], y[GB_err_label]
+        x_err_GR, y_err_GR = x[GR_err_label], y[GR_err_label]
+
+    # Plot the data
     fig, axs = plt.subplots(ncols=2, sharex=True, sharey=True, figsize=(4,2), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
     correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[0], xlabel=f"{quantity} G/B\n({xlabel})", ylabel=f"{quantity} G/B\n({ylabel})", equal_aspect=True)
     correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[1], xlabel=f"{quantity} G/R\n({xlabel})", ylabel=f"{quantity} G/R\n({ylabel})", equal_aspect=True)
