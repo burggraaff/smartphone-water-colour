@@ -390,7 +390,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     for ax in axs:
         _correlation_plot_gridlines(ax)
     _plot_diagonal(axs[0])
-    axs[1].axhline(0, c='k', ls="--")
+    axs[1].axhline(0, c='k')
 
     # Get statistics for title
     MAD_all, MAD_RGB = stats.statistic_RGB(stats.MAD, x, y, datalabel, datalabel)
