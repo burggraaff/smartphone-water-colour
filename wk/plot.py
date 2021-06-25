@@ -300,7 +300,6 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
             regression_functions.append(stats.linear_regression(xdata, ydata, xerr, yerr)[2])
 
     # If wanted, perform a linear regression and plot the result
-    x_plot = np.array([-1000., 1000.])
     if regression == "all":
         xdata, ydata = stats.ravel_table(x, xdatalabel), stats.ravel_table(y, ydatalabel)
         try:
