@@ -493,6 +493,8 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
         GB_err_label, GR_err_label = [f"{errlabel} (G/{c})" for c in "BR"]
         x_err_GB, y_err_GB = x[GB_err_label], y[GB_err_label]
         x_err_GR, y_err_GR = x[GR_err_label], y[GR_err_label]
+    else:
+        x_err_GB = y_err_GB = x_err_GR = y_err_GR = None
 
     # Plot the data
     fig, axs = plt.subplots(ncols=2, sharex=True, sharey=True, figsize=(4,2), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
