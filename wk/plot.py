@@ -628,7 +628,6 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     maxangle = np.nanmax([x, y])+5
     ax.set_xlim(minangle, maxangle)
     ax.set_ylim(minangle, maxangle)
-    print(minangle, maxangle)
 
     # Labels for FU colours: every odd colour, in the middle of the range
     FU_middles = np.array([(a + b)/2 for a, b in zip(FU_hueangles, FU_hueangles[1:])])[::2]
