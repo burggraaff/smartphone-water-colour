@@ -48,11 +48,11 @@ def convert_Ld_to_Ed_covariance(Ld_covariance, Ed, R_ref=0.18, R_ref_uncertainty
 def split_combined_radiances(radiances):
     """
     For a combined radiance array, e.g. [Lu(R), Lu(G), Lu(B), Ls(R), ..., Ld(G), Ld(B)],
-    split it into three separate arrays: [Lu(R), Lu(G), Lu(B)], [Ls(R), ...], ...
+    split it into three separate arrays: [Lu(R), Lu(G), Lu(B)], [Lsky(R), ...], ...
     """
     n = len(radiances)//3
-    Lu, Ls, Ld = radiances[:n], radiances[n:2*n], radiances[2*n:]
-    return Lu, Ls, Ld
+    Lu, Lsky, Ld = radiances[:n], radiances[n:2*n], radiances[2*n:]
+    return Lu, Lsky, Ld
 
 
 def R_RS(L_u, L_s, L_d, rho=0.028, R_ref=0.18):
