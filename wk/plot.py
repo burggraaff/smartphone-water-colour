@@ -17,7 +17,7 @@ from spectacle.plot import RGB_OkabeIto, _saveshow
 # Commonly used unit strings
 ADUnmsr = "[ADU nm$^{-1}$ sr$^{-1}$]"
 ADUnm = "[ADU nm$^{-1}$]"
-Wnmsr = "[W m$^{-2}$ nm$^{-1}$  sr$^{-1}$]"
+Wnmsr = "[W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]"
 Wnm = "[W m$^{-2}$ nm$^{-1}$]"
 persr = "[sr$^{-1}$]"
 
