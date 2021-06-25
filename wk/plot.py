@@ -613,6 +613,8 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
         ax.axvline(angle, **line_kwargs)
         ax.axhline(angle, **line_kwargs)
         square = FU_hueangles[fu:fu+2]
+        square_next = FU_hueangles[fu:fu+3:2]
+        ax.fill_between(square_next, *square_next, facecolor="0.7")
         ax.fill_between(square, *square, facecolor="0.5")
 
     # Same ticks on x and y.
@@ -620,6 +622,13 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     # to actually get the same ticks on both axes.
     ax.set_yticks(ax.get_xticks())
     ax.set_xticks(ax.get_yticks())
+
+    # Set the axis minima and maxima
+    minangle = np.nanmin([x, y])-5
+    maxangle = np.nanmax([x, y])+5
+    ax.set_xlim(minangle, maxangle)
+    ax.set_ylim(minangle, maxangle)
+    print(minangle, maxangle)
 
     # Labels for FU colours: every odd colour, in the middle of the range
     FU_middles = np.array([(a + b)/2 for a, b in zip(FU_hueangles, FU_hueangles[1:])])[::2]
