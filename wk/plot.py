@@ -590,8 +590,8 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     Draw the equivalent Forel-Ule indices on the grid for reference.
     """
     # Generate labels for the x and y axes
-    xlabel_hue = f"{xlabel}\nHue angle $\\alpha$ (degrees)"
-    ylabel_hue = f"{ylabel}\nHue angle $\\alpha$ (degrees)"
+    xlabel_hue = f"{xlabel}\nHue angle $\\alpha$ [degrees]"
+    ylabel_hue = f"{ylabel}\nHue angle $\\alpha$ [degrees]"
     xlabel_FU = f"{xlabel}\nForel-Ule index"
     ylabel_FU = f"{ylabel}\nForel-Ule index"
 
