@@ -215,6 +215,33 @@ def get_radiances(data, parameters=["Lu", "Lsky", "Ld"]):
     return radiance
 
 
+def calculate_bandratios(data_R, data_G, data_B):
+    """
+    Calculate the G/B and G/R band ratios between given data.
+    """
+    rho  = data_G / data_R  # G/R
+    beta = data_G / data_B  # G/B
+
+    return rho, beta
+
+
+def calculate_bandratios_covariance(data_R, data_G, data_B, data_covariance):
+    """
+    Propagate a covariance matrix for band ratios.
+    """
+    # Calculate the band ratios first
+    rho, beta = calculate_bandratios(data_R, data_G, data_B)
+
+    # Construct the Jacobian matrix
+    bandratios_J = np.array([[-rho/data_R, 1/data_R, 0            ],
+                             [0          , 1/data_B, -beta/data_B]])
+
+    # Do the propagation
+    bandratios_covariance = bandratios_J @ data_covariance @ bandratios_J.T
+
+    return bandratios_covariance
+
+
 def iso_timestamp(utc):
     """
     Convert a UTC timestamp from the data to ISO format.

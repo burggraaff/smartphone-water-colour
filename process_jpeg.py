@@ -125,17 +125,12 @@ for folder_main in folders:
         plot.plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_uncertainty)
 
         # Calculate band ratios
-        beta = R_rs[1] / R_rs[2]  # G/B
-        rho = R_rs[1] / R_rs[0]  # G/R
-        bandratios = np.array([rho, beta])
+        bandratios = hc.calculate_bandratios(*R_rs)
+        bandratios_covariance = hc.calculate_bandratios_covariance(*R_rs, R_rs_covariance)
 
-        bandratios_J = np.array([[-rho/R_rs[0], 1/R_rs[0], 0            ],
-                                 [0           , 1/R_rs[2], -beta/R_rs[2]]])
-
-        bandratios_covariance = bandratios_J @ R_rs_covariance @ bandratios_J.T
         bandratios_uncertainty = np.sqrt(np.diag(bandratios_covariance))
         bandratios_correlation = correlation_from_covariance(bandratios_covariance)
-        print(f"Calculated average band ratios: R_rs(G)/R_rs(R) = {bandratios[0]:.2f} +- {bandratios_uncertainty[0]:.2f}    R_rs(G)/R_rs(B) = {bandratios[1]:.2f} +- {bandratios_uncertainty[1]:.2f}    (correlation r = {bandratios_correlation[0,1]:.2f})")
+        print(f"Calculated average band ratios: R_rs (G/R) = {bandratios[0]:.2f} +- {bandratios_uncertainty[0]:.2f}    R_rs (G/B) = {bandratios[1]:.2f} +- {bandratios_uncertainty[1]:.2f}    (correlation r = {bandratios_correlation[0,1]:.2f})")
 
 
         # WACODI

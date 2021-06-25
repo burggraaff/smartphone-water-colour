@@ -91,10 +91,9 @@ if reference == "WISP-3":
         table_reference[f"R_rs ({c})"] = (table_reference[f"Lu ({c})"] - 0.028*table_reference[f"Lsky ({c})"])/table_reference[f"Ed ({c})"]
 
 # Add band ratios to table
-bandratio_GR = table_reference["R_rs (G)"]/table_reference["R_rs (R)"]
+bandratio_GR, bandratio_GB = hc.calculate_bandratios(table_reference["R_rs (R)"], table_reference["R_rs (G)"], table_reference["R_rs (B)"])
 bandratio_GR.name = "R_rs (G/R)"
 # bandratio_GR_err = bandratio_GR * np.sqrt(table_reference["R_rs_err (G)"]**2/table_reference["R_rs (G)"]**2 + table_reference["R_rs_err (R)"]**2/table_reference["R_rs (R)"]**2)
-bandratio_GB = table_reference["R_rs (G)"]/table_reference["R_rs (B)"]
 bandratio_GB.name = "R_rs (G/B)"
 # bandratio_GB_err = bandratio_GR * np.sqrt(table_reference["R_rs_err (G)"]**2/table_reference["R_rs (G)"]**2 + table_reference["R_rs_err (B)"]**2/table_reference["R_rs (B)"]**2)
 table_reference.add_columns([bandratio_GR, bandratio_GB])
