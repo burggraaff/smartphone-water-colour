@@ -33,10 +33,10 @@ plot.correlation_plot_radiance(data1, data2, xlabel=data_label1, ylabel=data_lab
 
 # Correlation plot: Remote sensing reflectance
 label_R_rs = plot.keys_latex["R_rs"]
-plot.correlation_plot_RGB_equal(data1, data2, "R_rs", errlabel="R_rs_err", xlabel=f"{phone_name} {data_type1} {label_R_rs} {plot.persr}", ylabel=f"{phone_name} {data_type2} {label_R_rs} {plot.persr}", regression="all", saveto=f"{saveto_base}_R_rs.pdf")
+plot.correlation_plot_RGB_equal(data1, data2, "R_rs", errlabel="R_rs_err", xlabel=f"{data_label1} {label_R_rs} {plot.persr}", ylabel=f"{data_label2} {label_R_rs} {plot.persr}", regression="all", saveto=f"{saveto_base}_R_rs.pdf")
 
 # Correlation plot: Band ratios
-plot.correlation_plot_bands(data1["R_rs (G/R)"], data2["R_rs (G/R)"], data1["R_rs (G/B)"], data2["R_rs (G/B)"], x_err_GR=data1["R_rs_err (G/R)"], y_err_GR=data2["R_rs_err (G/R)"], x_err_GB=data1["R_rs_err (G/B)"], y_err_GB=data2["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=f"{phone_name} {data_type1}", ylabel=f"{phone_name} {data_type2}", saveto=f"{saveto_base}_band_ratio.pdf")
+plot.correlation_plot_bands(data1["R_rs (G/R)"], data2["R_rs (G/R)"], data1["R_rs (G/B)"], data2["R_rs (G/B)"], x_err_GR=data1["R_rs_err (G/R)"], y_err_GR=data2["R_rs_err (G/R)"], x_err_GB=data1["R_rs_err (G/B)"], y_err_GB=data2["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=data_label1, ylabel=data_label2, saveto=f"{saveto_base}_band_ratio.pdf")
 
 # Correlation plot: hue angle and Forel-Ule index
-plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=f"{phone_name} {data_type1}"+" $R_{rs}$", ylabel=f"{phone_name} {data_type2}"+" $R_{rs}$", saveto=f"{saveto_base}_hueangle_ForelUle.pdf")
+plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=f"{data_label1} {plot.keys_latex['R_rs']}", ylabel=f"{data_label2} {plot.keys_latex['R_rs']}", saveto=f"{saveto_base}_hueangle_ForelUle.pdf")
