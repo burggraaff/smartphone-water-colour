@@ -167,18 +167,12 @@ data_phone = table.vstack(data_phone)
 data_reference = table.vstack(data_reference)
 
 # Correlation plot: Radiances and irradiance
-parameters = ["Lu", "Lsky", "Ed"]
-labels = ["$L_u$", "$L_{sky}$", "$E_d$"]
-units_phone = ["[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$ sr$^{-1}$]", "[ADU nm$^{-1}$]"]
-units_reference = ["[W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "[W m$^{-2}$ nm$^{-1}$ sr$^{-1}$]", "[W m$^{-2}$ nm$^{-1}$]"]
-
-for param, label, unit_phone, unit_reference in zip(parameters, labels, units_phone, units_reference):
-    plot.correlation_plot_RGB(data_reference, data_phone, param+" ({c})", param+" ({c})", xerrlabel=param+"_err ({c})", yerrlabel=param+"_err ({c})", xlabel=f"{reference} {label} {unit_reference}", ylabel=f"{cameralabel} {label} {unit_phone}", regression="all", saveto=f"{saveto_base}_{param}.pdf")
+plot.correlation_plot_radiance(data_reference, data_phone, keys=["Lu", "Lsky"], xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_radiance.pdf")
+plot.correlation_plot_RGB(data_reference, data_phone, "Ed ({c})", "Ed ({c})", xerrlabel="Ed_err ({c})", yerrlabel="Ed_err ({c})", xlabel=f"{reference} {plot.keys_latex['Ed']} {plot.Wnm}", ylabel=f"{cameralabel} {plot.keys_latex['Ed']} {plot.ADUnm}", regression="rgb", saveto=f"{saveto_base}_Ed.pdf")
 
 # Correlation plot: Remote sensing reflectance
-label_R_rs = "$R_{rs}$"
-unit_R_rs = "[sr$^{-1}$]"
-plot.correlation_plot_RGB_equal(data_reference, data_phone, "R_rs", errlabel="R_rs_err", xlabel=f"{reference} {label_R_rs} {unit_R_rs}", ylabel=f"{cameralabel}\n{label_R_rs} {unit_R_rs}", regression="all", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_R_rs.pdf")
+label_R_rs = plot.keys_latex["R_rs"]
+plot.correlation_plot_RGB_equal(data_reference, data_phone, "R_rs", errlabel="R_rs_err", xlabel=f"{reference} {label_R_rs} {plot.persr}", ylabel=f"{cameralabel}\n{label_R_rs} {plot.persr}", regression="all", saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_R_rs.pdf")
 
 # Correlation plot: Band ratios
 plot.correlation_plot_bands(data_reference["R_rs (G/R)"], data_phone["R_rs (G/R)"], data_reference["R_rs (G/B)"], data_phone["R_rs (G/B)"], x_err_GR=None, y_err_GR=data_phone["R_rs_err (G/R)"], x_err_GB=None, y_err_GB=data_phone["R_rs_err (G/B)"], quantity="$R_{rs}$", xlabel=reference, ylabel=cameralabel, saveto=f"results/comparison_{reference}_X_{camera.name}_{data_type}_band_ratio.pdf")
