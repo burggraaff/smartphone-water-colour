@@ -364,22 +364,25 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, ax=None, xerrlabel=None, 
         _saveshow(saveto, bbox_inches="tight")
 
 
-def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None):
+def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
     `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
     For example, if `xlabel` == `f"R_rs ({c})"` then the columns "R_rs (R)",
     "R_rs (G)", and "R_rs (B)" will be used.
     """
+    # Convert the data and error labels to RGB-aware ones
+    datalabel, errlabel = [label + " ({c})" for label in (datalabel, errlabel)]
+
     # Calculate residuals
-    residuals = stats.residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel)
+    residuals = stats.residual_table(x, y, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel)
 
     # Create figure to hold plot
     fig, axs = plt.subplots(figsize=(4,5), nrows=2, sharex=True, gridspec_kw={"height_ratios": [3,1]})
 
     # Plot in both panels
-    _correlation_plot_errorbars_RGB(axs[0], x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, equal_aspect=True, regression=regression)
-    _correlation_plot_errorbars_RGB(axs[1], x, residuals, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, setmax=False)
+    _correlation_plot_errorbars_RGB(axs[0], x, y, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel, equal_aspect=True, regression=regression)
+    _correlation_plot_errorbars_RGB(axs[1], x, residuals, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel, setmax=False)
 
     # Plot the x=y line (top) and horizontal (bottom)
     for ax in axs:
@@ -388,9 +391,9 @@ def correlation_plot_RGB_equal(x, y, xdatalabel, ydatalabel, xerrlabel=None, yer
     axs[1].axhline(0, c='k', ls="--")
 
     # Get statistics for title
-    MAD_all, MAD_RGB = stats.statistic_RGB(stats.MAD, x, y, xdatalabel, ydatalabel)
-    MAPD_all, MAPD_RGB = stats.statistic_RGB(stats.MAPD, x, y, xdatalabel, ydatalabel)
-    r_all, r_RGB = stats.statistic_RGB(stats.correlation, x, y, xdatalabel, ydatalabel)
+    MAD_all, MAD_RGB = stats.statistic_RGB(stats.MAD, x, y, datalabel, datalabel)
+    MAPD_all, MAPD_RGB = stats.statistic_RGB(stats.MAPD, x, y, datalabel, datalabel)
+    r_all, r_RGB = stats.statistic_RGB(stats.correlation, x, y, datalabel, datalabel)
 
     x_all, y_all = stats.ravel_table(x, "R_rs ({c})"), stats.ravel_table(y, "R_rs ({c})")
     statistics_all, title = stats.full_statistics_for_title(x_all, y_all)
