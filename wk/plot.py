@@ -24,6 +24,9 @@ persr = "[sr$^{-1}$]"
 # Dictionary mapping keys to LaTeX strings
 keys_latex = {"Lu": "$L_u$", "Lsky": "$L_{sky}$", "Ld": "$L_d$", "Ed": "$E_d$", "L": "$L$", "R_rs": "$R_{rs}$"}
 
+# Path effects for RGB linear regression lines
+path_effects_RGBlines = [pe.Stroke(linewidth=3, foreground="k"), pe.Normal()]
+
 
 def _histogram_axis_settings(axs, column_labels):
     """
@@ -316,7 +319,7 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
 
     elif regression == "rgb":
         for func, c in zip(regression_functions, RGB_OkabeIto):
-            _plot_linear_regression(func, ax, color=c, path_effects=[pe.Stroke(linewidth=3, foreground="k"), pe.Normal()])
+            _plot_linear_regression(func, ax, color=c, path_effects=path_effects_RGBlines)
 
     if setmax:
         xmax = _axis_limit_RGB(x, xdatalabel)[1]
@@ -410,7 +413,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     _saveshow(saveto, bbox_inches="tight")
 
 
-def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", xunit=ADUnmsr, yunit=ADUnmsr, saveto=None):
+def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", xunit=ADUnmsr, yunit=ADUnmsr, regression="all",  saveto=None):
     """
     Make a multi-panel plot comparing radiances.
     Each panel represents one of the keys, for example upwelling, sky, and downwelling radiance.
@@ -437,12 +440,20 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
         correlation_plot_RGB(x_radiance, y_radiance, key_c, key_c, ax=axs[-1], xerrlabel=key_c_err, yerrlabel=key_c_err, xlabel=None, ylabel=ylabel)
 
     # Combined linear regression
-    xdata, ydata = stats.ravel_table(x_radiance, "L ({c})"), stats.ravel_table(y_radiance, "L ({c})")
-    xerr, yerr = stats.ravel_table(x_radiance, "L_err ({c})"), stats.ravel_table(y_radiance, "L_err ({c})")
+    if regression == "all":
+        xdata, ydata = stats.ravel_table(x_radiance, "L ({c})"), stats.ravel_table(y_radiance, "L ({c})")
+        xerr, yerr = stats.ravel_table(x_radiance, "L_err ({c})"), stats.ravel_table(y_radiance, "L_err ({c})")
 
-    func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)[2]
-    for ax in axs:
-        _plot_linear_regression(func_linear, ax)
+        func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)[2]
+        for ax in axs:
+            _plot_linear_regression(func_linear, ax)
+
+    # If RGB regression, do each band separately
+    elif regression == "rgb":
+        funcs_linear = [stats.linear_regression(x_radiance[f"L ({c})"], y_radiance[f"L ({c})"], x_radiance[f"L_err ({c})"], y_radiance[f"L_err ({c})"])[2] for c in colours]
+        for ax in axs:
+            for func_linear, c in zip(funcs_linear, RGB_OkabeIto):
+                _plot_linear_regression(func_linear, ax, color=c, path_effects=path_effects_RGBlines)
 
     # Plot settings
     axs[0].set_xlim(_axis_limit_RGB(x_radiance, "L ({c})"))

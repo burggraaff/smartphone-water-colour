@@ -29,7 +29,7 @@ data2 = hc.read_results(path_data2)
 # No need to find matches - the RAW and JPEG images were taken simultaneously
 
 # Correlation plot: Radiances and irradiance
-plot.correlation_plot_radiance(data1, data2, xlabel=data_label1, ylabel=data_label2, saveto=f"{saveto_base}_radiance.pdf")
+plot.correlation_plot_radiance(data1, data2, xlabel=data_label1, ylabel=data_label2, regression="rgb", saveto=f"{saveto_base}_radiance.pdf")
 
 # Correlation plot: Remote sensing reflectance
 label_R_rs = plot.keys_latex["R_rs"]
