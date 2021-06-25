@@ -24,9 +24,6 @@ persr = "[sr$^{-1}$]"
 # Dictionary mapping keys to LaTeX strings
 keys_latex = {"Lu": "$L_u$", "Lsky": "$L_{sky}$", "Ld": "$L_d$", "Ed": "$E_d$", "L": "$L$", "R_rs": "$R_{rs}$"}
 
-# Path effects for RGB linear regression lines
-path_effects_RGBlines = [pe.Stroke(linewidth=3, foreground="k"), pe.Normal()]
-
 
 def _histogram_axis_settings(axs, column_labels):
     """
@@ -202,6 +199,19 @@ def _plot_linear_regression(func, ax=None, color="k", x=np.array([-1000., 1000.]
     ax.plot(x, y, color=color, ls="--", zorder=10, **kwargs)
 
 
+def _plot_linear_regression_RGB(funcs, *args, **kwargs):
+    """
+    Helper function to plot linear regression lines consistently.
+    This plots separate lines as included in a list `funcs`.
+    Simply loops over the regression functions and colours, and passes
+    everything else to the main function _plot_linear_regression.
+    """
+    # Path effects for RGB linear regression lines
+    path_effects_RGBlines = [pe.Stroke(linewidth=3, foreground="k"), pe.Normal()]
+    for func, c in zip(funcs, RGB_OkabeIto):
+        _plot_linear_regression(func, *args, color=c, path_effects=path_effects_RGBlines, **kwargs)
+
+
 def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax=None, equal_aspect=False, minzero=False, setmax=True, regression=False, saveto=None):
     """
     Simple correlation plot, no RGB stuff.
@@ -318,8 +328,7 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
         _plot_linear_regression(func, ax)
 
     elif regression == "rgb":
-        for func, c in zip(regression_functions, RGB_OkabeIto):
-            _plot_linear_regression(func, ax, color=c, path_effects=path_effects_RGBlines)
+        _plot_linear_regression_RGB(regression_functions, ax)
 
     if setmax:
         xmax = _axis_limit_RGB(x, xdatalabel)[1]
@@ -452,8 +461,7 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
     elif regression == "rgb":
         funcs_linear = [stats.linear_regression(x_radiance[f"L ({c})"], y_radiance[f"L ({c})"], x_radiance[f"L_err ({c})"], y_radiance[f"L_err ({c})"])[2] for c in colours]
         for ax in axs:
-            for func_linear, c in zip(funcs_linear, RGB_OkabeIto):
-                _plot_linear_regression(func_linear, ax, color=c, path_effects=path_effects_RGBlines)
+            _plot_linear_regression_RGB(funcs_linear, ax)
 
     # Plot settings
     axs[0].set_xlim(_axis_limit_RGB(x_radiance, "L ({c})"))
