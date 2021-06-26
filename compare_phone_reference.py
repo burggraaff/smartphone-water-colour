@@ -155,6 +155,12 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
 data_phone = table.vstack(data_phone)
 data_reference = table.vstack(data_reference)
 
+# Add typical errors to R_rs (R, G, B) if only a single match was found
+indices_single_match, indices_multiple_matches = np.where(data_reference["nr_matches"] == 1), np.where(data_reference["nr_matches"] > 1)
+keys_uncertainties = hc.extend_keys_to_RGB(["R_rs_err"])
+for key in keys_uncertainties:
+    data_reference[key][indices_single_match] = np.nanmedian(data_reference[key][indices_multiple_matches])
+
 # Add band ratios to reference data
 bandratio_GR, bandratio_GB = hc.calculate_bandratios(data_reference["R_rs (R)"], data_reference["R_rs (G)"], data_reference["R_rs (B)"])
 bandratio_GR.name = "R_rs (G/R)"
