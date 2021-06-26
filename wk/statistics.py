@@ -41,6 +41,17 @@ def correlation(x, y, w=None):
     return correlation_from_covariance(np.cov(x, y, aweights=w))[0, 1]
 
 
+def max_correlation_in_covariance_matrix(covariance):
+    """
+    Find the highest correlation in a covariance matrix, excluding the diagonals.
+    """
+    correlation_matrix = correlation_from_covariance(covariance)
+    not_diagonal = ~np.eye(len(covariance), dtype=bool)  # Off-diagonal elements
+    max_correlation = np.nanmax(correlation_matrix[not_diagonal])
+
+    return max_correlation
+
+
 def MAD(x, y):
     """
     Median absolute deviation (sometimes MAE) between data sets x and y.

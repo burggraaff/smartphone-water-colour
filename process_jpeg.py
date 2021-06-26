@@ -19,8 +19,7 @@ from sys import argv
 from spectacle import io, load_camera
 from os import walk
 
-from wk import hydrocolor as hc, wacodi as wa, plot
-from wk.statistics import correlation_from_covariance
+from wk import hydrocolor as hc, wacodi as wa, plot, statistics as stats
 
 # Get the data folder from the command line
 calibration_folder, *folders = io.path_from_input(argv)
@@ -53,7 +52,7 @@ for folder_main in folders:
         print("Loaded JPEG data")
 
         # Load EXIF data
-        water_exif = hc.load_exif(water_path)
+        water_exif = hc.load_exif(water_path)[0]
 
         # Select the central 100x100 pixels
         central_x, central_y = water_jpeg.shape[0]//2, water_jpeg.shape[1]//2
@@ -92,13 +91,11 @@ for folder_main in folders:
 
         # Calculate covariance, correlation matrices for the combined radiances
         all_covariance_RGB = np.cov(all_RGB)
-        all_correlation_RGB = np.corrcoef(all_RGB)
-        not_diagonal = ~np.eye(9, dtype=bool)  # Off-diagonal elements
-        max_corr = np.nanmax(all_correlation_RGB[not_diagonal])
-        print(f"Calculated covariance and correlation matrices. Maximum off-diagonal correlation r = {max_corr:.2f}")
+        max_correlation = stats.max_correlation_in_covariance_matrix(all_covariance_RGB)
+        print(f"Calculated covariance and correlation matrices. Maximum off-diagonal correlation r = {max_correlation:.2f}")
 
         # Plot correlation coefficients
-        plot.plot_correlation_matrix_radiance(all_correlation_RGB, x1=all_RGB[3], y1=all_RGB[4], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=all_RGB[1], y2=all_RGB[7], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_jpeg.pdf")
+        plot.plot_correlation_matrix_radiance(all_covariance_RGB, x1=all_RGB[3], y1=all_RGB[4], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=all_RGB[1], y2=all_RGB[7], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_jpeg.pdf")
 
         # Add Rref to covariance matrix
         all_covariance_RGB_Rref = hc.add_Rref_to_covariance(all_covariance_RGB)
@@ -129,7 +126,7 @@ for folder_main in folders:
         bandratios_covariance = hc.calculate_bandratios_covariance(*R_rs, R_rs_covariance)
 
         bandratios_uncertainty = np.sqrt(np.diag(bandratios_covariance))
-        bandratios_correlation = correlation_from_covariance(bandratios_covariance)
+        bandratios_correlation = stats.correlation_from_covariance(bandratios_covariance)
         print(f"Calculated average band ratios: R_rs (G/R) = {bandratios[0]:.2f} +- {bandratios_uncertainty[0]:.2f}    R_rs (G/B) = {bandratios[1]:.2f} +- {bandratios_uncertainty[1]:.2f}    (correlation r = {bandratios_correlation[0,1]:.2f})")
 
 
@@ -149,8 +146,8 @@ for folder_main in folders:
         R_rs_xy_covariance = wa.convert_XYZ_to_xy_covariance(R_rs_XYZ_covariance, R_rs_XYZ)
 
         # Calculate correlation
-        R_rs_xy_correlation = correlation_from_covariance(R_rs_xy_covariance)
-        water_xy_correlation = correlation_from_covariance(water_xy_covariance)
+        R_rs_xy_correlation = stats.correlation_from_covariance(R_rs_xy_covariance)
+        water_xy_correlation = stats.correlation_from_covariance(water_xy_covariance)
 
         print("Converted to xy:", f"xy R_rs = {R_rs_xy} +- {np.sqrt(np.diag(R_rs_xy_covariance))} (r = {R_rs_xy_correlation[0,1]:.2f})", f"xy L_u  = {water_xy} +- {np.sqrt(np.diag(water_xy_covariance))} (r = {water_xy_correlation[0,1]:.2f})", sep="\n")
 

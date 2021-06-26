@@ -543,12 +543,15 @@ def density_scatter(x, y, ax = None, sort = True, bins = 20, **kwargs):
     return ax
 
 
-def plot_correlation_matrix_radiance(correlation_matrix, x1, y1, x2, y2, x1label="[a.u.]", y1label="[a.u.]", x2label="[a.u.]", y2label="[a.u.]", saveto=None):
+def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label="[a.u.]", y1label="[a.u.]", x2label="[a.u.]", y2label="[a.u.]", saveto=None):
     """
     Plot a given correlation matrix consisting of RGB or RGBG2 radiances.
     """
     # Plot correlation coefficients
     kwargs = {"cmap": plt.cm.get_cmap("cividis", 10), "s": 5, "rasterized": True}
+
+    # Calculate the correlation matrix
+    correlation_matrix = stats.correlation_from_covariance(covariance_matrix)
 
     fig, axs = plt.subplots(ncols=3, figsize=(7,3), dpi=600)
 
