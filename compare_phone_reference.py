@@ -74,7 +74,7 @@ for key in ["Ed", "Lsky", "Lu", "R_rs"]:
     data_convolved = camera.convolve_multi(wavelengths, data)[:3].T
 
     # Put convolved data in a table
-    keys_convolved = [f"{key} ({c})" for c in hc.colours]
+    keys_convolved = hc.extend_keys_to_RGB([key])
     table_convolved = table.Table(data=data_convolved, names=keys_convolved)
 
     # Merge convolved data table with original data table
@@ -110,8 +110,8 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
     row_reference = table.Table(table_reference[closest])
     for key in ["Ed", "Lu", "Lsky", "R_rs"]:
         # Average over the "close enough" rows
-        keys = [f"{key}_{wvl:.1f}" for wvl in wavelengths] + [f"{key} ({c})" for c in hc.colours]
-        keys_err = [f"{key}_err_{wvl:.1f}" for wvl in wavelengths] + [f"{key}_err ({c})" for c in hc.colours]
+        keys = [f"{key}_{wvl:.1f}" for wvl in wavelengths] + hc.extend_keys_to_RGB([key])
+        keys_err = [f"{key}_err_{wvl:.1f}" for wvl in wavelengths] + hc.extend_keys_to_RGB([key+"_err"])
 
         row_reference[keys][0] = [np.nanmedian(table_reference[k][close_enough]) for k in keys]
         uncertainties = np.array([np.nanstd(table_reference[k][close_enough]) for k in keys])
