@@ -88,14 +88,6 @@ if reference == "WISP-3":
     for c in hc.colours:
         table_reference[f"R_rs ({c})"] = (table_reference[f"Lu ({c})"] - 0.028*table_reference[f"Lsky ({c})"])/table_reference[f"Ed ({c})"]
 
-# Add band ratios to table
-bandratio_GR, bandratio_GB = hc.calculate_bandratios(table_reference["R_rs (R)"], table_reference["R_rs (G)"], table_reference["R_rs (B)"])
-bandratio_GR.name = "R_rs (G/R)"
-# bandratio_GR_err = bandratio_GR * np.sqrt(table_reference["R_rs_err (G)"]**2/table_reference["R_rs (G)"]**2 + table_reference["R_rs_err (R)"]**2/table_reference["R_rs (R)"]**2)
-bandratio_GB.name = "R_rs (G/B)"
-# bandratio_GB_err = bandratio_GR * np.sqrt(table_reference["R_rs_err (G)"]**2/table_reference["R_rs (G)"]**2 + table_reference["R_rs_err (B)"]**2/table_reference["R_rs (B)"]**2)
-table_reference.add_columns([bandratio_GR, bandratio_GB])
-
 # Find matches
 data_phone, data_reference = [], []  # Lists to contain matching table entries
 for row in table_phone:  # Loop over the smartphone table to look for matches
@@ -163,6 +155,18 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
 data_phone = table.vstack(data_phone)
 data_reference = table.vstack(data_reference)
 
+# Add band ratios to reference data
+bandratio_GR, bandratio_GB = hc.calculate_bandratios(data_reference["R_rs (R)"], data_reference["R_rs (G)"], data_reference["R_rs (B)"])
+bandratio_GR.name = "R_rs (G/R)"
+bandratio_GB.name = "R_rs (G/B)"
+
+bandratio_GR_err = bandratio_GR * np.sqrt(data_reference["R_rs_err (G)"]**2/data_reference["R_rs (G)"]**2 + data_reference["R_rs_err (R)"]**2/data_reference["R_rs (R)"]**2)
+bandratio_GB_err = bandratio_GB * np.sqrt(data_reference["R_rs_err (G)"]**2/data_reference["R_rs (G)"]**2 + data_reference["R_rs_err (B)"]**2/data_reference["R_rs (B)"]**2)
+bandratio_GR_err.name = "R_rs_err (G/R)"
+bandratio_GB_err.name = "R_rs_err (G/B)"
+
+data_reference.add_columns([bandratio_GR, bandratio_GR_err, bandratio_GB, bandratio_GB_err])
+
 # Correlation plot: Radiances and irradiance
 plot.correlation_plot_radiance(data_reference, data_phone, keys=["Lu", "Lsky"], xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_radiance.pdf")
 plot.correlation_plot_RGB(data_reference, data_phone, "Ed ({c})", "Ed ({c})", xerrlabel="Ed_err ({c})", yerrlabel="Ed_err ({c})", xlabel=f"{reference} {plot.keys_latex['Ed']} {plot.Wnm}", ylabel=f"{cameralabel} {plot.keys_latex['Ed']} {plot.ADUnm}", regression="rgb", saveto=f"{saveto_base}_Ed.pdf")
@@ -172,7 +176,7 @@ label_R_rs = plot.keys_latex["R_rs"]
 plot.correlation_plot_RGB_equal(data_reference, data_phone, "R_rs", errlabel="R_rs_err", xlabel=f"{reference} {label_R_rs} {plot.persr}", ylabel=f"{cameralabel}\n{label_R_rs} {plot.persr}", regression="all", saveto=f"{saveto_base}_R_rs.pdf")
 
 # Correlation plot: Band ratios
-plot.correlation_plot_bands(data_reference, data_phone, datalabel="R_rs", errlabel=None, quantity=label_R_rs, xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_band_ratio.pdf")
+plot.correlation_plot_bands(data_reference, data_phone, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_band_ratio.pdf")
 
 # Correlation plot: hue angle and Forel-Ule index
 plot.correlation_plot_hue_angle_and_ForelUle(data_reference["R_rs (hue)"], data_phone["R_rs (hue)"], xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_hueangle_ForelUle.pdf")
