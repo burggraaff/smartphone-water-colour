@@ -157,7 +157,7 @@ data_reference = table.vstack(data_reference)
 
 # Add typical errors to R_rs (R, G, B) if only a single match was found
 indices_single_match, indices_multiple_matches = np.where(data_reference["nr_matches"] == 1), np.where(data_reference["nr_matches"] > 1)
-keys_uncertainties = hc.extend_keys_to_RGB(["R_rs_err"])
+keys_uncertainties = hc.extend_keys_to_RGB([param+"_err" for param in parameters])
 for key in keys_uncertainties:
     data_reference[key][indices_single_match] = np.nanmedian(data_reference[key][indices_multiple_matches])
 
