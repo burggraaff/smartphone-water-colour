@@ -47,60 +47,54 @@ for folder_main in folders:
             continue
 
         # Load data
-        water_path, sky_path, card_path = hc.generate_paths(data_path, ".JPG")
-        water_jpeg, sky_jpeg, card_jpeg = hc.load_jpeg_images(water_path, sky_path, card_path)
+        image_paths = hc.generate_paths(data_path, ".JPG")
+        images_jpeg = hc.load_jpeg_images(image_paths)
         print("Loaded JPEG data")
 
         # Load EXIF data
-        water_exif = hc.load_exif(water_path)[0]
+        water_exif = hc.load_exif(image_paths[0])
 
         # Select the central 100x100 pixels
-        central_x, central_y = water_jpeg.shape[0]//2, water_jpeg.shape[1]//2
+        central_x, central_y = images_jpeg[0].shape[0]//2, images_jpeg[0].shape[1]//2
         box_size = 100
         central_slice = np.s_[central_x-box_size:central_x+box_size+1, central_y-box_size:central_y+box_size+1]
-        water_cut = water_jpeg[central_slice]
-        sky_cut = sky_jpeg[central_slice]
-        card_cut = card_jpeg[central_slice]
+        images_central_slices = [image[central_slice] for image in images_jpeg]
         print(f"Selected central {2*box_size}x{2*box_size} pixels")
 
         # Combined histograms of different data reduction steps
-        water_all = [water_jpeg, water_cut]
-        sky_all = [sky_jpeg, sky_cut]
-        card_all = [card_jpeg, card_cut]
+        all_data = [images_jpeg, images_central_slices]
+        water_all, sky_all, card_all = [[data_array[j] for data_array in all_data] for j in range(3)]
 
         plot.histogram_jpeg(water_all, sky_all, card_all, saveto=data_path/"statistics_jpeg.pdf")
 
         # Reshape the central images to lists
         # NB do not replace this with .reshape(3, -1) because that mixes channels
-        water_RGB = water_cut.reshape(-1, 3).T
-        sky_RGB = sky_cut.reshape(-1, 3).T
-        card_RGB = card_cut.reshape(-1, 3).T
+        data_RGB = np.array([image.reshape(-1, 3).T for image in images_central_slices])
 
         # Divide by the spectral bandwidths to normalise to ADU nm^-1
-        water_RGB = water_RGB / effective_bandwidths[:, np.newaxis]
-        sky_RGB = sky_RGB / effective_bandwidths[:, np.newaxis]
-        card_RGB = card_RGB / effective_bandwidths[:, np.newaxis]
-        all_RGB = np.concatenate([water_RGB, sky_RGB, card_RGB])
+        data_RGB = data_RGB.astype(np.float64)
+        data_RGB /= effective_bandwidths[:, np.newaxis]
+
+        # Flatten the data into one long list
+        data_all = data_RGB.reshape(9, -1)
 
         # Calculate mean values
-        water_mean = water_RGB.mean(axis=1)
-        sky_mean = sky_RGB.mean(axis=1)
-        card_mean = card_RGB.mean(axis=1)
-        all_mean = all_RGB.mean(axis=1)
+        all_mean = data_all.mean(axis=-1)
         print("Calculated mean values per channel")
 
         # Calculate covariance, correlation matrices for the combined radiances
-        all_covariance_RGB = np.cov(all_RGB)
+        all_covariance_RGB = np.cov(data_all)
         max_correlation = stats.max_correlation_in_covariance_matrix(all_covariance_RGB)
         print(f"Calculated covariance and correlation matrices. Maximum off-diagonal correlation r = {max_correlation:.2f}")
 
         # Plot correlation coefficients
-        plot.plot_correlation_matrix_radiance(all_covariance_RGB, x1=all_RGB[3], y1=all_RGB[4], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=all_RGB[1], y2=all_RGB[7], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_jpeg.pdf")
+        plot.plot_correlation_matrix_radiance(all_covariance_RGB, x1=data_all[3], y1=data_all[4], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=data_all[1], y2=data_all[7], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_jpeg.pdf")
 
         # Add Rref to covariance matrix
         all_covariance_RGB_Rref = hc.add_Rref_to_covariance(all_covariance_RGB)
 
         # Calculate Ed from Ld
+        water_mean, sky_mean, card_mean = hc.split_combined_radiances(all_mean)
         Ld_covariance_RGB = all_covariance_RGB[-3:, -3:]  # Take only the Ld-Ld elements from the covariance matrix
         Ed = hc.convert_Ld_to_Ed(card_mean)
         Ed_covariance = hc.convert_Ld_to_Ed_covariance(Ld_covariance_RGB, Ed)

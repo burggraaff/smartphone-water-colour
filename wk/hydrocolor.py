@@ -2,6 +2,7 @@
 Module with functions etc for HydroColor
 """
 from spectacle import io, calibrate, spectral
+from spectacle.io import load_exif
 import numpy as np
 from datetime import datetime, timedelta
 from astropy import table
@@ -129,22 +130,17 @@ def generate_paths(data_path, extension=".dng"):
     return paths
 
 
-def load_raw_images(*filenames):
+def load_raw_images(filenames):
     raw_images = [io.load_raw_image(filename) for filename in filenames]
     return raw_images
 
 
-def load_jpeg_images(*filenames):
+def load_jpeg_images(filenames):
     jpg_images = [io.load_jpg_image(filename) for filename in filenames]
     return jpg_images
 
 
-def load_exif(*filenames):
-    exif = [io.load_exif(filename) for filename in filenames]
-    return exif
-
-
-def load_raw_thumbnails(*filenames):
+def load_raw_thumbnails(filenames):
     thumbnails = [io.load_raw_image_postprocessed(filename, half_size=True, user_flip=0) for filename in filenames]
     return thumbnails
 

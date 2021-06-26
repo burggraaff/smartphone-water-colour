@@ -50,19 +50,19 @@ for folder_main in folders:
         print("\n  ", data_path)
 
         # Load data
-        water_path, sky_path, card_path = hc.generate_paths(data_path, camera.raw_extension)
-        water_raw, sky_raw, card_raw = hc.load_raw_images(water_path, sky_path, card_path)
+        image_paths = hc.generate_paths(data_path, camera.raw_extension)
+        images_raw = hc.load_raw_images(image_paths)
         print("Loaded RAW data")
 
         # Load EXIF data
-        water_exif = hc.load_exif(water_path)[0]
+        water_exif = hc.load_exif(image_paths[0])
 
         # Load thumbnails
-        water_jpeg, sky_jpeg, card_jpeg = hc.load_raw_thumbnails(water_path, sky_path, card_path)
+        images_jpeg = hc.load_raw_thumbnails(image_paths)
         print("Created JPEG thumbnails")
 
         # Correct for bias
-        water_bias, sky_bias, card_bias = camera.correct_bias(water_raw, sky_raw, card_raw)
+        images_bias_corrected = camera.correct_bias(*images_raw)
         print("Corrected bias")
 
         # Normalising for ISO speed is not necessary since this is a relative measurement
@@ -70,48 +70,42 @@ for folder_main in folders:
         # Dark current is negligible
 
         # Correct for flat-field
-        water_flat, sky_flat, card_flat = camera.correct_flatfield(water_bias, sky_bias, card_bias)
+        images_flatfield_corrected = camera.correct_flatfield(*images_bias_corrected)
         print("Corrected flat-field")
 
         # Demosaick the data
-        water_RGBG, sky_RGBG, card_RGBG = camera.demosaick(water_flat, sky_flat, card_flat)
+        images_RGBG = camera.demosaick(*images_flatfield_corrected)
         print("Demosaicked")
 
         # Select the central pixels
-        water_cut, sky_cut, card_cut = hc.central_slice_raw(water_RGBG, sky_RGBG, card_RGBG)
+        images_central_slices = hc.central_slice_raw(*images_RGBG)
 
         # Combined histograms of different data reduction steps
-        water_all = [water_jpeg, water_raw, water_bias, water_flat, water_cut]
-        sky_all = [sky_jpeg, sky_raw, sky_bias, sky_flat, sky_cut]
-        card_all = [card_jpeg, card_raw, card_bias, card_flat, card_cut]
+        all_data = [images_jpeg, images_raw, images_bias_corrected, images_flatfield_corrected, images_central_slices]
+        water_all, sky_all, card_all = [[data_array[j] for data_array in all_data] for j in range(3)]
 
         plot.histogram_raw(water_all, sky_all, card_all, camera=camera, saveto=data_path/"statistics_raw.pdf")
 
         # Reshape the central images to lists
-        water_RGBG = water_cut.reshape(4, -1)
-        sky_RGBG = sky_cut.reshape(4, -1)
-        card_RGBG = card_cut.reshape(4, -1)
+        data_RGBG = np.array([image.reshape(4, -1) for image in images_central_slices])
 
         # Divide by the spectral bandwidths to normalise to ADU nm^-1
-        water_RGBG /= effective_bandwidths[:, np.newaxis]
-        sky_RGBG /= effective_bandwidths[:, np.newaxis]
-        card_RGBG /= effective_bandwidths[:, np.newaxis]
-        all_RGBG = np.concatenate([water_RGBG, sky_RGBG, card_RGBG])
+        data_RGBG /= effective_bandwidths[:, np.newaxis]
+
+        # Flatten the data into one long list
+        data_all = data_RGBG.reshape(12, -1)
 
         # Calculate mean values
-        water_mean = water_RGBG.mean(axis=1)
-        sky_mean = sky_RGBG.mean(axis=1)
-        card_mean = card_RGBG.mean(axis=1)
-        all_mean = all_RGBG.mean(axis=1)
-        print("Calculated mean values per channel")
+        all_mean = data_all.mean(axis=-1)
+        print("Calculated mean values per image, per channel")
 
         # Calculate covariance, correlation matrices for the combined radiances
-        all_covariance = np.cov(all_RGBG)
+        all_covariance = np.cov(data_all)
         max_correlation = stats.max_correlation_in_covariance_matrix(all_covariance)
         print(f"Calculated covariance and correlation matrices. Maximum off-diagonal correlation r = {max_correlation:.2f}")
 
         # Plot correlation coefficients
-        plot.plot_correlation_matrix_radiance(all_covariance, x1=all_RGBG[4], y1=all_RGBG[5], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=all_RGBG[1], y2=all_RGBG[9], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_raw.pdf")
+        plot.plot_correlation_matrix_radiance(all_covariance, x1=data_all[4], y1=data_all[5], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=data_all[1], y2=data_all[9], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_raw.pdf")
 
         # Average G and G2
         M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
