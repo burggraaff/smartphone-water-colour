@@ -145,7 +145,7 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
     plt.xlim(300, 900)
     plt.xlabel("Wavelength [nm]")
     plt.ylim(0, 0.15)
-    plt.ylabel("$R_{rs}$ [sr$^{-1}$]")
+    plt.ylabel(f"{plot.keys_latex['R_rs']} {plot.persr}")
     plt.title(f"{cameralabel}\n{phone_time}")
     plt.savefig(saveto)
     plt.show()
