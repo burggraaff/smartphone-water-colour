@@ -53,7 +53,7 @@ for folder_main in folders:
         print("Loaded JPEG data")
 
         # Load EXIF data
-        water_exif, sky_exif, card_exif = hc.load_exif(water_path, sky_path, card_path)
+        water_exif = hc.load_exif(water_path)
 
         # Select the central 100x100 pixels
         central_x, central_y = water_jpeg.shape[0]//2, water_jpeg.shape[1]//2

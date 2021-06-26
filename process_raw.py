@@ -56,7 +56,7 @@ for folder_main in folders:
         print("Loaded RAW data")
 
         # Load EXIF data
-        water_exif, sky_exif, card_exif = hc.load_exif(water_path, sky_path, card_path)
+        water_exif = hc.load_exif(water_path)
 
         # Load thumbnails
         water_jpeg, sky_jpeg, card_jpeg = hc.load_raw_thumbnails(water_path, sky_path, card_path)
