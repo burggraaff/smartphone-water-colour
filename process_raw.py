@@ -12,6 +12,9 @@ Requires the following SPECTACLE calibrations:
 Command-line inputs:
     * SPECTACLE calibration folder
     * Any number of folders containing data
+
+Example:
+    %run process_raw.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton_20190703/*
 """
 
 import numpy as np

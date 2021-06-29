@@ -3,13 +3,19 @@ Process three images (water, sky, grey card), in JPEG format, to
 calculate the remote sensing reflectance in the RGB channels, following the
 HydroColor protocol.
 
+Optional: Linearise using standard sRGB settings.
+
 Requires the following SPECTACLE calibrations:
     - Metadata
     - Spectral response
 
 Command-line inputs:
+    * Linearise (True/1) or not (False/0)
     * SPECTACLE calibration folder
     * Any number of folders containing data
+
+Example:
+    %run process_jpeg.py False C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton_20190703/*
 """
 
 import numpy as np
@@ -17,12 +23,14 @@ np.set_printoptions(precision=2)
 
 from sys import argv
 from spectacle import io, load_camera
+from spectacle.linearity import sRGB_inverse
 from os import walk
 
 from wk import hydrocolor as hc, wacodi as wa, plot, statistics as stats
 
 # Get the data folder from the command line
-calibration_folder, *folders = io.path_from_input(argv)
+linearise, calibration_folder, *folders = io.path_from_input(argv)
+linearise = bool(linearise.stem == "True")
 pattern = calibration_folder.stem
 
 # Get Camera object
@@ -51,6 +59,19 @@ for folder_main in folders:
         images_jpeg = hc.load_jpeg_images(image_paths)
         print("Loaded JPEG data")
 
+        # Optional: Linearise JPEG data
+        if linearise:
+            images_jpeg = [sRGB_inverse(image, normalization=255) for image in images_jpeg]
+            saveto_stats = data_path/"statistics_jpeg_linear.pdf"
+            saveto_correlation = data_path/"correlation_jpeg_linear.pdf"
+            saveto_results = data_path.with_name(data_path.stem + "_jpeg_linear.csv")
+            print("Linearised JPEG data")
+        else:
+            saveto_stats = data_path/"statistics_jpeg.pdf"
+            saveto_correlation = data_path/"correlation_jpeg.pdf"
+            saveto_results = data_path.with_name(data_path.stem + "_jpeg.csv")
+            print("Not linearising JPEG data")
+
         # Load EXIF data
         water_exif = hc.load_exif(image_paths[0])
 
@@ -65,7 +86,7 @@ for folder_main in folders:
         all_data = [images_jpeg, images_central_slices]
         water_all, sky_all, card_all = [[data_array[j] for data_array in all_data] for j in range(3)]
 
-        plot.histogram_jpeg(water_all, sky_all, card_all, saveto=data_path/"statistics_jpeg.pdf")
+        plot.histogram_jpeg(water_all, sky_all, card_all, saveto=saveto_stats)
 
         # Reshape the central images to lists
         # NB do not replace this with .reshape(3, -1) because that mixes channels
@@ -88,7 +109,7 @@ for folder_main in folders:
         print(f"Calculated covariance and correlation matrices. Maximum off-diagonal correlation r = {max_correlation:.2f}")
 
         # Plot correlation coefficients
-        plot.plot_correlation_matrix_radiance(all_covariance_RGB, x1=data_all[3], y1=data_all[4], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=data_all[1], y2=data_all[7], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_jpeg.pdf")
+        plot.plot_correlation_matrix_radiance(all_covariance_RGB, x1=data_all[3], y1=data_all[4], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=data_all[1], y2=data_all[7], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=saveto_correlation)
 
         # Add Rref to covariance matrix
         all_covariance_RGB_Rref = hc.add_Rref_to_covariance(all_covariance_RGB)
@@ -171,5 +192,4 @@ for folder_main in folders:
             UTC = hc.UTC_timestamp(water_exif)
 
         # Write the result to file
-        saveto = data_path.with_name(data_path.stem + "_jpeg.csv")
-        hc.write_results(saveto, UTC, all_mean, all_covariance_RGB, Ed, Ed_covariance, R_rs, R_rs_covariance, bandratios, bandratios_covariance, R_rs_xy, R_rs_xy_covariance, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range)
+        hc.write_results(saveto_results, UTC, all_mean, all_covariance_RGB, Ed, Ed_covariance, R_rs, R_rs_covariance, bandratios, bandratios_covariance, R_rs_xy, R_rs_xy_covariance, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range)

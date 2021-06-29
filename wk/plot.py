@@ -112,7 +112,7 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto=None, normalisation=2
 
     # Plot the original images in the left-most column
     for ax, image in zip(axs[:,0], [water_data[0], sky_data[0], card_data[0]]):
-        ax.imshow(image)
+        ax.imshow(image.astype(np.uint8))
         ax.tick_params(bottom=False, labelbottom=False)
 
     # Loop over the columns representing processing steps
