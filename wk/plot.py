@@ -86,7 +86,7 @@ def histogram_raw(water_data, sky_data, card_data, saveto=None, camera=None):
                     data_RGBG = camera.demosaick(data)
 
                 # Combine the G and G2 channels
-                data_RGB = hc.RGBG2_to_RGB(data_RGBG)[0]
+                data_RGB = hc.convert_RGBG2_to_RGB_without_average(data_RGBG)[0]
 
                 # Plot the RGB histograms as lines on top of the black overall histograms
                 _histogram_RGB(data_RGB, ax, bins=bins)

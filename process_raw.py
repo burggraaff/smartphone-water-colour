@@ -108,13 +108,8 @@ for folder_main in folders:
         plot.plot_correlation_matrix_radiance(all_covariance, x1=data_all[4], y1=data_all[5], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=data_all[1], y2=data_all[9], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_raw.pdf")
 
         # Average G and G2
-        M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
-                                   [0, 0.5, 0, 0.5],
-                                   [0, 0  , 1, 0  ]])
-        M_RGBG2_to_RGB_all_L = hc.block_diag(*[M_RGBG2_to_RGB]*3)  # Repeat three times along the diagonal, 0 elsewhere
-
-        all_mean_RGB = M_RGBG2_to_RGB_all_L @ all_mean
-        all_covariance_RGB = M_RGBG2_to_RGB_all_L @ all_covariance @ M_RGBG2_to_RGB_all_L.T
+        all_mean_RGB = hc.convert_RGBG2_to_RGB(all_mean)
+        all_covariance_RGB = hc.convert_RGBG2_to_RGB_covariance(all_covariance)
         water_mean_RGB, sky_mean_RGB, card_mean_RGB = hc.split_combined_radiances(all_mean_RGB)
 
         # Add Rref to covariance matrix

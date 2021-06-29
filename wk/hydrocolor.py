@@ -11,6 +11,10 @@ from scipy.linalg import block_diag
 from . import colours
 from . import statistics as stats
 
+# Matrix for converting RGBG2 to RGB data
+M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
+                           [0, 0.5, 0, 0.5],
+                           [0, 0  , 1, 0  ]])
 
 def add_Rref_to_covariance(covariance, Rref_uncertainty=0.01):
     """
@@ -154,9 +158,43 @@ def central_slice_raw(*images, size=box_size):
     return images_cut
 
 
-def RGBG2_to_RGB(*arrays):
+def convert_RGBG2_to_RGB_without_average(*arrays):
+    """
+    Convert RGBG2 arrays to RGB, keeping all pixels.
+    This concatenates G and G2 rather than averaging them.
+    """
     RGB_lists = [[array[0].ravel(), array[1::2].ravel(), array[2].ravel()] for array in arrays]
     return RGB_lists
+
+
+def convert_RGBG2_to_RGB(data):
+    """
+    Convert RGBG2 data to RGB by matrix multiplication.
+    """
+    # Find out how many RGBG2 repetitions are in the data
+    # For example, if the data have a shape of (12, N) then there
+    # are three sets of RGBG2 data (e.g. Lu, Lsky, Ld).
+    # Then repeat the conversion matrix that many times.
+    nr_reps = len(data)//4
+    M_RGBG2_to_RGB_repeated = block_diag(*[M_RGBG2_to_RGB]*nr_reps)
+
+    # Convert to RGB
+    RGB_data = M_RGBG2_to_RGB_repeated @ data
+    return RGB_data
+
+
+def convert_RGBG2_to_RGB_covariance(covariance):
+    """
+    Convert an RGBG2 covariance matrix to RGB by matrix multiplication.
+    """
+    # Find out how many RGBG2 repetitions are in the covariance matrix.
+    # See convert_RGBG2_to_RGB for more information.
+    nr_reps = len(covariance)//4
+    M_RGBG2_to_RGB_repeated = block_diag(*[M_RGBG2_to_RGB]*nr_reps)
+
+    # Convert to RGB
+    RGB_covariance = M_RGBG2_to_RGB_repeated @ covariance @ M_RGBG2_to_RGB_repeated.T
+    return RGB_covariance
 
 
 def effective_wavelength(calibration_folder):
