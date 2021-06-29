@@ -21,12 +21,20 @@ def weighted_median(x, w=None):
         return weighted_median_original(x, w)
 
 
+def uncertainty_from_covariance(covariance):
+    """
+    Calculate a naive uncertainty estimate from a covariance matrix.
+    This is just the square root of the diagonal.
+    """
+    return np.sqrt(np.diag(covariance))
+
+
 def correlation_from_covariance(covariance):
     """
     Convert a covariance matrix into a correlation matrix
     https://gist.github.com/wiso/ce2a9919ded228838703c1c7c7dad13b
     """
-    v = np.sqrt(np.diag(covariance))
+    v = uncertainty_from_covariance(covariance)
     outer_v = np.outer(v, v)
     correlation = covariance / outer_v
     correlation[covariance == 0] = 0

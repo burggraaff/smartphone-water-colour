@@ -126,7 +126,7 @@ for folder_main in folders:
         print("Calculated remote sensing reflectances")
 
         # Derive naive uncertainty and correlation from covariance
-        R_rs_uncertainty = np.sqrt(np.diag(R_rs_covariance))  # Uncertainty per band, ignoring covariance
+        R_rs_uncertainty = stats.uncertainty_from_covariance(R_rs_covariance)  # Uncertainty per band, ignoring covariance
 
 
         # HydroColor
@@ -140,7 +140,7 @@ for folder_main in folders:
         bandratios = hc.calculate_bandratios(*R_rs)
         bandratios_covariance = hc.calculate_bandratios_covariance(*R_rs, R_rs_covariance)
 
-        bandratios_uncertainty = np.sqrt(np.diag(bandratios_covariance))
+        bandratios_uncertainty = stats.uncertainty_from_covariance(bandratios_covariance)
         bandratios_correlation = stats.correlation_from_covariance(bandratios_covariance)
         print(f"Calculated average band ratios: R_rs (G/R) = {bandratios[0]:.2f} +- {bandratios_uncertainty[0]:.2f}    R_rs (G/B) = {bandratios[1]:.2f} +- {bandratios_uncertainty[1]:.2f}    (correlation r = {bandratios_correlation[0,1]:.2f})")
 
@@ -160,11 +160,13 @@ for folder_main in folders:
         water_xy_covariance = wa.convert_XYZ_to_xy_covariance(all_mean_XYZ_covariance[:3,:3], water_XYZ)
         R_rs_xy_covariance = wa.convert_XYZ_to_xy_covariance(R_rs_XYZ_covariance, R_rs_XYZ)
 
-        # Calculate correlation
+        # Calculate correlation, uncertainty
         R_rs_xy_correlation = stats.correlation_from_covariance(R_rs_xy_covariance)
+        R_rs_xy_uncertainty = stats.uncertainty_from_covariance(R_rs_xy_covariance)
         water_xy_correlation = stats.correlation_from_covariance(water_xy_covariance)
+        water_xy_uncertainty = stats.uncertainty_from_covariance(water_xy_covariance)
 
-        print("Converted to xy:", f"xy R_rs = {R_rs_xy} +- {np.sqrt(np.diag(R_rs_xy_covariance))} (r = {R_rs_xy_correlation[0,1]:.2f})", f"xy L_u  = {water_xy} +- {np.sqrt(np.diag(water_xy_covariance))} (r = {water_xy_correlation[0,1]:.2f})", sep="\n")
+        print("Converted to xy:", f"xy R_rs = {R_rs_xy} +- {R_rs_xy_uncertainty} (r = {R_rs_xy_correlation[0,1]:.2f})", f"xy L_u  = {water_xy} +- {water_xy_uncertainty} (r = {water_xy_correlation[0,1]:.2f})", sep="\n")
 
         # Plot chromaticity
         plot.plot_xy_on_gamut_covariance(R_rs_xy, R_rs_xy_covariance)
