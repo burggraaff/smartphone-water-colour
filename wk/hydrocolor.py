@@ -67,20 +67,6 @@ def R_RS(L_u, L_s, L_d, rho=0.028, R_ref=0.18):
     return (L_u - rho * L_s) / ((np.pi / R_ref) * L_d)
 
 
-def R_RS_error(L_u, L_s, L_d, L_u_err, L_s_err, L_d_err, rho=0.028, R_ref=0.18):
-    """
-    Calculate the uncertainty in R_rs from the uncertainty in L_u, L_s, L_d.
-    Note this does NOT account for uncertainty in R_ref nor covariance.
-    """
-    # Calculate squared errors individually
-    R_rs_err_water = L_u_err**2 * ((0.18/np.pi) * L_d**-1)**2
-    R_rs_err_sky = L_s_err**2 * ((0.18/np.pi) * 0.028 * L_d**-1)**2
-    R_rs_err_card = L_d_err**2 * ((0.18/np.pi) * (L_u - 0.028 * L_s) * L_d**-2)**2
-
-    R_rs_err = np.sqrt(R_rs_err_water + R_rs_err_sky + R_rs_err_card)
-    return R_rs_err
-
-
 def R_rs_covariance(L_Rref_covariance, R_rs, L_d, rho=0.028, R_ref=0.18):
     """
     Propagate the covariance in radiance and R_ref into a covariance matrix
