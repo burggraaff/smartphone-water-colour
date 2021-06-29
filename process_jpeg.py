@@ -62,15 +62,16 @@ for folder_main in folders:
         # Optional: Linearise JPEG data
         if linearise:
             images_jpeg = [sRGB_inverse(image, normalization=255) for image in images_jpeg]
-            saveto_stats = data_path/"statistics_jpeg_linear.pdf"
-            saveto_correlation = data_path/"correlation_jpeg_linear.pdf"
-            saveto_results = data_path.with_name(data_path.stem + "_jpeg_linear.csv")
+            sub = "_linear"
             print("Linearised JPEG data")
         else:
-            saveto_stats = data_path/"statistics_jpeg.pdf"
-            saveto_correlation = data_path/"correlation_jpeg.pdf"
-            saveto_results = data_path.with_name(data_path.stem + "_jpeg.csv")
+            sub = ""
             print("Not linearising JPEG data")
+
+        # Filenames to save results to
+        saveto_stats = data_path/f"statistics_jpeg{sub}.pdf"
+        saveto_correlation = data_path/f"correlation_jpeg{sub}.pdf"
+        saveto_results = data_path.with_name(data_path.stem + f"_jpeg{sub}.csv")
 
         # Load EXIF data
         water_exif = hc.load_exif(image_paths[0])
