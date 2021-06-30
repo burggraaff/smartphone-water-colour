@@ -24,7 +24,6 @@ np.set_printoptions(precision=2)
 from sys import argv
 from spectacle import io, load_camera
 from spectacle.linearity import sRGB_inverse
-from os import walk
 
 from wk import hydrocolor as hc, wacodi as wa, plot, statistics as stats
 
@@ -47,12 +46,8 @@ effective_bandwidths = camera.spectral_bands[:3]  # No G2 band in JPEG data
 # Find the effective wavelength corresponding to the RGB bands
 RGB_wavelengths = hc.effective_wavelength(calibration_folder)
 
-for folder_main in folders:
-    for tup in walk(folder_main):
-        folder = io.Path(tup[0])
-        data_path = folder/pattern
-        if not data_path.exists():
-            continue
+for data_path in hc.generate_folders(folders, pattern):
+        print("\n  ", data_path)
 
         # Load data
         image_paths = hc.generate_paths(data_path, ".JPG")
@@ -187,7 +182,7 @@ for folder_main in folders:
 
         # Create a timestamp from EXIF (assume time zone UTC+2)
         # Time zone: UTC+2 for Balaton data, UTC for NZ data
-        if folder_main.stem == "NZ":
+        if any("NZ" in path.stem for path in data_path.parents):
             UTC = hc.UTC_timestamp(water_exif, conversion_to_utc=hc.timedelta(hours=0))
         else:
             UTC = hc.UTC_timestamp(water_exif)

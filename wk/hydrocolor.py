@@ -7,6 +7,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from astropy import table
 from scipy.linalg import block_diag
+from os import walk
 
 from . import colours
 from . import statistics as stats
@@ -110,6 +111,20 @@ def data_type_RGB(filename):
             return "JPEG"
     else:
         raise ValueError(f"File `{filename}` does not match known patterns ('raw', 'jpeg', 'jpeg_linear').")
+
+
+def generate_folders(folders, pattern):
+    """
+    Given a list of folders and a pattern, look for subfolders in `folders`
+    that match the given pattern.
+    Example:
+        for folder in generate_folders("water-colour-data/Balaton", "iPhone_SE")
+    """
+    for folder_main in folders:
+        for folder, *_ in walk(folder_main):
+            data_path = io.Path(folder) / pattern
+            if data_path.exists():
+                yield data_path
 
 
 def generate_paths(data_path, extension=".dng"):
