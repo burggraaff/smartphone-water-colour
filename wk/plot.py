@@ -498,8 +498,8 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
 
     # Plot the data
     fig, axs = plt.subplots(ncols=2, sharex=True, sharey=True, figsize=(4,2), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
-    correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[0], xlabel=f"{quantity} G/B\n({xlabel})", ylabel=f"{quantity} G/B\n({ylabel})", equal_aspect=True)
-    correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[1], xlabel=f"{quantity} G/R\n({xlabel})", ylabel=f"{quantity} G/R\n({ylabel})", equal_aspect=True)
+    correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[0], xlabel=f"{quantity} G/B\n{xlabel}", ylabel=f"{quantity} G/B\n{ylabel}", equal_aspect=True)
+    correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[1], xlabel=f"{quantity} G/R\n{xlabel}", ylabel=f"{quantity} G/R\n{ylabel}", equal_aspect=True)
 
     # Axis settings
     xmin, xmax = np.nanmin([x_GR, x_GB])-0.05, np.nanmax([x_GR, x_GB])+0.05
