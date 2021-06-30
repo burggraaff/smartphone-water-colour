@@ -181,11 +181,7 @@ for data_path in hc.generate_folders(folders, pattern):
 
 
     # Create a timestamp from EXIF (assume time zone UTC+2)
-    # Time zone: UTC+2 for Balaton data, UTC for NZ data
-    if any("NZ" in path.stem for path in data_path.parents):
-        UTC = hc.UTC_timestamp(water_exif, conversion_to_utc=hc.timedelta(hours=0))
-    else:
-        UTC = hc.UTC_timestamp(water_exif)
+    UTC = hc.UTC_timestamp(water_exif, data_path)
 
     # Write the result to file
     hc.write_results(saveto_results, UTC, all_mean, all_covariance_RGB, Ed, Ed_covariance, R_rs, R_rs_covariance, bandratios, bandratios_covariance, R_rs_xy, R_rs_xy_covariance, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range)

@@ -284,11 +284,18 @@ def iso_timestamp(utc):
     return datetime.fromtimestamp(utc).isoformat()
 
 
-def UTC_timestamp(water_exif, conversion_to_utc=timedelta(hours=2)):
+def UTC_timestamp(water_exif, data_path=""):
     try:
         timestamp = water_exif["EXIF DateTimeOriginal"].values
     except KeyError:
         timestamp = water_exif["Image DateTimeOriginal"].values
+
+    # Time zone: UTC+2 for Balaton data, UTC for NZ data
+    if any("NZ" in path.stem for path in data_path.parents):
+        conversion_to_utc = timedelta(hours=0)
+    else:
+        conversion_to_utc = timedelta(hours=2)
+
     # Convert to ISO format
     timestamp_ISO = timestamp[:4] + "-" + timestamp[5:7] + "-" + timestamp[8:10] + "T" + timestamp[11:]
     UTC = datetime.fromisoformat(timestamp_ISO)

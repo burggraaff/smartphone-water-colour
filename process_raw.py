@@ -182,11 +182,7 @@ for data_path in hc.generate_folders(folders, pattern):
 
 
     # Create a timestamp from EXIF (assume time zone UTC+2)
-    # Time zone: UTC+2 for Balaton data, UTC for NZ data
-    if any("NZ" in path.stem for path in data_path.parents):
-        UTC = hc.UTC_timestamp(water_exif, conversion_to_utc=hc.timedelta(hours=0))
-    else:
-        UTC = hc.UTC_timestamp(water_exif)
+    UTC = hc.UTC_timestamp(water_exif, data_path)
 
     # Write the result to file
     saveto = data_path.with_name(data_path.stem + "_raw.csv")
