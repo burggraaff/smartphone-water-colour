@@ -183,7 +183,7 @@ def _plot_diagonal(ax=None, **kwargs):
     if ax is None:
         ax = plt.gca()
 
-    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', zorder=10)
+    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', zorder=10, **kwargs)
 
 
 def _plot_linear_regression(func, ax=None, color="k", x=np.array([-1000., 1000.]), **kwargs):
@@ -210,6 +210,23 @@ def _plot_linear_regression_RGB(funcs, *args, **kwargs):
     path_effects_RGBlines = [pe.Stroke(linewidth=3, foreground="k"), pe.Normal()]
     for func, c in zip(funcs, RGB_OkabeIto):
         _plot_linear_regression(func, *args, color=c, path_effects=path_effects_RGBlines, **kwargs)
+
+
+def _plot_statistics(x, y, ax=None, **kwargs):
+    """
+    Plot statistics about the data into a text box in the top right corner.
+    Statistics: r, MAD, zeta, SSPB.
+    """
+    if ax is None:
+        ax = plt.gca()
+
+    # Calculate the statistics
+    statistics, text = stats.full_statistics_for_title(x, y)
+
+    # Plot the text box
+    bbox = {"boxstyle": "round", "facecolor": "white"}
+    ax.text(0.05, 0.95, text, transform=ax.transAxes, verticalalignment="top", multialignment="right", bbox=bbox, **kwargs)
+
 
 
 def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax=None, equal_aspect=False, minzero=False, setmax=True, regression=False, saveto=None):
@@ -377,6 +394,7 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, ax=None, xerrlabel=None, 
         _saveshow(saveto, bbox_inches="tight")
 
 
+
 def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
@@ -404,13 +422,8 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     axs[1].axhline(0, c='k')
 
     # Get statistics for title
-    MAD_all, MAD_RGB = stats.statistic_RGB(stats.MAD, x, y, datalabel, datalabel)
-    MAPD_all, MAPD_RGB = stats.statistic_RGB(stats.MAPD, x, y, datalabel, datalabel)
-    r_all, r_RGB = stats.statistic_RGB(stats.correlation, x, y, datalabel, datalabel)
-
     x_all, y_all = stats.ravel_table(x, "R_rs ({c})"), stats.ravel_table(y, "R_rs ({c})")
-    statistics_all, title = stats.full_statistics_for_title(x_all, y_all)
-    axs[0].set_title(title)
+    _plot_statistics(x_all, y_all, axs[0])
 
     # Labels
     axs[1].set_xlabel(xlabel)
@@ -497,7 +510,7 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
         x_err_GB = y_err_GB = x_err_GR = y_err_GR = None
 
     # Plot the data
-    fig, axs = plt.subplots(ncols=2, sharex=True, sharey=True, figsize=(4,2), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
+    fig, axs = plt.subplots(nrows=2, sharex=True, sharey=True, figsize=(3,4), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
     correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[0], xlabel=f"{quantity} G/B\n{xlabel}", ylabel=f"{quantity} G/B\n{ylabel}", equal_aspect=True)
     correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[1], xlabel=f"{quantity} G/R\n{xlabel}", ylabel=f"{quantity} G/R\n{ylabel}", equal_aspect=True)
 
@@ -507,14 +520,14 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
     axs[0].set_xlim(xmin, xmax)
     axs[0].set_ylim(ymin, ymax)
 
-    # Switch ytick labels on the right plot to the right
-    axs[1].tick_params(axis="y", left=False, labelleft=False, right=True, labelright=True)
-    axs[1].yaxis.set_label_position("right")
+    # Switch xtick labels on the bottom plot to the top
+    axs[0].tick_params(axis="x", bottom=False, labelbottom=False, top=True, labeltop=True)
+    axs[0].xaxis.set_label_position("top")
 
     # Calculate statistics
     for ax, x, y in zip (axs, [x_GR, x_GB], [y_GR, y_GB]):
-        _, statistic_text = stats.full_statistics_for_title(x, y)
-        ax.set_title(statistic_text, fontdict={"fontsize": "small"})  # Replace old title
+        ax.set_title("")
+        _plot_statistics(x, y, ax, fontsize=8)
 
     # Save the result
     _saveshow(saveto, bbox_inches="tight")

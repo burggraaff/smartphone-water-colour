@@ -175,5 +175,6 @@ def full_statistics_for_title(x, y):
     zeta, and SSPB between x and y, and format them nicely.
     """
     r, mad, z, sspb = correlation(x, y), MAD(x, y), zeta(x, y), SSPB(x, y)
-    statistic_text = f"r = {r:.2g}     MAD = {mad:.2g}   \n$\zeta$ = {z:.2g}%   SSPB = {sspb:+.2g}%"
+    parts = [f"r = {r:.2g}", f"MAD = {mad:.2g}", f"$\zeta$ = {z:.2g}%", f"SSPB = {sspb:+.2g}%"]
+    statistic_text = "\n".join(parts)
     return [r, mad, z, sspb], statistic_text
