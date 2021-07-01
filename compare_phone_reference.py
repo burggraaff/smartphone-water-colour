@@ -162,16 +162,19 @@ for key in keys_uncertainties:
     data_reference[key][indices_single_match] = np.nanmedian(data_reference[key][indices_multiple_matches])
 
 # Add band ratios to reference data
-bandratio_GR, bandratio_GB = hc.calculate_bandratios(data_reference["R_rs (R)"], data_reference["R_rs (G)"], data_reference["R_rs (B)"])
+bandratio_GR, bandratio_GB, bandratio_RB = hc.calculate_bandratios(data_reference["R_rs (R)"], data_reference["R_rs (G)"], data_reference["R_rs (B)"])
 bandratio_GR.name = "R_rs (G/R)"
 bandratio_GB.name = "R_rs (G/B)"
+bandratio_RB.name = "R_rs (R/B)"
 
 bandratio_GR_err = bandratio_GR * np.sqrt(data_reference["R_rs_err (G)"]**2/data_reference["R_rs (G)"]**2 + data_reference["R_rs_err (R)"]**2/data_reference["R_rs (R)"]**2)
 bandratio_GB_err = bandratio_GB * np.sqrt(data_reference["R_rs_err (G)"]**2/data_reference["R_rs (G)"]**2 + data_reference["R_rs_err (B)"]**2/data_reference["R_rs (B)"]**2)
+bandratio_RB_err = bandratio_RB * np.sqrt(data_reference["R_rs_err (R)"]**2/data_reference["R_rs (R)"]**2 + data_reference["R_rs_err (B)"]**2/data_reference["R_rs (B)"]**2)
 bandratio_GR_err.name = "R_rs_err (G/R)"
 bandratio_GB_err.name = "R_rs_err (G/B)"
+bandratio_RB_err.name = "R_rs_err (R/B)"
 
-data_reference.add_columns([bandratio_GR, bandratio_GR_err, bandratio_GB, bandratio_GB_err])
+data_reference.add_columns([bandratio_GR, bandratio_GR_err, bandratio_RB, bandratio_GB, bandratio_GB_err, bandratio_RB_err])
 
 # Correlation plot: Radiances and irradiance
 plot.correlation_plot_radiance(data_reference, data_phone, keys=["Lu", "Lsky"], xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_radiance.pdf")
