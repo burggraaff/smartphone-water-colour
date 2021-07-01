@@ -523,7 +523,7 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
         x_err_GB = y_err_GB = x_err_GR = y_err_GR = None
 
     # Plot the data
-    fig, axs = plt.subplots(ncols=2, sharex=True, sharey=True, figsize=(col1, 2), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
+    fig, axs = plt.subplots(nrows=2, sharex=True, sharey=True, figsize=(col1, 4), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
     correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[0], xlabel=f"{quantity} G/B\n{xlabel}", ylabel=f"{quantity} G/B\n{ylabel}", equal_aspect=True)
     correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[1], xlabel=f"{quantity} G/R\n{xlabel}", ylabel=f"{quantity} G/R\n{ylabel}", equal_aspect=True)
 
@@ -537,8 +537,8 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
         ax.locator_params(nbins=4)
 
     # Switch xtick labels on the bottom plot to the top
-    axs[1].tick_params(axis="y", left=False, labelleft=False, right=True, labelright=True)
-    axs[1].yaxis.set_label_position("right")
+    axs[0].tick_params(axis="x", bottom=False, labelbottom=False, top=True, labeltop=True)
+    axs[0].xaxis.set_label_position("top")
 
     # Calculate statistics
     for ax, x, y, xerr, yerr in zip (axs, [x_GR, x_GB], [y_GR, y_GB], [x_err_GR, x_err_GB], [y_err_GR, y_err_GB]):
