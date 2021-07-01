@@ -60,11 +60,11 @@ def max_correlation_in_covariance_matrix(covariance):
     return max_correlation
 
 
-def MAD(x, y):
+def MAD(x, y, w=None):
     """
     Median absolute deviation (sometimes MAE) between data sets x and y.
     """
-    return np.nanmedian(np.abs(y-x))
+    return weighted_median(np.abs(y-x), w=w)
 
 
 def MAPD(x, y):
@@ -179,7 +179,7 @@ def full_statistics_for_title(x, y, xerr=None, yerr=None):
         weights_relative = 1/(xerr**2/x**2 + yerr**2/y**2)
     else:
         weights = weights_relative = None
-    r, mad, z, sspb = correlation(x, y, w=weights), MAD(x, y), zeta(x, y), SSPB(x, y)
+    r, mad, z, sspb = correlation(x, y, w=weights), MAD(x, y, w=weights), zeta(x, y), SSPB(x, y)
     parts = [f"r = {r:.2g}", f"MAD = {mad:.2g}", f"$\zeta$ = {z:.2g}%", f"SSPB = {sspb:+.2g}%"]
     statistic_text = "\n".join(parts)
     return [r, mad, z, sspb], statistic_text
