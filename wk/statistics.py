@@ -169,12 +169,17 @@ def linear_regression(x, y, xerr=0, yerr=0):
     return params, params_cov, output_function
 
 
-def full_statistics_for_title(x, y):
+def full_statistics_for_title(x, y, xerr=None, yerr=None):
     """
     Calculate the Pearson correlation r, median absolute deviation (MAD),
     zeta, and SSPB between x and y, and format them nicely.
     """
-    r, mad, z, sspb = correlation(x, y), MAD(x, y), zeta(x, y), SSPB(x, y)
+    if xerr is not None and yerr is not None:
+        weights = 1/(xerr**2 + yerr**2)
+        weights_relative = 1/(xerr**2/x**2 + yerr**2/y**2)
+    else:
+        weights = weights_relative = None
+    r, mad, z, sspb = correlation(x, y, w=weights), MAD(x, y), zeta(x, y), SSPB(x, y)
     parts = [f"r = {r:.2g}", f"MAD = {mad:.2g}", f"$\zeta$ = {z:.2g}%", f"SSPB = {sspb:+.2g}%"]
     statistic_text = "\n".join(parts)
     return [r, mad, z, sspb], statistic_text

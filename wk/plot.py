@@ -216,7 +216,7 @@ def _plot_linear_regression_RGB(funcs, *args, **kwargs):
         _plot_linear_regression(func, *args, color=c, path_effects=path_effects_RGBlines, **kwargs)
 
 
-def _plot_statistics(x, y, ax=None, **kwargs):
+def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, **kwargs):
     """
     Plot statistics about the data into a text box in the top right corner.
     Statistics: r, MAD, zeta, SSPB.
@@ -225,7 +225,7 @@ def _plot_statistics(x, y, ax=None, **kwargs):
         ax = plt.gca()
 
     # Calculate the statistics
-    statistics, text = stats.full_statistics_for_title(x, y)
+    statistics, text = stats.full_statistics_for_title(x, y, xerr, yerr)
 
     # Plot the text box
     bbox = {"boxstyle": "round", "facecolor": "white"}
@@ -435,7 +435,8 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
 
     # Add statistics in a text box
     x_all, y_all = stats.ravel_table(x, datalabel), stats.ravel_table(y, datalabel)
-    _plot_statistics(x_all, y_all, axs[0])
+    x_err_all, y_err_all = stats.ravel_table(x, errlabel), stats.ravel_table(y, errlabel)
+    _plot_statistics(x_all, y_all, axs[0], xerr=x_err_all, yerr=y_err_all)
 
     # Labels
     axs[1].set_xlabel(xlabel)
@@ -540,9 +541,9 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
     axs[1].yaxis.set_label_position("right")
 
     # Calculate statistics
-    for ax, x, y in zip (axs, [x_GR, x_GB], [y_GR, y_GB]):
+    for ax, x, y, xerr, yerr in zip (axs, [x_GR, x_GB], [y_GR, y_GB], [x_err_GR, x_err_GB], [y_err_GR, y_err_GB]):
         ax.set_title("")
-        _plot_statistics(x, y, ax, fontsize=8)
+        _plot_statistics(x, y, ax, xerr=xerr, yerr=yerr, fontsize=8)
 
     # Save the result
     _saveshow(saveto, bbox_inches="tight")
