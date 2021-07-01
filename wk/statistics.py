@@ -80,20 +80,20 @@ def MAPD(x, y):
     return MAD_percent
 
 
-def zeta(x, y, w=None):
+def zeta(x, y):
     """
     Log accuracy ratio between data sets x and y.
     """
     logR = np.abs(np.log(y/x))
-    zeta = 100 * (np.exp(weighted_median(logR, w=w)) - 1)
+    zeta = 100 * (np.exp(np.nanmedian(logR)) - 1)
     return zeta
 
 
-def SSPB(x, y, w=None):
+def SSPB(x, y):
     """
     Symmetric signed percentage bias between data sets x and y.
     """
-    MlogQ = weighted_median(np.log(y/x), w=w)
+    MlogQ = np.nanmedian(np.log(y/x))
     SSPB = 100 * np.sign(MlogQ) * (np.exp(np.abs(MlogQ)) - 1)
     return SSPB
 
@@ -179,7 +179,7 @@ def full_statistics_for_title(x, y, xerr=None, yerr=None):
         weights_relative = 1/(xerr**2/x**2 + yerr**2/y**2)
     else:
         weights = weights_relative = None
-    r, mad, z, sspb = correlation(x, y, w=weights), MAD(x, y, w=weights), zeta(x, y, w=weights_relative), SSPB(x, y, w=weights_relative)
+    r, mad, z, sspb = correlation(x, y, w=weights), MAD(x, y, w=weights), zeta(x, y), SSPB(x, y)
     parts = [f"r = {r:.2g}", f"MAD = {mad:.2g}", f"$\zeta$ = {z:.2g}%", f"SSPB = {sspb:+.2g}%"]
     statistic_text = "\n".join(parts)
     return [r, mad, z, sspb], statistic_text
