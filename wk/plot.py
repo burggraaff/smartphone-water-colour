@@ -24,6 +24,10 @@ persr = "[sr$^{-1}$]"
 # Dictionary mapping keys to LaTeX strings
 keys_latex = {"Lu": "$L_u$", "Lsky": "$L_{sky}$", "Ld": "$L_d$", "Ed": "$E_d$", "L": "$L$", "R_rs": "$R_{rs}$"}
 
+# Frontiers column widths
+col1 = 85/25.4
+col2 = 180/25.4
+
 
 def _histogram_axis_settings(axs, column_labels):
     """
@@ -146,7 +150,7 @@ def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=
     Plot RGB R_rs data.
     """
     # Create the figure
-    plt.figure(figsize=(3,2))
+    plt.figure(figsize=(col1,2))
 
     # Plot the RGB bands
     for j, c in enumerate(RGB_OkabeIto[:3]):
@@ -236,7 +240,7 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
     # If no Axes object was given, make a new one
     if ax is None:
         newaxes = True
-        plt.figure(figsize=(3,3))
+        plt.figure(figsize=(col1,col1))
         ax = plt.gca()
     else:
         newaxes = False
@@ -374,7 +378,7 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, ax=None, xerrlabel=None, 
     # Create figure if none was given
     if ax is None:
         newfig = True
-        plt.figure(figsize=(4,4), tight_layout=True)
+        plt.figure(figsize=(col1,col1), tight_layout=True)
         ax = plt.gca()
     else:
         newfig = False
@@ -417,7 +421,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     residuals = stats.residual_table(x, y, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel)
 
     # Create figure to hold plot
-    fig, axs = plt.subplots(figsize=(4,5), nrows=2, sharex=True, gridspec_kw={"height_ratios": [3,1]})
+    fig, axs = plt.subplots(figsize=(col1,5), nrows=2, sharex=True, gridspec_kw={"height_ratios": [3,1]})
 
     # Plot in both panels
     _correlation_plot_errorbars_RGB(axs[0], x, y, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel, equal_aspect=True, regression=regression)
@@ -454,7 +458,7 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
     nr_panels = len(keys) + combine
 
     # Create the figure and panels
-    fig, axs = plt.subplots(nrows=nr_panels, figsize=(4, nr_panels*3), sharex=True, sharey=True, gridspec_kw={"hspace": 0.05, "wspace": 0})
+    fig, axs = plt.subplots(nrows=nr_panels, figsize=(col1, nr_panels*2.4), sharex=True, sharey=True, gridspec_kw={"hspace": 0.05, "wspace": 0})
 
     # Plot each key
     for ax, key in zip(axs, keys):
@@ -494,7 +498,7 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
     axs[-1].set_xlabel(xlabel)
     for ax, key in zip(axs, keys):
         ax.set_title(None)  # Remove default titles
-        ax.text(0.05, 0.9, keys_latex[key], transform=ax.transAxes, fontsize=14)
+        ax.text(0.05, 0.95, keys_latex[key], transform=ax.transAxes, fontsize=14, verticalalignment="top")
 
     # Save the result
     _saveshow(saveto, bbox_inches="tight")
@@ -518,7 +522,7 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
         x_err_GB = y_err_GB = x_err_GR = y_err_GR = None
 
     # Plot the data
-    fig, axs = plt.subplots(ncols=2, sharex=True, sharey=True, figsize=(4, 2), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
+    fig, axs = plt.subplots(ncols=2, sharex=True, sharey=True, figsize=(col1, 2), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
     correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[0], xlabel=f"{quantity} G/B\n{xlabel}", ylabel=f"{quantity} G/B\n{ylabel}", equal_aspect=True)
     correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[1], xlabel=f"{quantity} G/R\n{xlabel}", ylabel=f"{quantity} G/R\n{ylabel}", equal_aspect=True)
 
@@ -577,7 +581,7 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
     # Calculate the correlation matrix
     correlation_matrix = stats.correlation_from_covariance(covariance_matrix)
 
-    fig, axs = plt.subplots(ncols=3, figsize=(7,3), dpi=600)
+    fig, axs = plt.subplots(ncols=3, figsize=(col2,3), dpi=600)
 
     divider = make_axes_locatable(axs[0])
     cax = divider.append_axes('bottom', size='10%', pad=0.3)
@@ -631,7 +635,7 @@ def plot_xy_on_gamut_covariance(xy, xy_covariance, covariance_scale=1, saveto=No
     """
     Plot xy coordinates on the gamut including their covariance ellipse.
     """
-    fig = plt.figure(figsize=(3,3))
+    fig = plt.figure(figsize=(col1,col1))
     plot_flat_gamut(plot_planckian_locus=False, axes_labels=("", ""))
     _confidence_ellipse(xy, xy_covariance, plt.gca(), covariance_scale=covariance_scale, edgecolor="k", fill=False, linestyle="--")
     plt.scatter(*xy, c="k", s=5)
@@ -655,7 +659,7 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     ylabel_FU = f"{ylabel}\nForel-Ule index"
 
     # Create figure
-    fig, ax = plt.subplots(figsize=(4,4))
+    fig, ax = plt.subplots(figsize=(col1,col1))
 
     # Plot the data
     correlation_plot_simple(x, y, xerr=xerr, yerr=yerr, ax=ax, equal_aspect=True)
