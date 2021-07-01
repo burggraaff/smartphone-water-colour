@@ -433,8 +433,8 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     _plot_diagonal(axs[0])
     axs[1].axhline(0, c='k')
 
-    # Get statistics for title
-    x_all, y_all = stats.ravel_table(x, "R_rs ({c})"), stats.ravel_table(y, "R_rs ({c})")
+    # Add statistics in a text box
+    x_all, y_all = stats.ravel_table(x, datalabel), stats.ravel_table(y, datalabel)
     _plot_statistics(x_all, y_all, axs[0])
 
     # Labels
