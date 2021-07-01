@@ -549,7 +549,7 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
     _saveshow(saveto, bbox_inches="tight")
 
 
-def density_scatter(x, y, ax = None, sort = True, bins = 20, **kwargs):
+def density_scatter(x, y, ax=None, sort=True, bins=20, **kwargs):
     # https://stackoverflow.com/a/53865762
     """
     Scatter plot colored by 2d histogram
