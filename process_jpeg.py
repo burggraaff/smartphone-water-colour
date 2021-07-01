@@ -135,10 +135,7 @@ for data_path in hc.generate_folders(folders, pattern):
     # Calculate band ratios
     bandratios = hc.calculate_bandratios(*R_rs)
     bandratios_covariance = hc.calculate_bandratios_covariance(*R_rs, R_rs_covariance)
-
-    bandratios_uncertainty = stats.uncertainty_from_covariance(bandratios_covariance)
-    bandratios_correlation = stats.correlation_from_covariance(bandratios_covariance)
-    print(f"Calculated average band ratios: R_rs (G/R) = {bandratios[0]:.2f} +- {bandratios_uncertainty[0]:.2f}    R_rs (G/B) = {bandratios[1]:.2f} +- {bandratios_uncertainty[1]:.2f}    (correlation r = {bandratios_correlation[0,1]:.2f})")
+    hc.print_bandratios(bandratios, bandratios_covariance)
 
 
     # WACODI

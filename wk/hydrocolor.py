@@ -17,6 +17,9 @@ M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
                            [0, 0.5, 0, 0.5],
                            [0, 0  , 1, 0  ]])
 
+# Labels for band ratios, in the correct order
+bandratio_labels = ["G/R", "G/B", "R/B"]
+
 def add_Rref_to_covariance(covariance, Rref_uncertainty=0.01):
     """
     Add a column and row for R_ref to a covariance matrix.
@@ -252,12 +255,13 @@ def get_radiances(data, parameters=["Lu", "Lsky", "Ld"]):
 
 def calculate_bandratios(data_R, data_G, data_B):
     """
-    Calculate the G/B and G/R band ratios between given data.
+    Calculate the G/B, G/R, and R/B band ratios between given data.
     """
-    rho  = data_G / data_R  # G/R
-    beta = data_G / data_B  # G/B
+    GR = data_G / data_R  # G/R
+    GB = data_G / data_B  # G/B
+    RB = data_R / data_B  # R/B
 
-    return rho, beta
+    return GR, GB, RB
 
 
 def calculate_bandratios_covariance(data_R, data_G, data_B, data_covariance):
@@ -265,16 +269,41 @@ def calculate_bandratios_covariance(data_R, data_G, data_B, data_covariance):
     Propagate a covariance matrix for band ratios.
     """
     # Calculate the band ratios first
-    rho, beta = calculate_bandratios(data_R, data_G, data_B)
+    GR, GB, RB = calculate_bandratios(data_R, data_G, data_B)
 
     # Construct the Jacobian matrix
-    bandratios_J = np.array([[-rho/data_R, 1/data_R, 0            ],
-                             [0          , 1/data_B, -beta/data_B]])
+    bandratios_J = np.array([[-GR/data_R, 1/data_R, 0         ],
+                             [0         , 1/data_B, -GB/data_B],
+                             [1/data_B  , 0       , -RB/data_B]])
 
     # Do the propagation
     bandratios_covariance = bandratios_J @ data_covariance @ bandratios_J.T
 
     return bandratios_covariance
+
+
+def print_bandratios(bandratios, bandratios_covariance, key="R_rs"):
+    """
+    Provide pretty output about band ratio calculations.
+    Prints the band ratios, their uncertainties, and correlations.
+    """
+    # Calculate the diagonal uncertainties and correlation from the covariance matrix
+    correlation = stats.correlation_from_covariance(bandratios_covariance)
+    uncertainties = stats.uncertainty_from_covariance(bandratios_covariance)
+
+    # Select the off-diagonal elements from the correlation matrix
+    indices = tuple([(0, 0, 1), (1, 2, 2)])
+    correlation = correlation[indices]
+
+    # Print the band ratios and uncertainties
+    print("Calculated band ratios:")
+    for label, ratio, uncertainty in zip(bandratio_labels, bandratios, uncertainties):
+        print(f"{key} ({label}) = {ratio:.2f} +- {uncertainty:.2f}")
+
+    # Print the correlations
+    print("Correlations between band ratios:")
+    for index0, index1, corr in zip(*indices, correlation):
+        print(f"{key} ({bandratio_labels[index0]})-({bandratio_labels[index1]}): r = {corr:+.2f}")
 
 
 def iso_timestamp(utc):
@@ -370,9 +399,8 @@ def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_cov
     R_rs_xy_covariance_header = _generic_header(R_rs_xy_covariance_list, "cov_R_rs_xy")
 
     # Make a header with the relevant items
-    keys_RGB = ["Lu", "Lsky", "Ld", "Ed", "R_rs"]
-    header_RGB = extend_keys_to_RGB(keys_RGB)
-    header_hue = ["R_rs (G/R)", "R_rs (G/B)", "R_rs (x)", "R_rs (y)", "R_rs (hue)", "R_rs_err (hue)", "R_rs (FU)", "R_rs_min (FU)", "R_rs_max (FU)"]
+    header_RGB = extend_keys_to_RGB(["Lu", "Lsky", "Ld", "Ed", "R_rs"])
+    header_hue = [f"R_rs ({key})" for key in [*bandratio_labels, *"xy", "hue", "FU"]] + ["R_rs_err (hue)", "R_rs_min (FU)", "R_rs_max (FU)"]
     header = ["UTC", "UTC (ISO)"] + header_RGB + header_hue + radiances_covariance_header + Ed_covariance_header + R_rs_covariance_header + band_ratios_covariance_header + R_rs_xy_covariance_header
 
     # Add the data to a row, and that row to a table
@@ -416,9 +444,9 @@ def read_results(filename):
 
     # Iterate over the covariance matrices and calculate simple uncertainties from them
     covariance_keys_split = [np.ravel([[f"L{sub}_err ({c})" for c in colours] for sub in ["u", "sky", "d"]]),
-                             [f"Ed_err ({c})" for c in colours],
-                             [f"R_rs_err ({c})" for c in colours],
-                             [f"R_rs_err ({ratio})" for ratio in ["G/R", "G/B"]],
+                             extend_keys_to_RGB(["Ed_err"]),
+                             extend_keys_to_RGB(["R_rs_err"]),
+                             [f"R_rs_err ({c})" for c in bandratio_labels],
                              [f"R_rs_err ({c})" for c in "xy"]]
     for key, keys_split in zip(covariance_keys, covariance_keys_split):
         uncertainties = _convert_matrix_to_uncertainties_column(data[key], keys_split)
