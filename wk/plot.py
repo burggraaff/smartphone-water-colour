@@ -526,9 +526,9 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
 
     # Plot the data
     fig, axs = plt.subplots(nrows=3, sharex=True, sharey=True, figsize=(col1, 6), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
-    correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[0], xlabel=f"{quantity} G/B\n{xlabel}", ylabel=f"{quantity} G/B\n{ylabel}", equal_aspect=True)
-    correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[1], xlabel=f"{quantity} G/R\n{xlabel}", ylabel=f"{quantity} G/R\n{ylabel}", equal_aspect=True)
-    correlation_plot_simple(x_RB, y_RB, xerr=x_err_RB, yerr=y_err_RB, ax=axs[2], xlabel=f"{quantity} R/B\n{xlabel}", ylabel=f"{quantity} R/B\n{ylabel}", equal_aspect=True)
+    correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[0], xlabel=f"{xlabel}\n{quantity} (G/B)", ylabel=f"{quantity} (G/B)", equal_aspect=True)
+    correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[1], xlabel="", ylabel=f"{ylabel}\n{quantity} (G/R)", equal_aspect=True)
+    correlation_plot_simple(x_RB, y_RB, xerr=x_err_RB, yerr=y_err_RB, ax=axs[2], xlabel=f"{quantity} (R/B)\n{xlabel}", ylabel=f"{quantity} (R/B)", equal_aspect=True)
 
     # Axis settings
     data_combined = [x_GR, x_GB, x_RB, y_GR, y_GB, y_RB]
