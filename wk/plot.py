@@ -292,6 +292,14 @@ def _axis_limit_RGB(data, key):
     return (xmin, xmax)
 
 
+def force_equal_ticks(ax):
+    """
+    Force an Axes object's x and y axes to have the same ticks.
+    """
+    ax.set_yticks(ax.get_xticks())
+    ax.set_xticks(ax.get_yticks())
+
+
 def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False, regression="none"):
     """
     Plot data into a correlation plot.
@@ -510,19 +518,22 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
         x_err_GB = y_err_GB = x_err_GR = y_err_GR = None
 
     # Plot the data
-    fig, axs = plt.subplots(nrows=2, sharex=True, sharey=True, figsize=(3,4), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
+    fig, axs = plt.subplots(ncols=2, sharex=True, sharey=True, figsize=(4, 2), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
     correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[0], xlabel=f"{quantity} G/B\n{xlabel}", ylabel=f"{quantity} G/B\n{ylabel}", equal_aspect=True)
     correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[1], xlabel=f"{quantity} G/R\n{xlabel}", ylabel=f"{quantity} G/R\n{ylabel}", equal_aspect=True)
 
     # Axis settings
-    xmin, xmax = np.nanmin([x_GR, x_GB])-0.05, np.nanmax([x_GR, x_GB])+0.05
-    ymin, ymax = np.nanmin([y_GR, y_GB])-0.05, np.nanmax([y_GR, y_GB])+0.05
-    axs[0].set_xlim(xmin, xmax)
-    axs[0].set_ylim(ymin, ymax)
+    data_combined = [x_GR, x_GB, y_GR, y_GB]
+    axmin, axmax = np.nanmin(data_combined)-0.05, np.nanmax(data_combined)+0.05
+    axs[0].set_xlim(axmin, axmax)
+    axs[0].set_ylim(axmin, axmax)
+    for ax in axs:
+        ax.set_aspect("equal")
+        ax.locator_params(nbins=4)
 
     # Switch xtick labels on the bottom plot to the top
-    axs[0].tick_params(axis="x", bottom=False, labelbottom=False, top=True, labeltop=True)
-    axs[0].xaxis.set_label_position("top")
+    axs[1].tick_params(axis="y", left=False, labelleft=False, right=True, labelright=True)
+    axs[1].yaxis.set_label_position("right")
 
     # Calculate statistics
     for ax, x, y in zip (axs, [x_GR, x_GB], [y_GR, y_GB]):
@@ -668,8 +679,7 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     # Same ticks on x and y.
     # Weird quirk in matplotlib: you need to do it twice (x->y then y->x)
     # to actually get the same ticks on both axes.
-    ax.set_yticks(ax.get_xticks())
-    ax.set_xticks(ax.get_yticks())
+    force_equal_ticks(ax)
 
     # Set the axis minima and maxima
     minangle = np.nanmin([x, y])-5
