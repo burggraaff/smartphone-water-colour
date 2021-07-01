@@ -592,9 +592,9 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
     ticks = np.linspace(0,1,4)
     axs[0].set_xticks(ticks)
     xtick_offset = " "*10
-    axs[0].set_xticklabels([f"{xtick_offset}$L_u$", f"{xtick_offset}$L_s$", f"{xtick_offset}$L_d$", ""])
+    axs[0].set_xticklabels([f"{xtick_offset}{keys_latex['Lu']}", f"{xtick_offset}{keys_latex['Lsky']}", f"{xtick_offset}{keys_latex['Ld']}", ""])
     axs[0].set_yticks(ticks)
-    axs[0].set_yticklabels(["\n\n$L_d$", "\n\n$L_s$", "\n\n$L_u$", ""])
+    axs[0].set_yticklabels([f"\n\n{keys_latex['Ld']}", f"\n\n{keys_latex['Lsky']}", f"\n\n{keys_latex['Lu']}", ""])
 
     for ax, x, y, xlabel, ylabel in zip(axs[1:], [x1, x2], [y1, y2], [x1label, x2label], [y1label, y2label]):
         density_scatter(x, y, ax=ax, **kwargs)
