@@ -56,6 +56,36 @@ def _histogram_RGB(data_RGB, ax, **kwargs):
         ax.hist(data_RGB[j].ravel(), color=c, histtype="step", **kwargs)
 
 
+def plot_three_images(images, axs=None, saveto=None):
+    """
+    Plot the three images (water, sky, grey card) nicely.
+    If `axs` are provided, plot them in those. Otherwise, create
+    a new figure.
+    """
+    # Create a new figure if necessary
+    if axs is None:
+        newaxes = True
+        fig, axs = plt.subplots(ncols=3, figsize=(col1, 4), gridspec_kw={"hspace": 0.01, "wspace": 0.1}, sharex=True, sharey=True)
+    else:
+        newaxes = False
+
+    # Plot the images in the respective panels
+    for ax, img in zip(axs, images):
+        ax.imshow(img.astype(np.uint8))
+        ax.tick_params(bottom=False, labelbottom=False, left=False, labelleft=False)
+
+    # If this is a stand-alone figure, add labels
+    if newaxes:
+        labels = [f"{keys_latex['Lu']}\nWater", f"{keys_latex['Lsky']}\nSky", f"{keys_latex['Ld']}\nGrey card"]
+        for ax, label in zip(axs, labels):
+            ax.set_title(label)
+
+    # If desired, save the result
+    if newaxes:
+        _saveshow(saveto, bbox_inches="tight")
+
+
+
 def histogram_raw(water_data, sky_data, card_data, saveto=None, camera=None):
     """
     Draw histograms of RAW water/sky/grey card data at various steps of processing.
@@ -64,9 +94,8 @@ def histogram_raw(water_data, sky_data, card_data, saveto=None, camera=None):
     fig, axs = plt.subplots(nrows=3, ncols=5, figsize=(11,4), gridspec_kw={"hspace": 0.04, "wspace": 0.04}, sharex="col", sharey="col")
 
     # Plot the original images in the left-most column
-    for ax, img in zip(axs[:,0], [water_data[0], sky_data[0], card_data[0]]):
-        ax.imshow(img)
-        ax.tick_params(bottom=False, labelbottom=False)
+    images = [water_data[0], sky_data[0], card_data[0]]
+    plot_three_images(images, axs=axs[:,0])
 
     # Loop over the columns representing processing steps
     for ax_col, water, sky, card in zip(axs[:,1:].T, water_data[1:], sky_data[1:], card_data[1:]):
@@ -115,9 +144,8 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto=None, normalisation=2
     fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(9,4), gridspec_kw={"hspace": 0.04, "wspace": 0.04}, sharex="col", sharey="col")
 
     # Plot the original images in the left-most column
-    for ax, image in zip(axs[:,0], [water_data[0], sky_data[0], card_data[0]]):
-        ax.imshow(image.astype(np.uint8))
-        ax.tick_params(bottom=False, labelbottom=False)
+    images = [water_data[0], sky_data[0], card_data[0]]
+    plot_three_images(images, axs=axs[:,0])
 
     # Loop over the columns representing processing steps
     for ax_col, water, sky, card in zip(axs.T[1:], water_data, sky_data, card_data):

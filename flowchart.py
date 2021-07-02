@@ -26,7 +26,6 @@ from wk import hydrocolor as hc, wacodi as wa, plot, statistics as stats
 # Get the data folder from the command line
 calibration_folder, folder = io.path_from_input(argv)
 pattern = calibration_folder.stem
-saveto = folder/"flow"
 
 # Get Camera object
 camera = load_camera(calibration_folder)
@@ -44,15 +43,21 @@ RGB_wavelengths = hc.effective_wavelength(calibration_folder)
 
 # Get the correct data folder
 data_path = list(hc.generate_folders([folder], pattern))[0]
+saveto = data_path/"flow"
 
 # Load data
 image_paths = hc.generate_paths(data_path, camera.raw_extension)
 images_raw = hc.load_raw_images(image_paths)
 print("Loaded RAW data")
 
-# Load thumbnails
-images_jpeg = hc.load_raw_thumbnails(image_paths)
-print("Created JPEG thumbnails")
+# Load and plot JPEG images
+jpeg_paths = hc.generate_paths(data_path, ".JPG")
+images_jpeg = hc.load_jpeg_images(jpeg_paths)
+images_jpeg = [np.moveaxis(img, 0, 1) for img in images_jpeg]  # Rotate image
+plot.plot_three_images(images_jpeg, saveto=saveto/"images.pdf")
+print("Plotted JPEG images")
+
+# Plot the thumbnails
 
 # Correct for bias
 images_bias_corrected = camera.correct_bias(*images_raw)
