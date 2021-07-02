@@ -26,6 +26,7 @@ from wk import hydrocolor as hc, wacodi as wa, plot, statistics as stats
 # Get the data folder from the command line
 calibration_folder, folder = io.path_from_input(argv)
 pattern = calibration_folder.stem
+saveto = folder/"flow"
 
 # Get Camera object
 camera = load_camera(calibration_folder)
@@ -48,9 +49,6 @@ data_path = list(hc.generate_folders([folder], pattern))[0]
 image_paths = hc.generate_paths(data_path, camera.raw_extension)
 images_raw = hc.load_raw_images(image_paths)
 print("Loaded RAW data")
-
-# Load EXIF data
-water_exif = hc.load_exif(image_paths[0])
 
 # Load thumbnails
 images_jpeg = hc.load_raw_thumbnails(image_paths)
@@ -173,11 +171,3 @@ water_FU, R_rs_FU = wa.convert_hue_angle_to_ForelUle([water_hue, R_rs_hue])
 water_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(water_hue_uncertainty, water_hue)
 R_rs_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(R_rs_hue_uncertainty, R_rs_hue)
 print("Determined Forel-Ule indices:", f"FU R_rs = {R_rs_FU} [{R_rs_FU_range[0]}-{R_rs_FU_range[1]}]", f"FU L_u  = {water_FU} [{water_FU_range[0]}-{water_FU_range[1]}]", sep="\n")
-
-
-# Create a timestamp from EXIF (assume time zone UTC+2)
-UTC = hc.UTC_timestamp(water_exif, data_path)
-
-# Write the result to file
-saveto = data_path.with_name(data_path.stem + "_raw.csv")
-# hc.write_results(saveto, UTC, all_mean_RGB, all_covariance_RGB, Ed, Ed_covariance, R_rs, R_rs_covariance, bandratios, bandratios_covariance, R_rs_xy, R_rs_xy_covariance, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range)
