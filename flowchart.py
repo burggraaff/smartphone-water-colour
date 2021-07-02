@@ -78,11 +78,9 @@ print("Demosaicked")
 # Select the central pixels
 images_central_slices = hc.central_slice_raw(*images_RGBG)
 
-# Combined histograms of different data reduction steps
-all_data = [images_jpeg, images_raw, images_bias_corrected, images_flatfield_corrected, images_central_slices]
-water_all, sky_all, card_all = [[data_array[j] for data_array in all_data] for j in range(3)]
-
-plot.histogram_raw(water_all, sky_all, card_all, camera=camera, saveto=data_path/"statistics_raw.pdf")
+# Combined images-histograms of different data reduction steps
+plot.plot_image_and_histogram_triple(images_raw, camera, saveto=saveto/"rawimage_{label}.pdf")
+plot.plot_image_and_histogram_triple(images_flatfield_corrected, camera, saveto=saveto/"flatimage_{label}.pdf")
 
 # Reshape the central images to lists
 data_RGBG = np.array([image.reshape(4, -1) for image in images_central_slices])
