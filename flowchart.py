@@ -79,8 +79,8 @@ print("Demosaicked")
 images_central_slices = hc.central_slice_raw(*images_RGBG)
 
 # Combined images-histograms of different data reduction steps
-plot.plot_image_and_histogram_triple(images_raw, camera, saveto=saveto/"rawimage_{label}.pdf")
-plot.plot_image_and_histogram_triple(images_flatfield_corrected, camera, saveto=saveto/"flatimage_{label}.pdf")
+plot.plot_image_small_triple(images_raw, saveto=saveto/"rawimage_{label}.pdf")
+plot.plot_image_small_triple(images_flatfield_corrected, saveto=saveto/"flatimage_{label}.pdf")
 
 # Reshape the central images to lists
 data_RGBG = np.array([image.reshape(4, -1) for image in images_central_slices])

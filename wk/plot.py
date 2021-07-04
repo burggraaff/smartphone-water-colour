@@ -85,38 +85,28 @@ def plot_three_images(images, axs=None, saveto=None):
         _saveshow(saveto, bbox_inches="tight")
 
 
-def plot_image_and_histogram(image, camera, vmin=0, vmax=4095, nrbins=250, saveto=None):
+def plot_image_small(image, vmin=0, vmax=None, saveto=None):
     """
-    Plot an image and its histogram in two panels.
+    Plot a small version of an image.
     """
     # Create a figure
-    fig, axs = plt.subplots(ncols=2, figsize=(2,2), gridspec_kw={"hspace": 0.05, "wspace": 0.05})
+    fig, ax = plt.subplots(figsize=(2,2))
+
+    # Get the vmin and vmax if none were given
+    if vmax is None:
+        vmin, vmax = stats.symmetric_percentiles(image)
 
     # Plot the image
-    axs[0].imshow(image, cmap=plt.cm.cividis, vmin=vmin, vmax=None)
-    axs[0].tick_params(bottom=False, labelbottom=False, left=False, labelleft=False)
-
-    # Get the data in RGB format
-    image_RGBG = camera.demosaick(image)
-    image_RGB = hc.convert_RGBG2_to_RGB_without_average(image_RGBG)[0]
-
-    # Draw the histograms
-    bins = np.linspace(vmin, vmax, nrbins)
-    axs[1].hist(image.ravel(), bins=bins, color="k")
-    _histogram_RGB(image_RGB, axs[1], bins=bins)
-
-    # Set plot parameters
-    axs[1].set_xlim(vmin, vmax)
-    axs[1].tick_params(left=False, labelleft=False, bottom=False, labelbottom=False)
-    axs[1].set_box_aspect(image.shape[0]/image.shape[1])
+    ax.imshow(image, cmap=plt.cm.cividis, vmin=vmin, vmax=vmax)
+    ax.tick_params(bottom=False, labelbottom=False, left=False, labelleft=False)
 
     # Show
     _saveshow(saveto, bbox_inches="tight")
 
 
-def plot_image_and_histogram_triple(images, camera, saveto=None, **kwargs):
+def plot_image_small_triple(images, saveto=None, **kwargs):
     """
-    Wrapper around `plot_image_and_histogram` that handles three images at once
+    Wrapper around `plot_image_small` that handles three images at once
     (water, sky, grey card), with assorted saveto names.
     """
     # Determine saveto names
@@ -126,9 +116,12 @@ def plot_image_and_histogram_triple(images, camera, saveto=None, **kwargs):
     else:
         saveto_filenames = [None]*3
 
+    # Get the vmin and vmax
+    vmin, vmax = stats.symmetric_percentiles(np.ravel(images))
+
     # Make the plots
     for image, filename in zip(images, saveto_filenames):
-        plot_image_and_histogram(image, camera, saveto=filename, **kwargs)
+        plot_image_small(image, saveto=filename, vmin=vmin, vmax=vmax, **kwargs)
 
 
 def histogram_raw(water_data, sky_data, card_data, saveto=None, camera=None):
