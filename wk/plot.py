@@ -27,6 +27,7 @@ keys_latex = {"Lu": "$L_u$", "Lsky": "$L_{sky}$", "Ld": "$L_d$", "Ed": "$E_d$", 
 # Frontiers column widths
 col1 = 85/25.4
 col2 = 180/25.4
+smallpanel = (2, 1.5)
 
 
 def _histogram_axis_settings(axs, column_labels):
@@ -85,12 +86,36 @@ def plot_three_images(images, axs=None, saveto=None):
         _saveshow(saveto, bbox_inches="tight")
 
 
+def _plot_triple(func):
+    """
+    Decorator to do `func` three times. Used to repeat the functions below
+    for water, sky, and grey card images.
+    """
+    def newfunc(images, *args, saveto=None, **kwargs):
+        # Determine saveto names
+        format_saveto = lambda p, l: p.parent / p.name.format(label=l)
+        if saveto is not None:
+            saveto_filenames = [format_saveto(saveto, label) for label in ["water", "sky", "greycard"]]
+        else:
+            saveto_filenames = [None]*3
+
+        # Get the vmin and vmax
+        vmin, vmax = stats.symmetric_percentiles(np.ravel(images))
+
+        # Make the plots
+        for image, filename in zip(images, saveto_filenames):
+            func(image, *args, saveto=filename, vmin=vmin, vmax=vmax, **kwargs)
+
+    return newfunc
+
+
+@_plot_triple
 def plot_image_small(image, vmin=0, vmax=None, saveto=None):
     """
     Plot a small version of an image.
     """
     # Create a figure
-    fig, ax = plt.subplots(figsize=(2,1.5))
+    fig, ax = plt.subplots(figsize=smallpanel)
 
     # Get the vmin and vmax if none were given
     if vmax is None:
@@ -104,32 +129,13 @@ def plot_image_small(image, vmin=0, vmax=None, saveto=None):
     _saveshow(saveto, bbox_inches="tight")
 
 
-def plot_image_small_triple(images, saveto=None, **kwargs):
-    """
-    Wrapper around `plot_image_small` that handles three images at once
-    (water, sky, grey card), with assorted saveto names.
-    """
-    # Determine saveto names
-    format_saveto = lambda p, l: p.parent / p.name.format(label=l)
-    if saveto is not None:
-        saveto_filenames = [format_saveto(saveto, label) for label in ["water", "sky", "greycard"]]
-    else:
-        saveto_filenames = [None]*3
-
-    # Get the vmin and vmax
-    vmin, vmax = stats.symmetric_percentiles(np.ravel(images))
-
-    # Make the plots
-    for image, filename in zip(images, saveto_filenames):
-        plot_image_small(image, saveto=filename, vmin=vmin, vmax=vmax, **kwargs)
-
-
+@_plot_triple
 def plot_image_small_RGBG2(images_RGBG2, camera, vmin=0, vmax=None, saveto=None):
     """
     Plot RGBG2 demosaicked images.
     """
     # Create a figure
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(2,1.5), sharex=True, sharey=True)
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=smallpanel, sharex=True, sharey=True)
     axs = np.ravel(axs)
 
     # Get the vmin and vmax if none were given
@@ -154,24 +160,34 @@ def plot_image_small_RGBG2(images_RGBG2, camera, vmin=0, vmax=None, saveto=None)
     _saveshow(saveto, bbox_inches="tight")
 
 
-def plot_image_small_RGBG2_triple(images, camera, saveto=None, **kwargs):
+@_plot_triple
+def histogram_small(image_RGBG2, vmin=0, vmax=None, nrbins=150, saveto=None):
     """
-    Wrapper around `plot_image_small_RGBG2` that handles three images at once
-    (water, sky, grey card), with assorted saveto names.
+    Plot a small black-and-RGB histogram of an image.
     """
-    # Determine saveto names
-    format_saveto = lambda p, l: p.parent / p.name.format(label=l)
-    if saveto is not None:
-        saveto_filenames = [format_saveto(saveto, label) for label in ["water", "sky", "greycard"]]
-    else:
-        saveto_filenames = [None]*3
+    # Create a figure
+    fig, ax = plt.subplots(figsize=smallpanel)
 
-    # Get the vmin and vmax
-    vmin, vmax = stats.symmetric_percentiles(np.ravel(images))
+    # Get the vmin and vmax if none were given
+    if vmax is None:
+        vmin, vmax = stats.symmetric_percentiles(image_RGBG2)
 
-    # Make the plots
-    for image, filename in zip(images, saveto_filenames):
-        plot_image_small_RGBG2(image, camera, saveto=filename, vmin=vmin, vmax=vmax, **kwargs)
+    # Plot the overall histogram
+    bins = np.linspace(vmin, vmax, nrbins)
+    ax.hist(image_RGBG2.ravel(), bins=bins, color='k')
+
+    # Plot the RGB histograms
+    data_RGB = hc.convert_RGBG2_to_RGB_without_average(image_RGBG2)[0]
+    _histogram_RGB(data_RGB, ax, bins=bins, lw=3)
+
+    # Plot settings
+    diff = bins[1] - bins[0]
+    ax.set_xlim(vmin, vmax+diff)
+    ax.tick_params(left=False, labelleft=False)
+    ax.grid(ls="--", c="0.5")
+
+    # Show
+    _saveshow(saveto, bbox_inches="tight")
 
 
 def histogram_raw(water_data, sky_data, card_data, saveto=None, camera=None):
