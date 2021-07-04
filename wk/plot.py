@@ -11,7 +11,7 @@ from colorio._tools import plot_flat_gamut
 from . import statistics as stats, colours, hydrocolor as hc
 from .wacodi import FU_hueangles, compare_FU_matches_from_hue_angle
 
-from spectacle.plot import RGB_OkabeIto, _saveshow
+from spectacle.plot import RGB_OkabeIto, _saveshow, cmaps
 
 
 # Commonly used unit strings
@@ -90,7 +90,7 @@ def plot_image_small(image, vmin=0, vmax=None, saveto=None):
     Plot a small version of an image.
     """
     # Create a figure
-    fig, ax = plt.subplots(figsize=(2,2))
+    fig, ax = plt.subplots(figsize=(2,1.5))
 
     # Get the vmin and vmax if none were given
     if vmax is None:
@@ -122,6 +122,56 @@ def plot_image_small_triple(images, saveto=None, **kwargs):
     # Make the plots
     for image, filename in zip(images, saveto_filenames):
         plot_image_small(image, saveto=filename, vmin=vmin, vmax=vmax, **kwargs)
+
+
+def plot_image_small_RGBG2(images_RGBG2, camera, vmin=0, vmax=None, saveto=None):
+    """
+    Plot RGBG2 demosaicked images.
+    """
+    # Create a figure
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(2,1.5), sharex=True, sharey=True)
+    axs = np.ravel(axs)
+
+    # Get the vmin and vmax if none were given
+    if vmax is None:
+        vmin, vmax = stats.symmetric_percentiles(images_RGBG2)
+
+    # Find the order to make the plots in
+    bayer_order = np.ravel(camera.bayer_pattern)
+
+    # Make the plots
+    for ax, b in zip(axs, bayer_order):
+        colour = "RGBG"[b]
+        image = images_RGBG2[b]
+        ax.imshow(image, vmin=vmin, vmax=vmax, cmap=cmaps[colour+"r"])
+
+    # Plot parameters
+    for ax in axs:
+        ax.tick_params(bottom=False, labelbottom=False, left=False, labelleft=False)
+
+    # Show
+    fig.subplots_adjust(wspace=0, hspace=0)
+    _saveshow(saveto, bbox_inches="tight")
+
+
+def plot_image_small_RGBG2_triple(images, camera, saveto=None, **kwargs):
+    """
+    Wrapper around `plot_image_small_RGBG2` that handles three images at once
+    (water, sky, grey card), with assorted saveto names.
+    """
+    # Determine saveto names
+    format_saveto = lambda p, l: p.parent / p.name.format(label=l)
+    if saveto is not None:
+        saveto_filenames = [format_saveto(saveto, label) for label in ["water", "sky", "greycard"]]
+    else:
+        saveto_filenames = [None]*3
+
+    # Get the vmin and vmax
+    vmin, vmax = stats.symmetric_percentiles(np.ravel(images))
+
+    # Make the plots
+    for image, filename in zip(images, saveto_filenames):
+        plot_image_small_RGBG2(image, camera, saveto=filename, vmin=vmin, vmax=vmax, **kwargs)
 
 
 def histogram_raw(water_data, sky_data, card_data, saveto=None, camera=None):
