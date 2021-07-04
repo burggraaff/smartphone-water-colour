@@ -453,3 +453,39 @@ def read_results(filename):
         data.add_columns(uncertainties)
 
     return data
+
+
+def _print_or_save_latex(text, saveto=None):
+    """
+    Helper function to print or save LaTeX output from the functions below.
+    """
+    # If no saveto was given, print the result
+    if saveto is None:
+        print(text)
+    # Else, print it to file
+    else:
+        with open(saveto, "w") as file:
+            print(text, file=file)
+
+
+def output_latex_vector(data, label="L", saveto=None):
+    """
+    Save a vector in LaTeX format for the flowchart.
+    """
+    # Start and end, always the same
+    start = "\\mathbf{" + label + "} &=\n    \\begin{bmatrix}"
+    end = "    \\end{bmatrix}^T \\\\"
+
+    # Put the data in the middle
+    # If the data are long, show the first and last two elements
+    if len(data) >= 5:
+        middle = f"        {data[0]:.2g} & {data[1]:.2g} & \\dots & {data[-2]:.2g} & {data[-1]:.2g}"
+    # Else, just show the whole vector
+    else:
+        middle = "        " + " & ".join(f"{d:.2g}" for d in data)
+
+    # Combine them with line breaks in between
+    combined = "\n".join([start, middle, end])
+
+    # Save or show the result
+    _print_or_save_latex(combined, saveto=saveto)

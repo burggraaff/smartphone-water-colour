@@ -180,3 +180,10 @@ water_FU, R_rs_FU = wa.convert_hue_angle_to_ForelUle([water_hue, R_rs_hue])
 water_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(water_hue_uncertainty, water_hue)
 R_rs_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(R_rs_hue_uncertainty, R_rs_hue)
 print("Determined Forel-Ule indices:", f"FU R_rs = {R_rs_FU} [{R_rs_FU_range[0]}-{R_rs_FU_range[1]}]", f"FU L_u  = {water_FU} [{water_FU_range[0]}-{water_FU_range[1]}]", sep="\n")
+
+# Save the resulting vectors to file
+hc.output_latex_vector(all_mean, saveto=saveto/"vector_L_RGBG2.tex")
+hc.output_latex_vector(all_mean_RGB, saveto=saveto/"vector_L_RGB.tex")
+hc.output_latex_vector(R_rs, label=r"R_{rs}", saveto=saveto/"vector_Rrs.tex")
+hc.output_latex_vector(R_rs_XYZ, label=r"R_{rs}", saveto=saveto/"vector_Rrs_XYZ.tex")
+hc.output_latex_vector(R_rs_xy, label=r"R_{rs}", saveto=saveto/"vector_Rrs_xy.tex")
