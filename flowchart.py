@@ -83,13 +83,16 @@ plot.plot_image_small(images_raw, saveto=saveto/"rawimage_{label}.pdf")
 plot.plot_image_small(images_flatfield_corrected, saveto=saveto/"flatimage_{label}.pdf")
 plot.plot_image_small_RGBG2(images_RGBG, camera, saveto=saveto/"RGBG2_{label}.pdf")
 plot.plot_image_small_RGBG2(images_central_slices, camera, saveto=saveto/"slice_{label}.pdf")
-plot.histogram_small(images_central_slices, saveto=saveto/"histogram_{label}.pdf")
 
 # Reshape the central images to lists
 data_RGBG = np.array([image.reshape(4, -1) for image in images_central_slices])
 
 # Divide by the spectral bandwidths to normalise to ADU nm^-1
 data_RGBG /= effective_bandwidths[:, np.newaxis]
+
+# Make a histogram
+plot.histogram_small(data_RGBG, saveto=saveto/"histogram_{label}.pdf")
+print("Finished making flow chart plots")
 
 # Flatten the data into one long list
 data_all = data_RGBG.reshape(12, -1)

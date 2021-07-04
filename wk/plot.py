@@ -161,7 +161,7 @@ def plot_image_small_RGBG2(images_RGBG2, camera, vmin=0, vmax=None, saveto=None)
 
 
 @_plot_triple
-def histogram_small(image_RGBG2, vmin=0, vmax=None, nrbins=150, saveto=None):
+def histogram_small(image_RGBG2, vmin=0, vmax=None, nrbins=101, saveto=None):
     """
     Plot a small black-and-RGB histogram of an image.
     """
