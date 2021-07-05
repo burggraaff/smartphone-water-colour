@@ -496,7 +496,7 @@ def output_latex_matrix(data, label="L", saveto=None):
     Save a matrix in LaTeX format for the flowchart.
     """
     # Start and end, always the same
-    start = "\\mathbf{\\Sigma_" + label + "} &=\n    \\begin{bmatrix}"
+    start = "\\mathbf{\\Sigma_{" + label + "}} &=\n    \\begin{bmatrix}"
     end = "    \\end{bmatrix}"
 
     # Put the data in the middle
