@@ -194,3 +194,6 @@ hc.output_latex_matrix(all_covariance_RGB, saveto=saveto/"matrix_L_RGB.tex")
 hc.output_latex_matrix(R_rs_covariance, label=r"R_{rs}", saveto=saveto/"matrix_Rrs.tex")
 hc.output_latex_matrix(R_rs_XYZ_covariance, label=r"R_{rs}", saveto=saveto/"matrix_Rrs_XYZ.tex")
 hc.output_latex_matrix(R_rs_xy_covariance, label=r"R_{rs}", saveto=saveto/"matrix_Rrs_xy.tex")
+
+# Save the hue angle and Forel-Ule index to file
+hc.output_latex_hueangle_FU(R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range, saveto=saveto/"wacodi.tex")

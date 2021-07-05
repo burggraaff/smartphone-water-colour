@@ -515,3 +515,18 @@ def output_latex_matrix(data, label="L", saveto=None):
 
     # Save or show the result
     _print_or_save_latex(combined, saveto=saveto)
+
+
+def output_latex_hueangle_FU(hueangle, hueangle_uncertainty, FU, FU_range, label=r"R_{rs}", saveto=None):
+    """
+    Save a LaTeX string for the hue angle and Forel-Ule index.
+    """
+    # Strings for the two variables
+    string_hue = f"        {label} (\\alpha) &= ({hueangle:.0f} \\pm {hueangle_uncertainty:.0f})\\degree"
+    string_FU = f"        {label} (FU) &= {FU} \\; ({FU_range[0]} - {FU_range[-1]})"
+
+    # Combine them with line breaks in between
+    combined = "\\\\\n".join([string_hue, string_FU])
+
+    # Save or show the result
+    _print_or_save_latex(combined, saveto=saveto)
