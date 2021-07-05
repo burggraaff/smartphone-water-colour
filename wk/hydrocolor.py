@@ -489,3 +489,29 @@ def output_latex_vector(data, label="L", saveto=None):
 
     # Save or show the result
     _print_or_save_latex(combined, saveto=saveto)
+
+
+def output_latex_matrix(data, label="L", saveto=None):
+    """
+    Save a matrix in LaTeX format for the flowchart.
+    """
+    # Start and end, always the same
+    start = "\\mathbf{\\Sigma_" + label + "} &=\n    \\begin{bmatrix}"
+    end = "    \\end{bmatrix}"
+
+    # Put the data in the middle
+    # If the data are long, show the first and last two elements
+    if len(data) >= 5:
+        convert_row = lambda row: f"        {row[0]:.2g} & {row[1]:.2g} & \\dots & {row[-2]:.2g} & {row[-1]:.2g}"
+        dotrow = r"        \vdots & \vdots & \ddots & \vdots & \vdots"
+        middle = "\\\\\n".join([convert_row(data[0]), convert_row(data[1]), dotrow, convert_row(data[2])])
+    # Else, just show the whole vector
+    else:
+        convert_row = lambda row: "        " + " & ".join(f"{d:.2g}" for d in row)
+        middle = " \\\\\n".join(convert_row(row) for row in data)
+
+    # Combine them with line breaks in between
+    combined = "\n".join([start, middle, end])
+
+    # Save or show the result
+    _print_or_save_latex(combined, saveto=saveto)

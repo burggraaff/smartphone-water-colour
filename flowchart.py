@@ -187,3 +187,10 @@ hc.output_latex_vector(all_mean_RGB, saveto=saveto/"vector_L_RGB.tex")
 hc.output_latex_vector(R_rs, label=r"R_{rs}", saveto=saveto/"vector_Rrs.tex")
 hc.output_latex_vector(R_rs_XYZ, label=r"R_{rs}", saveto=saveto/"vector_Rrs_XYZ.tex")
 hc.output_latex_vector(R_rs_xy, label=r"R_{rs}", saveto=saveto/"vector_Rrs_xy.tex")
+
+# Save the resulting covariance matrices to file
+hc.output_latex_matrix(all_covariance, saveto=saveto/"matrix_L_RGBG2.tex")
+hc.output_latex_matrix(all_covariance_RGB, saveto=saveto/"matrix_L_RGB.tex")
+hc.output_latex_matrix(R_rs_covariance, label=r"R_{rs}", saveto=saveto/"matrix_Rrs.tex")
+hc.output_latex_matrix(R_rs_XYZ_covariance, label=r"R_{rs}", saveto=saveto/"matrix_Rrs_XYZ.tex")
+hc.output_latex_matrix(R_rs_xy_covariance, label=r"R_{rs}", saveto=saveto/"matrix_Rrs_xy.tex")
