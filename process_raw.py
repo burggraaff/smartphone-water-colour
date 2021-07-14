@@ -59,7 +59,7 @@ for data_path in hc.generate_folders(folders, pattern):
     print("Created JPEG thumbnails")
 
     # Correct for bias
-    images_bias_corrected = camera.correct_bias(*images_raw)
+    images_bias_corrected = camera.correct_bias(images_raw)
     print("Corrected bias")
 
     # Normalising for ISO speed is not necessary since this is a relative measurement
@@ -67,24 +67,25 @@ for data_path in hc.generate_folders(folders, pattern):
     # Dark current is negligible
 
     # Correct for flat-field
-    images_flatfield_corrected = camera.correct_flatfield(*images_bias_corrected)
+    images_flatfield_corrected = camera.correct_flatfield(images_bias_corrected)
     print("Corrected flat-field")
 
+    # Select the central pixels
+    central_slice = camera.central_slice(100, 100)
+    images_central_slices = images_flatfield_corrected[central_slice]
+
     # Demosaick the data
-    images_RGBG = camera.demosaick(*images_flatfield_corrected)
+    images_RGBG = camera.demosaick(images_central_slices, selection=central_slice)
     print("Demosaicked")
 
-    # Select the central pixels
-    images_central_slices = hc.central_slice_raw(*images_RGBG)
-
     # Combined histograms of different data reduction steps
-    all_data = [images_jpeg, images_raw, images_bias_corrected, images_flatfield_corrected, images_central_slices]
+    all_data = [images_jpeg, images_raw, images_bias_corrected, images_flatfield_corrected, images_RGBG]
     water_all, sky_all, card_all = [[data_array[j] for data_array in all_data] for j in range(3)]
 
     plot.histogram_raw(water_all, sky_all, card_all, camera=camera, saveto=data_path/"statistics_raw.pdf")
 
     # Reshape the central images to lists
-    data_RGBG = np.array([image.reshape(4, -1) for image in images_central_slices])
+    data_RGBG = images_RGBG.reshape(3, 4, -1)
 
     # Divide by the spectral bandwidths to normalise to ADU nm^-1
     data_RGBG /= effective_bandwidths[:, np.newaxis]
@@ -141,7 +142,7 @@ for data_path in hc.generate_folders(folders, pattern):
     # WACODI
 
     # Convert RGB to XYZ
-    water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ = camera.convert_to_XYZ(water_mean_RGB, sky_mean_RGB, card_mean_RGB, R_rs)
+    water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ = camera.convert_to_XYZ(np.array([water_mean_RGB, sky_mean_RGB, card_mean_RGB, R_rs]))
     R_rs_XYZ_covariance = camera.XYZ_matrix @ R_rs_covariance @ camera.XYZ_matrix.T
 
     radiance_RGB_to_XYZ = hc.block_diag(*[camera.XYZ_matrix]*3)
@@ -149,7 +150,7 @@ for data_path in hc.generate_folders(folders, pattern):
     all_mean_XYZ_covariance = radiance_RGB_to_XYZ @ all_covariance_RGB @ radiance_RGB_to_XYZ.T
 
     # Calculate xy chromaticity
-    water_xy, sky_xy, card_xy, R_rs_xy = wa.convert_XYZ_to_xy(water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ)
+    water_xy, sky_xy, card_xy, R_rs_xy = wa.convert_XYZ_to_xy([water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ])
     water_xy_covariance = wa.convert_XYZ_to_xy_covariance(all_mean_XYZ_covariance[:3,:3], water_XYZ)
     R_rs_xy_covariance = wa.convert_XYZ_to_xy_covariance(R_rs_XYZ_covariance, R_rs_XYZ)
 
@@ -165,7 +166,7 @@ for data_path in hc.generate_folders(folders, pattern):
     plot.plot_xy_on_gamut_covariance(R_rs_xy, R_rs_xy_covariance)
 
     # Calculate hue angle
-    water_hue, R_rs_hue = wa.convert_xy_to_hue_angle(water_xy, R_rs_xy)
+    water_hue, R_rs_hue = wa.convert_xy_to_hue_angle([water_xy, R_rs_xy])
     water_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(water_xy_covariance, water_xy)
     R_rs_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(R_rs_xy_covariance, R_rs_xy)
     print("Calculated hue angles:", f"alpha R_rs = {R_rs_hue:.1f} +- {R_rs_hue_uncertainty:.1f} degrees", f"alpha L_u  = {water_hue:.1f} +- {water_hue_uncertainty:.1f} degrees", sep="\n")

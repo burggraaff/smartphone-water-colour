@@ -83,7 +83,7 @@ def plot_three_images(images, axs=None, saveto=None):
 
     # If desired, save the result
     if newaxes:
-        _saveshow(saveto, bbox_inches="tight")
+        _saveshow(saveto)
 
 
 def _plot_triple(func):
@@ -126,7 +126,7 @@ def plot_image_small(image, vmin=0, vmax=None, saveto=None):
     ax.tick_params(bottom=False, labelbottom=False, left=False, labelleft=False)
 
     # Show
-    _saveshow(saveto, bbox_inches="tight")
+    _saveshow(saveto)
 
 
 @_plot_triple
@@ -157,7 +157,7 @@ def plot_image_small_RGBG2(images_RGBG2, camera, vmin=0, vmax=None, saveto=None)
 
     # Show
     fig.subplots_adjust(wspace=0, hspace=0)
-    _saveshow(saveto, bbox_inches="tight")
+    _saveshow(saveto)
 
 
 @_plot_triple
@@ -187,7 +187,7 @@ def histogram_small(image_RGBG2, vmin=0, vmax=None, nrbins=101, saveto=None):
     ax.grid(ls="--", c="0.5")
 
     # Show
-    _saveshow(saveto, bbox_inches="tight")
+    _saveshow(saveto)
 
 
 def histogram_raw(water_data, sky_data, card_data, saveto=None, camera=None):
@@ -235,7 +235,7 @@ def histogram_raw(water_data, sky_data, card_data, saveto=None, camera=None):
     _histogram_axis_settings(axs, ["Image", "Raw", "Bias-corrected", "Flat-fielded", "Central slice"])
 
     # Save the result
-    _saveshow(saveto, bbox_inches="tight")
+    _saveshow(saveto)
     if saveto is not None:
         print(f"Saved statistics plot to `{saveto}`")
 
@@ -248,7 +248,7 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto=None, normalisation=2
     fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(9,4), gridspec_kw={"hspace": 0.04, "wspace": 0.04}, sharex="col", sharey="col")
 
     # Plot the original images in the left-most column
-    images = [water_data[0], sky_data[0], card_data[0]]
+    images = [np.moveaxis(data[0], 0, -1) for data in (water_data, sky_data, card_data)]  # Move the colour channel back to the end for the plot
     plot_three_images(images, axs=axs[:,0])
 
     # Loop over the columns representing processing steps
@@ -262,8 +262,7 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto=None, normalisation=2
             ax.hist(data.ravel(), bins=bins, color="k")
 
             # Plot the RGB histograms as lines on top of the black overall histograms
-            # Data array needs to be transposed so the colour axis is at the start
-            _histogram_RGB(data.T, ax, bins=bins)
+            _histogram_RGB(data, ax, bins=bins)
 
             # Plot settings
             ax.set_xlim(0, normalisation)
@@ -272,7 +271,7 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto=None, normalisation=2
     _histogram_axis_settings(axs, ["Image", "JPEG (full)", "Central slice"])
 
     # Save the result
-    _saveshow(saveto, bbox_inches="tight")
+    _saveshow(saveto)
     if saveto is not None:
         print(f"Saved statistics plot to `{saveto}`")
 
@@ -297,7 +296,7 @@ def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=
     plt.grid(ls="--")
 
     # Save the result
-    _saveshow(saveto, bbox_inches="tight")
+    _saveshow(saveto)
 
 
 def _correlation_plot_gridlines(ax=None):
@@ -415,7 +414,7 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
 
     # Save the result (if a new plot was made)
     if newaxes:
-        _saveshow(saveto, bbox_inches="tight")
+        _saveshow(saveto)
 
 
 def _axis_limit_RGB(data, key):
@@ -535,7 +534,7 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, ax=None, xerrlabel=None, 
 
     # Save the result (if a new plot was made)
     if newfig:
-        _saveshow(saveto, bbox_inches="tight")
+        _saveshow(saveto)
 
 
 
@@ -577,7 +576,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
 
     # Save the result
     fig.subplots_adjust(hspace=0.1)
-    _saveshow(saveto, bbox_inches="tight")
+    _saveshow(saveto)
 
 
 def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", xunit=ADUnmsr, yunit=ADUnmsr, regression="all",  saveto=None):
@@ -634,7 +633,7 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
         ax.text(0.05, 0.95, keys_latex[key], transform=ax.transAxes, fontsize=14, verticalalignment="top")
 
     # Save the result
-    _saveshow(saveto, bbox_inches="tight")
+    _saveshow(saveto)
 
 
 def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{rs}$", xlabel="", ylabel="", saveto=None):
@@ -681,7 +680,7 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
         _plot_statistics(x, y, ax, xerr=xerr, yerr=yerr, fontsize=8)
 
     # Save the result
-    _saveshow(saveto, bbox_inches="tight")
+    _saveshow(saveto)
 
 
 def density_scatter(x, y, ax=None, sort=True, bins=20, **kwargs):
@@ -745,7 +744,7 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
 
     plt.subplots_adjust(wspace=0.5)
     # Save the result
-    _saveshow(saveto, bbox_inches="tight")
+    _saveshow(saveto)
 
 
 def _confidence_ellipse(center, covariance, ax, covariance_scale=1, **kwargs):
@@ -780,7 +779,7 @@ def plot_xy_on_gamut_covariance(xy, xy_covariance, covariance_scale=1, saveto=No
     plt.axis("equal")
 
     # Save the result
-    _saveshow(saveto, bbox_inches="tight")
+    _saveshow(saveto)
 
 
 def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="", ylabel="", saveto=None):
@@ -855,4 +854,4 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     ax.set_title(title)
 
     # Save the result
-    _saveshow(saveto, bbox_inches="tight")
+    _saveshow(saveto)

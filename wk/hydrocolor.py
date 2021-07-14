@@ -139,17 +139,20 @@ def generate_paths(data_path, extension=".dng"):
 
 
 def load_raw_images(filenames):
-    raw_images = [io.load_raw_image(filename) for filename in filenames]
+    raw_images = np.array([io.load_raw_image(filename) for filename in filenames])
     return raw_images
 
 
 def load_jpeg_images(filenames):
-    jpg_images = [io.load_jpg_image(filename) for filename in filenames]
+    jpg_images = np.array([io.load_jpg_image(filename) for filename in filenames])
+
+    # Move the colour axis forwards: (x, y, 3) -> (3, x, y)
+    jpg_images = np.moveaxis(jpg_images, -1, -3)
     return jpg_images
 
 
 def load_raw_thumbnails(filenames):
-    thumbnails = [io.load_raw_image_postprocessed(filename, half_size=True, user_flip=0) for filename in filenames]
+    thumbnails = np.array([io.load_raw_image_postprocessed(filename, half_size=True, user_flip=0) for filename in filenames])
     return thumbnails
 
 
@@ -160,18 +163,6 @@ def central_slice_jpeg(*images, size=box_size):
 
     images_cut = [image[central_slice] for image in images]
     print(f"Selected central {2*size}x{2*size} pixels in the JPEG data")
-
-    return images_cut
-
-
-def central_slice_raw(*images, size=box_size):
-    half_size = size//2
-
-    central_x, central_y = images[0].shape[1]//2, images[0].shape[2]//2
-    central_slice = np.s_[:, central_x-half_size:central_x+half_size+1, central_y-half_size:central_y+half_size+1]
-
-    images_cut = [image[central_slice] for image in images]
-    print(f"Selected central {size}x{size} pixels in the RAW data")
 
     return images_cut
 

@@ -1,8 +1,7 @@
 """
 Module with functions etc for WACODI
 """
-from spectacle.general import apply_to_multiple_args
-from spectacle.spectral import convolve_multi, cie_wavelengths, cie_xyz, convert_to_XYZ
+from spectacle.spectral import convolve_multi, cie_wavelengths, cie_xyz, convert_to_XYZ, array_slice
 import numpy as np
 from astropy import table
 from .statistics import MAD
@@ -19,34 +18,24 @@ M_sRGB_to_XYZ_E = M_XYZ_D65_to_XYZ_E @ M_sRGB_to_XYZ
 
 FU_hueangles = np.array([234.55, 227.168, 220.977, 209.994, 190.779, 163.084, 132.999, 109.054, 94.037, 83.346, 74.572, 67.957, 62.186, 56.435, 50.665, 45.129, 39.769, 34.906, 30.439, 26.337, 22.741])
 
-def _convert_error_to_XYZ(RGB_errors, XYZ_matrix):
-    """
-    Convert RGB errors to XYZ
-    Simple for now, assume given data are (3,)
-    Simply square the XYZ matrix (element-wise) and matrix-multiply it
-    with the square of the RGB errors, then take the square root
-    """
-    XYZ_errors = np.sqrt(XYZ_matrix**2 @ RGB_errors**2)
-    return XYZ_errors
 
-
-def convert_errors_to_XYZ(XYZ_matrix, *RGB_errors):
-    """
-    Apply _convert_error_to_XYZ to multiple arguments
-    """
-    XYZ_errors = apply_to_multiple_args(_convert_error_to_XYZ, RGB_errors, XYZ_matrix=XYZ_matrix)
-    return XYZ_errors
-
-
-def convert_XYZ_to_xy(*XYZ_data):
+def convert_XYZ_to_xy(XYZ_data, axis_XYZ=-1):
     """
     Convert data from XYZ to xy (chromaticity)
     """
-    def _convert_single(XYZ):
-        xy = XYZ[:2] / np.sum(XYZ, axis=0)
-        return xy
-    xy_all = apply_to_multiple_args(_convert_single, XYZ_data)
-    return xy_all
+    # Convert to an array first
+    XYZ_data = np.array(XYZ_data)
+
+    # Move the XYZ axis to the front
+    XYZ_data_shifted = np.moveaxis(XYZ_data, axis_XYZ, 0)
+
+    # Calculate xy
+    xy = XYZ_data_shifted[:2] / np.nansum(XYZ_data_shifted, axis=0)
+
+    # Move the XYZ (now xy) axis back
+    xy = np.moveaxis(xy, 0, axis_XYZ)
+
+    return xy
 
 
 def convert_XYZ_to_xy_covariance(XYZ_covariance, XYZ_data):
@@ -61,15 +50,34 @@ def convert_XYZ_to_xy_covariance(XYZ_covariance, XYZ_data):
     return xy_covariance
 
 
-def convert_xy_to_hue_angle(*xy_data):
+def convert_xy_to_hue_angle(xy_data, axis_xy=-1, white=np.array([[1/3], [1/3]])):
     """
     Convert data from xy (chromaticity) to hue angle (in degrees)
     """
-    def _convert_single(xy):
-        hue_angle = np.rad2deg(np.arctan2(xy[1]-1/3, xy[0]-1/3) % (2*np.pi))
-        return hue_angle
-    hue_angle_all = apply_to_multiple_args(_convert_single, xy_data)
-    return hue_angle_all
+    # Convert to an array first
+    xy_data = np.array(xy_data)
+
+    # Move the xy axis to the end
+    xy_data = np.moveaxis(xy_data, axis_xy, -1)
+
+    # Subtract the white point
+    # If only a single xy vector was given, transpose the white point first
+    if len(xy_data.shape) == 1:
+        white = np.squeeze(white)
+    xy_data -= white
+
+    # Move the xy axis to the front and calculate the hue angle
+    hue_angle = np.rad2deg(np.arctan2(xy_data[...,1], xy_data[...,0]) % (2*np.pi))
+
+    # Move the xy axis back to where it came from, if multiple were given
+    try:  # Check if iterable
+        _ = iter(hue_angle)
+    except TypeError:  # If not, do nothing
+        pass
+    else:  # If iterable, move the axis
+        hue_angle = np.moveaxis(hue_angle, -1, axis_xy)
+
+    return hue_angle
 
 
 def convert_xy_to_hue_angle_covariance(xy_covariance, xy_data):

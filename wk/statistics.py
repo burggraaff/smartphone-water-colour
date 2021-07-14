@@ -5,7 +5,7 @@ import numpy as np
 from scipy import odr
 from robustats import weighted_median as weighted_median_original
 from spectacle.analyse import symmetric_percentiles
-from spectacle.general import RMS
+from spectacle.general import RMS, uncertainty_from_covariance, correlation_from_covariance
 from scipy.interpolate import interpn
 
 from . import colours
@@ -19,26 +19,6 @@ def weighted_median(x, w=None):
         return np.nanmedian(x)
     else:
         return weighted_median_original(x, w)
-
-
-def uncertainty_from_covariance(covariance):
-    """
-    Calculate a naive uncertainty estimate from a covariance matrix.
-    This is just the square root of the diagonal.
-    """
-    return np.sqrt(np.diag(covariance))
-
-
-def correlation_from_covariance(covariance):
-    """
-    Convert a covariance matrix into a correlation matrix
-    https://gist.github.com/wiso/ce2a9919ded228838703c1c7c7dad13b
-    """
-    v = uncertainty_from_covariance(covariance)
-    outer_v = np.outer(v, v)
-    correlation = covariance / outer_v
-    correlation[covariance == 0] = 0
-    return correlation
 
 
 def correlation(x, y, w=None):

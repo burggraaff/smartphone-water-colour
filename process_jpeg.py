@@ -56,7 +56,7 @@ for data_path in hc.generate_folders(folders, pattern):
 
     # Optional: Linearise JPEG data
     if linearise:
-        images_jpeg = [sRGB_inverse(image, normalization=255) for image in images_jpeg]
+        images_jpeg = sRGB_inverse(images_jpeg, normalization=255)
         sub = "_linear"
         print("Linearised JPEG data")
     else:
@@ -71,12 +71,9 @@ for data_path in hc.generate_folders(folders, pattern):
     # Load EXIF data
     water_exif = hc.load_exif(image_paths[0])
 
-    # Select the central 100x100 pixels
-    central_x, central_y = images_jpeg[0].shape[0]//2, images_jpeg[0].shape[1]//2
-    box_size = 100
-    central_slice = np.s_[central_x-box_size:central_x+box_size+1, central_y-box_size:central_y+box_size+1]
-    images_central_slices = [image[central_slice] for image in images_jpeg]
-    print(f"Selected central {2*box_size}x{2*box_size} pixels")
+    # Select the central pixels
+    central_slice = camera.central_slice(100, 100)
+    images_central_slices = images_jpeg[central_slice]
 
     # Combined histograms of different data reduction steps
     all_data = [images_jpeg, images_central_slices]
@@ -85,8 +82,7 @@ for data_path in hc.generate_folders(folders, pattern):
     plot.histogram_jpeg(water_all, sky_all, card_all, saveto=saveto_stats)
 
     # Reshape the central images to lists
-    # NB do not replace this with .reshape(3, -1) because that mixes channels
-    data_RGB = np.array([image.reshape(-1, 3).T for image in images_central_slices])
+    data_RGB = images_central_slices.reshape(3, 3, -1)
 
     # Divide by the spectral bandwidths to normalise to ADU nm^-1
     data_RGB = data_RGB.astype(np.float64)
@@ -141,7 +137,7 @@ for data_path in hc.generate_folders(folders, pattern):
     # WACODI
 
     # Convert RGB to XYZ
-    water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ = wa.convert_to_XYZ(wa.M_sRGB_to_XYZ_E, water_mean, sky_mean, card_mean, R_rs)
+    water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ = wa.convert_to_XYZ(wa.M_sRGB_to_XYZ_E, np.array([water_mean, sky_mean, card_mean, R_rs]))
     R_rs_XYZ_covariance = wa.M_sRGB_to_XYZ_E @ R_rs_covariance @ wa.M_sRGB_to_XYZ_E.T
 
     radiance_RGB_to_XYZ = hc.block_diag(*[wa.M_sRGB_to_XYZ_E.T]*3)
@@ -149,7 +145,7 @@ for data_path in hc.generate_folders(folders, pattern):
     all_mean_XYZ_covariance = radiance_RGB_to_XYZ @ all_covariance_RGB @ radiance_RGB_to_XYZ.T
 
     # Calculate xy chromaticity
-    water_xy, sky_xy, card_xy, R_rs_xy = wa.convert_XYZ_to_xy(water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ)
+    water_xy, sky_xy, card_xy, R_rs_xy = wa.convert_XYZ_to_xy([water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ])
     water_xy_covariance = wa.convert_XYZ_to_xy_covariance(all_mean_XYZ_covariance[:3,:3], water_XYZ)
     R_rs_xy_covariance = wa.convert_XYZ_to_xy_covariance(R_rs_XYZ_covariance, R_rs_XYZ)
 
@@ -165,7 +161,7 @@ for data_path in hc.generate_folders(folders, pattern):
     plot.plot_xy_on_gamut_covariance(R_rs_xy, R_rs_xy_covariance)
 
     # Calculate hue angle
-    water_hue, R_rs_hue = wa.convert_xy_to_hue_angle(water_xy, R_rs_xy)
+    water_hue, R_rs_hue = wa.convert_xy_to_hue_angle([water_xy, R_rs_xy])
     water_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(water_xy_covariance, water_xy)
     R_rs_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(R_rs_xy_covariance, R_rs_xy)
     print("Calculated hue angles:", f"alpha R_rs = {R_rs_hue:.1f} +- {R_rs_hue_uncertainty:.1f} degrees", f"alpha L_u  = {water_hue:.1f} +- {water_hue_uncertainty:.1f} degrees", sep="\n")
