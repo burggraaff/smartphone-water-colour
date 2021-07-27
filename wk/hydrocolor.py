@@ -36,7 +36,7 @@ def convert_Ld_to_Ed(Ld, R_ref=0.18):
     Convert downwelling radiance from a grey card (Ld) to downwelling
     irradiance (Ed) using the reference reflectance (R_ref).
     """
-    Ed = Ld / R_ref
+    Ed = Ld * np.pi / R_ref
     return Ed
 
 
@@ -48,7 +48,7 @@ def convert_Ld_to_Ed_covariance(Ld_covariance, Ed, R_ref=0.18, R_ref_uncertainty
     """
     nr_bands = len(Ed)  # Number of bands - 3 for RGB, 4 for RGBG2
     total_covariance = add_Rref_to_covariance(Ld_covariance, R_ref_uncertainty)
-    J = np.block([np.eye(nr_bands)/R_ref, (-Ed/R_ref)[:,np.newaxis]])  # Jacobian matrix
+    J = np.block([np.eye(nr_bands)*np.pi/R_ref, (-Ed/R_ref)[:,np.newaxis]])  # Jacobian matrix
     Ed_covariance = J @ total_covariance @ J.T
 
     return Ed_covariance
