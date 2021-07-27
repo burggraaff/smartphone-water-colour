@@ -20,18 +20,22 @@ M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
 # Labels for band ratios, in the correct order
 bandratio_labels = ["G/R", "G/B", "R/B"]
 
-def add_Rref_to_covariance(covariance, Rref_uncertainty=0.01):
+# Grey card reflectance, empirically determined
+R_ref = 0.21339426174065118
+R_ref_uncertainty = 0.01119783493503062
+
+def add_Rref_to_covariance(covariance, R_ref_uncertainty=R_ref_uncertainty):
     """
     Add a column and row for R_ref to a covariance matrix.
     The input Rref_uncertainty is assumed fully uncorrelated
     to the other elements.
     """
-    covariance_with_Rref = block_diag(covariance, [Rref_uncertainty**2])
+    covariance_with_Rref = block_diag(covariance, [R_ref_uncertainty**2])
 
     return covariance_with_Rref
 
 
-def convert_Ld_to_Ed(Ld, R_ref=0.18):
+def convert_Ld_to_Ed(Ld, R_ref=R_ref):
     """
     Convert downwelling radiance from a grey card (Ld) to downwelling
     irradiance (Ed) using the reference reflectance (R_ref).
@@ -40,7 +44,7 @@ def convert_Ld_to_Ed(Ld, R_ref=0.18):
     return Ed
 
 
-def convert_Ld_to_Ed_covariance(Ld_covariance, Ed, R_ref=0.18, R_ref_uncertainty=0.01):
+def convert_Ld_to_Ed_covariance(Ld_covariance, Ed, R_ref=R_ref, R_ref_uncertainty=R_ref_uncertainty):
     """
     Convert the covariance in downwelling radiance (Ld) and the
     reference reflectance (R_ref) to a covariance in downwelling
@@ -64,18 +68,18 @@ def split_combined_radiances(radiances):
     return Lu, Lsky, Ld
 
 
-def R_RS(L_u, L_s, L_d, rho=0.028, R_ref=0.18):
+def R_RS(L_u, L_s, L_d, rho=0.028, R_ref=R_ref):
     """
     Calculate the remote sensing reflectance (R_rs) from upwelling radiance L_u,
     sky radiance L_s, downwelling radiance L_d.
     Additional parameters are surface reflectivity rho (default 0.028), grey card
-    reflectance R_ref (0.18).
+    reflectance R_ref.
     L_u, L_s, L_d can be NumPy arrays.
     """
     return (L_u - rho * L_s) / ((np.pi / R_ref) * L_d)
 
 
-def R_rs_covariance(L_Rref_covariance, R_rs, L_d, rho=0.028, R_ref=0.18):
+def R_rs_covariance(L_Rref_covariance, R_rs, L_d, rho=0.028, R_ref=R_ref):
     """
     Propagate the covariance in radiance and R_ref into a covariance matrix
     for R_rs. Automatically determine the number of bands and return an
