@@ -176,6 +176,13 @@ bandratio_RB_err.name = "R_rs_err (R/B)"
 
 data_reference.add_columns([bandratio_GR, bandratio_GR_err, bandratio_RB, bandratio_GB, bandratio_GB_err, bandratio_RB_err])
 
+# Save the comparison table to file
+saveto_data = f"{saveto_base}_data.csv"
+table_combined = table.hstack([data_reference, data_phone], table_names=["reference", "phone"])
+table_combined.remove_columns([key for key in table_combined.keys() if "cov_" in key])
+table_combined.write(saveto_data, format="ascii.fast_csv", overwrite=True)
+print(f"Saved comparison table to `{saveto_data}`.")
+
 # Calculate the grey card reflectance
 Lu_ratio = stats.ravel_table(data_reference, "Lu ({c})") / stats.ravel_table(data_phone, "Lu ({c})")
 Lsky_ratio = stats.ravel_table(data_reference, "Lsky ({c})") / stats.ravel_table(data_phone, "Lsky ({c})")
