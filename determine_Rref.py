@@ -56,3 +56,4 @@ Rref_mean, Rref_uncertainty = stats.weighted_mean(Rref, 1/Rref_err**2)
 print(f"{Rref_mean}, {Rref_uncertainty}")
 
 print(f"Estimated grey card reflectance: R_ref = {Rref_mean:.2g} +- {Rref_uncertainty:.1g}")
+print(f"Estimated grey card reflectance: R_ref = ({100*Rref_mean:.2g} \pm {100*Rref_uncertainty:.1g})\%")
