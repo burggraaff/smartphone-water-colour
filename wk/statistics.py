@@ -6,7 +6,7 @@ from scipy import odr
 from scipy.stats import sem as standard_error
 from robustats import weighted_median as weighted_median_original
 from spectacle.analyse import symmetric_percentiles
-from spectacle.general import RMS, uncertainty_from_covariance, correlation_from_covariance
+from spectacle.general import RMS, weighted_mean, uncertainty_from_covariance, correlation_from_covariance
 from scipy.interpolate import interpn
 
 from . import colours

@@ -21,8 +21,7 @@ M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
 bandratio_labels = ["G/R", "G/B", "R/B"]
 
 # Grey card reflectance, empirically determined
-R_ref = 0.21339426174065118
-R_ref_uncertainty = 0.01119783493503062
+R_ref, R_ref_uncertainty = 0.21872167469852127, 0.02428559578772454
 
 def add_Rref_to_covariance(covariance, R_ref_uncertainty=R_ref_uncertainty):
     """

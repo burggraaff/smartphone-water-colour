@@ -15,7 +15,7 @@ from sys import argv
 from matplotlib import pyplot as plt
 from spectacle import io, spectral, load_camera
 from astropy import table
-from wk import hydrocolor as hc, plot, statistics as stats
+from wk import hydrocolor as hc, plot
 
 # Time limit for inclusion
 max_time_diff = 60*5  # 5 minutes
@@ -182,23 +182,6 @@ table_combined = table.hstack([data_reference, data_phone], table_names=["refere
 table_combined.remove_columns([key for key in table_combined.keys() if "cov_" in key])
 table_combined.write(saveto_data, format="ascii.fast_csv", overwrite=True)
 print(f"Saved comparison table to `{saveto_data}`.")
-
-# Calculate the grey card reflectance
-Lu_ratio = stats.ravel_table(data_reference, "Lu ({c})") / stats.ravel_table(data_phone, "Lu ({c})")
-Lsky_ratio = stats.ravel_table(data_reference, "Lsky ({c})") / stats.ravel_table(data_phone, "Lsky ({c})")
-L_ratio = np.concatenate([Lu_ratio, Lsky_ratio])
-Ld_Ed_ratio = np.pi * stats.ravel_table(data_phone, "Ld ({c})") / stats.ravel_table(data_reference, "Ed ({c})")
-
-L_ratio_mean = np.nanmean(L_ratio)
-L_ratio_uncertainty = stats.standard_error(L_ratio)
-
-Ld_Ed_ratio_mean = np.nanmean(Ld_Ed_ratio)
-Ld_Ed_ratio_uncertainty = stats.standard_error(Ld_Ed_ratio)
-
-R_ref = L_ratio_mean * Ld_Ed_ratio_mean
-R_ref_uncertainty = R_ref * np.sqrt((L_ratio_uncertainty/L_ratio_mean)**2 + (Ld_Ed_ratio_uncertainty/Ld_Ed_ratio_mean)**2)
-
-print(f"Estimated grey card reflectance: R_ref = {R_ref:.3g} +- {R_ref_uncertainty:.2g}")
 
 # Correlation plot: Radiances and irradiance
 plot.correlation_plot_radiance(data_reference, data_phone, keys=["Lu", "Lsky"], xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_radiance.pdf")
