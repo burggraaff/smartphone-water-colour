@@ -376,8 +376,10 @@ def extend_keys_to_RGB(keys):
 
 
 def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_covariance, R_rs, R_rs_covariance, band_ratios, band_ratios_covariance, R_rs_xy, R_rs_xy_covariance, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range):
-    # assert len(water) == len(water_err) == len(sky) == len(sky_err) == len(grey) == len(grey_err) == len(Rrs) == len(Rrs_err), "Not all input arrays have the same length"
-
+    """
+    Write the results from process_raw.py or process_jpeg.py to a CSV file.
+    Covariance matrices are unravelled into their constituent elements.
+    """
     # Split the covariance matrices out
     radiances_covariance_list = _convert_symmetric_matrix_to_list(radiances_covariance)
     Ed_covariance_list = _convert_symmetric_matrix_to_list(Ed_covariance)
@@ -394,7 +396,7 @@ def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_cov
 
     # Make a header with the relevant items
     header_RGB = extend_keys_to_RGB(["Lu", "Lsky", "Ld", "Ed", "R_rs"])
-    header_hue = [f"R_rs ({key})" for key in [*bandratio_labels, *"xy", "hue", "FU"]] + ["R_rs_err (hue)", "R_rs_min (FU)", "R_rs_max (FU)"]
+    header_hue = [f"R_rs ({key})" for key in [*bandratio_labels, *"xy"]] + ["R_rs (hue)", "R_rs_err (hue)", "R_rs (FU)", "R_rs_min (FU)", "R_rs_max (FU)"]
     header = ["UTC", "UTC (ISO)"] + header_RGB + header_hue + radiances_covariance_header + Ed_covariance_header + R_rs_covariance_header + band_ratios_covariance_header + R_rs_xy_covariance_header
 
     # Add the data to a row, and that row to a table
