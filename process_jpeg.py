@@ -137,40 +137,31 @@ for data_path in hc.generate_folders(folders, pattern):
     # WACODI
 
     # Convert RGB to XYZ
-    water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ = wa.convert_to_XYZ(wa.M_sRGB_to_XYZ_E, np.array([water_mean, sky_mean, card_mean, R_rs]))
+    R_rs_XYZ = wa.convert_to_XYZ(wa.M_sRGB_to_XYZ_E, R_rs)
     R_rs_XYZ_covariance = wa.M_sRGB_to_XYZ_E @ R_rs_covariance @ wa.M_sRGB_to_XYZ_E.T
 
-    radiance_RGB_to_XYZ = hc.block_diag(*[wa.M_sRGB_to_XYZ_E.T]*3)
-    all_mean_XYZ = radiance_RGB_to_XYZ @ all_mean
-    all_mean_XYZ_covariance = radiance_RGB_to_XYZ @ all_covariance_RGB @ radiance_RGB_to_XYZ.T
-
     # Calculate xy chromaticity
-    water_xy, sky_xy, card_xy, R_rs_xy = wa.convert_XYZ_to_xy([water_XYZ, sky_XYZ, card_XYZ, R_rs_XYZ])
-    water_xy_covariance = wa.convert_XYZ_to_xy_covariance(all_mean_XYZ_covariance[:3,:3], water_XYZ)
+    R_rs_xy = wa.convert_XYZ_to_xy(R_rs_XYZ)
     R_rs_xy_covariance = wa.convert_XYZ_to_xy_covariance(R_rs_XYZ_covariance, R_rs_XYZ)
 
     # Calculate correlation, uncertainty
     R_rs_xy_correlation = stats.correlation_from_covariance(R_rs_xy_covariance)
     R_rs_xy_uncertainty = stats.uncertainty_from_covariance(R_rs_xy_covariance)
-    water_xy_correlation = stats.correlation_from_covariance(water_xy_covariance)
-    water_xy_uncertainty = stats.uncertainty_from_covariance(water_xy_covariance)
 
-    print("Converted to xy:", f"xy R_rs = {R_rs_xy} +- {R_rs_xy_uncertainty} (r = {R_rs_xy_correlation[0,1]:.2f})", f"xy L_u  = {water_xy} +- {water_xy_uncertainty} (r = {water_xy_correlation[0,1]:.2f})", sep="\n")
+    print("Converted to xy:", f"xy R_rs = {R_rs_xy} +- {R_rs_xy_uncertainty} (r = {R_rs_xy_correlation[0,1]:.2f})")
 
     # Plot chromaticity
     plot.plot_xy_on_gamut_covariance(R_rs_xy, R_rs_xy_covariance)
 
     # Calculate hue angle
-    water_hue, R_rs_hue = wa.convert_xy_to_hue_angle([water_xy, R_rs_xy])
-    water_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(water_xy_covariance, water_xy)
+    R_rs_hue = wa.convert_xy_to_hue_angle(R_rs_xy)
     R_rs_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(R_rs_xy_covariance, R_rs_xy)
-    print("Calculated hue angles:", f"alpha R_rs = {R_rs_hue:.1f} +- {R_rs_hue_uncertainty:.1f} degrees", f"alpha L_u  = {water_hue:.1f} +- {water_hue_uncertainty:.1f} degrees", sep="\n")
+    print("Calculated hue angles:", f"alpha R_rs = {R_rs_hue:.1f} +- {R_rs_hue_uncertainty:.1f} degrees")
 
     # Convert to Forel-Ule index
-    water_FU, R_rs_FU = wa.convert_hue_angle_to_ForelUle([water_hue, R_rs_hue])
-    water_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(water_hue_uncertainty, water_hue)
+    R_rs_FU = wa.convert_hue_angle_to_ForelUle(R_rs_hue)
     R_rs_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(R_rs_hue_uncertainty, R_rs_hue)
-    print("Determined Forel-Ule indices:", f"FU R_rs = {R_rs_FU} [{R_rs_FU_range[0]}-{R_rs_FU_range[1]}]", f"FU L_u  = {water_FU} [{water_FU_range[0]}-{water_FU_range[1]}]", sep="\n")
+    print("Determined Forel-Ule indices:", f"FU R_rs = {R_rs_FU} [{R_rs_FU_range[0]}-{R_rs_FU_range[1]}]")
 
 
     # Create a timestamp from EXIF (assume time zone UTC+2)
