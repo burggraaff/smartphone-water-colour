@@ -39,13 +39,9 @@ plt.grid(ls="--")
 plt.show()
 plt.close()
 
-# Convert back to the original data
-data["Es_white"] *= 0.99
-data["Es_grey"] *= 0.18
-
 # Calculate Rref per wavelength
-Rref_white = data["Es_white"] / data["Ed"]
-Rref_grey = data["Es_grey"] / data["Ed"]
+Rref_white = 0.99*data["Es_white"] / data["Ed"]
+Rref_grey = 0.18*data["Es_grey"] / data["Ed"]
 
 # Plot the data
 fig, axs = plt.subplots(nrows=2, sharex=True, figsize=(plot.col1, plot.col1), gridspec_kw={"hspace": 0.5})
