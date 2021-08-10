@@ -3,9 +3,10 @@ Empirically determine the grey card reflectance from comparison measurements.
 
 Command-line inputs:
     * Data file with header
+    * Any number of folders with SPECTACLE data for smartphone bands
 
 Example:
-    %run calculate_Rref_from_Ed_data.py water-colour-data/greycard_data_Maine.csv
+    %run calculate_Rref_from_Ed_data.py water-colour-data/greycard_data_Maine.csv C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/
 """
 import numpy as np
 from sys import argv
@@ -17,10 +18,10 @@ from astropy import table
 from wk import hydrocolor as hc, plot, statistics as stats
 
 # Get the data folder from the command line
-path = io.path_from_input(argv)
+path_data, *paths_smartphones = io.path_from_input(argv)
 
 # Load the data
-data = table.Table.read(path)
+data = table.Table.read(path_data)
 print("Loaded data table")
 
 # Plot the data
@@ -61,3 +62,14 @@ axs[0].tick_params(bottom=False, labelbottom=False)
 plt.savefig("results/greycard_reflectance.pdf", bbox_inches="tight")
 plt.show()
 plt.close()
+
+# Calculate Rref in the smartphone bands
+cameras = [io.load_camera(path) for path in paths_smartphones]
+Rref_grey_RGB = [camera.convolve(data["wavelength"], Rref_grey)[:3] for camera in cameras]
+
+print("Grey card reflectance in RGB bands:")
+for camera, Rref in zip(cameras, Rref_grey_RGB):
+    Rref_strings = [f"Rref ({band}) = {100*Rref_band:.1f}%" for band, Rref_band in zip("RGB", Rref)]
+    print(camera.name)
+    print(*Rref_strings, sep="\n")
+    print("----")
