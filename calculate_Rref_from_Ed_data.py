@@ -45,7 +45,7 @@ Rref_grey = 0.18*data["Es_grey"] / data["Ed"]
 
 # Plot the data
 fig, axs = plt.subplots(nrows=2, sharex=True, figsize=(plot.col1, plot.col1), gridspec_kw={"hspace": 0.5})
-for ax, y, nominal, label in zip(axs, [Rref_white, Rref_grey], [100, 18], ["White card", "Grey card"]):
+for ax, y, nominal, label in zip(axs, [Rref_white, Rref_grey], [99, 18], ["White card", "Grey card"]):
     ax.plot(data["wavelength"], y*100)
     ax.axhline(nominal, c='k', ls="--", alpha=0.8)
     ax.set_title(label)
