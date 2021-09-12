@@ -21,7 +21,7 @@ from wk import wacodi as wa, hydrocolor as hc
 # Get filenames
 folder = Path(argv[1])
 print("Input folder:", folder.absolute())
-saveto = Path("water-colour-data/data_switzerland_table.csv")
+saveto = Path("water-colour-data/trios_switzerland_table.csv")
 trios_filename = "Rrs_output_simis.csv"
 
 # Loop over the data folders for each lake
@@ -58,3 +58,6 @@ for folder in data_folders:
 
 # Combine the individual data tables
 data = table.vstack(data_tables)
+
+# Add WACODI data - XYZ, xy, hue angle, Forel-Ule
+data = wa.add_colour_data_to_table(data)

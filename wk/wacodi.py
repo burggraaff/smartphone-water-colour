@@ -50,7 +50,7 @@ def convert_XYZ_to_xy_covariance(XYZ_covariance, XYZ_data):
     return xy_covariance
 
 
-def convert_xy_to_hue_angle(xy_data, axis_xy=-1, white=np.array([[1/3], [1/3]])):
+def convert_xy_to_hue_angle(xy_data, axis_xy=-1, white=np.array([1/3, 1/3])):
     """
     Convert data from xy (chromaticity) to hue angle (in degrees)
     """
@@ -61,9 +61,6 @@ def convert_xy_to_hue_angle(xy_data, axis_xy=-1, white=np.array([[1/3], [1/3]]))
     xy_data = np.moveaxis(xy_data, axis_xy, -1)
 
     # Subtract the white point
-    # If only a single xy vector was given, transpose the white point first
-    if len(xy_data.shape) == 1:
-        white = np.squeeze(white)
     xy_data -= white
 
     # Move the xy axis to the front and calculate the hue angle
@@ -130,7 +127,7 @@ def add_colour_data_to_table(data, key="R_rs"):
     data_array = np.array(data[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
 
     # Convolve to XYZ
-    data_XYZ = np.array([convolve_multi(cie_wavelengths, band, wavelengths, data_array) for band in cie_xyz])
+    data_XYZ = np.array([convolve_multi(cie_wavelengths, band, wavelengths, data_array) for band in cie_xyz]).T
 
     # Calculate xy from XYZ
     data_xy = convert_XYZ_to_xy(data_XYZ)
@@ -140,7 +137,9 @@ def add_colour_data_to_table(data, key="R_rs"):
     FU_indices = convert_hue_angle_to_ForelUle(hue_angles)
 
     # Put WACODI data in a table
-    table_WACODI = table.Table(data=[*data_XYZ, *data_xy, hue_angles, FU_indices], names=[f"{key} ({label})" for label in [*"XYZxy", "hue", "FU"]])
+    data_WACODI = [*data_XYZ.T, *data_xy.T, hue_angles, FU_indices]
+    header_WACODI = [f"{key} ({label})" for label in [*"XYZxy", "hue", "FU"]]
+    table_WACODI = table.Table(data=data_WACODI, names=header_WACODI)
 
     # Merge convolved data table with original data table
     data = table.hstack([data, table_WACODI])
