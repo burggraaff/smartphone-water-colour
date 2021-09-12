@@ -26,6 +26,7 @@ trios_filename = "Rrs_output_simis.csv"
 
 # Loop over the data folders for each lake
 data_folders = hc.generate_folders([folder], "RAMSES_calibrated")
+data_tables = []
 
 for folder in data_folders:
     # Filename in this folder
@@ -33,13 +34,27 @@ for folder in data_folders:
 
     # Load the data
     header = np.genfromtxt(Rrs_filename, delimiter=",", dtype=str, max_rows=1)  # Contains timestamps
-    data = np.genfromtxt(Rrs_filename, delimiter=",", dtype=float)  # Contains radiometry
+    data = np.genfromtxt(Rrs_filename, delimiter=",", dtype=float, skip_header=1)  # Contains radiometry
 
     # Convert header into timestamps and UTC format
-    header = header[1:-3]  # Remove wavelength and percentile columns
+    only_radiometry = np.s_[1:-3]
+    header = header[only_radiometry]  # Remove wavelength and percentile columns
     timestamps = [h.replace(" ", "T") for h in header]
     UTC = [datetime.fromisoformat(t).timestamp() for t in timestamps]
+
+    # Convert the data to the right format
+    wavelengths = data[:,0]
+    wavelength_header = [f"R_rs_{wvl:.1f}" for wvl in wavelengths]
+    data = data.T[only_radiometry]
 
     # Transpose the data and convert everything to astropy tables
     timestamps = table.Column(name="DateTime", data=timestamps)
     UTC = table.Column(name="UTC", data=UTC)
+    radiometry = table.Table(names=wavelength_header, data=data)
+
+    # Combine everythign into one table and append that to the list
+    radiometry.add_columns([timestamps, UTC], indexes=[0,0])
+    data_tables.append(radiometry)
+
+# Combine the individual data tables
+data = table.vstack(data_tables)
