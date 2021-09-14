@@ -21,7 +21,7 @@ from wk import wacodi as wa, hydrocolor as hc
 # Get filenames
 folder = Path(argv[1])
 print("Input folder:", folder.absolute())
-saveto = Path("water-colour-data/trios_switzerland_table.csv")
+saveto = Path("water-colour-data/TriOS_switzerland_table.csv")
 trios_filename = "Rrs_output_simis.csv"
 
 # Loop over the data folders for each lake
