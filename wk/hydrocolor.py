@@ -301,6 +301,26 @@ def print_bandratios(bandratios, bandratios_covariance, key="R_rs"):
         print(f"{key} ({bandratio_labels[index0]})-({bandratio_labels[index1]}): r = {corr:+.2f}")
 
 
+def add_dummy_columns(data, key_source="R_rs", keys_goal=["Ed", "Lu", "Lsky"], value=-1):
+    """
+    Add dummy columns for missing quantities, for example Ed and Lu
+    in a data set that only contained R_rs.
+    The dummy columns will contain a given value, by default -1.
+    """
+    # Find the original column names
+    columns_source_keys = [key for key in data.keys() if key_source in key]
+
+    # Generate the new columns
+    columns_goal_keys = np.ravel([[key.replace(key_source, key_goal) for key_goal in keys_goal] for key in columns_source_keys])
+    dummy_data = np.tile(value, (len(data), len(columns_goal_keys)))
+    dummy_data = table.Table(data=dummy_data, names=columns_goal_keys)
+
+    # Combine the dummy data with the main data
+    data = table.hstack([data, dummy_data])
+
+    return data
+
+
 def iso_timestamp(utc):
     """
     Convert a UTC timestamp from the data to ISO format.

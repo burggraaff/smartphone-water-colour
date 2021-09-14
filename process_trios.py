@@ -16,7 +16,7 @@ from sys import argv
 from pathlib import Path
 from datetime import datetime
 
-from wk import wacodi as wa
+from wk import hydrocolor as hc, wacodi as wa
 
 # Get filenames
 filename = Path(argv[1])
@@ -43,15 +43,13 @@ data.remove_columns(["EdPAR", "EdDevice"])
 
 # Rename columns from Rrs to R_rs
 R_rs_columns = [key for key in data.keys() if "Rrs_" in key]
+wavelengths = np.array([float(key[4:]) for key in R_rs_columns])
 R_rs_columns_new = [key.replace("Rrs", "R_rs") for key in R_rs_columns]
 data.rename_columns(R_rs_columns, R_rs_columns_new)
 print("Renamed columns from Rrs to R_rs")
 
 # Add dummy Ed, Lu, Lsky columns
-wavelengths = np.array([float(key[4:]) for key in R_rs_columns])
-dummy_columns = [[table.Column(data=-np.ones_like(data[R_rs_key]), name=R_rs_key.replace("R_rs", param)) for R_rs_key in R_rs_columns_new] for param in ["Ed", "Lu", "Lsky"]]
-dummy_columns = table.Table([x for y in dummy_columns for x in y])
-data = table.hstack([data, dummy_columns])
+data = hc.add_dummy_columns(data)
 print("Added dummy radiance columns")
 
 # Add WACODI data - XYZ, xy, hue angle, Forel-Ule
