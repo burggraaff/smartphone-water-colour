@@ -301,7 +301,7 @@ def print_bandratios(bandratios, bandratios_covariance, key="R_rs"):
         print(f"{key} ({bandratio_labels[index0]})-({bandratio_labels[index1]}): r = {corr:+.2f}")
 
 
-def add_dummy_columns(data, key_source="R_rs", keys_goal=["Ed", "Lu", "Lsky"], value=-1):
+def add_dummy_columns(data, key_source="R_rs", keys_goal=["Ed", "Lu", "Lsky"], value=-1.):
     """
     Add dummy columns for missing quantities, for example Ed and Lu
     in a data set that only contained R_rs.
