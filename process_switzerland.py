@@ -58,6 +58,7 @@ for folder in data_folders:
 
 # Combine the individual data tables
 data = table.vstack(data_tables)
+print(f"Read all ({len(data_tables)}) data files")
 
 # Add dummy Ed, Lu, Lsky columns
 data = hc.add_dummy_columns(data)
@@ -65,3 +66,7 @@ print("Added dummy radiance columns")
 
 # Add WACODI data - XYZ, xy, hue angle, Forel-Ule
 data = wa.add_colour_data_to_table(data)
+
+# Write data to file
+data.write(saveto, format="ascii.fast_csv")
+print("Saved result to:", saveto.absolute())
