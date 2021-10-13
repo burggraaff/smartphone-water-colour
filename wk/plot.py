@@ -658,7 +658,7 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
         x_err_GB = y_err_GB = x_err_GR = y_err_GR = x_err_RB = y_err_RB = None
 
     # Plot the data
-    fig, axs = plt.subplots(nrows=3, sharex=True, sharey=True, figsize=(col1, 8), gridspec_kw={"hspace": 0.05, "wspace": 0.05})
+    fig, axs = plt.subplots(nrows=3, sharex=True, sharey=True, figsize=(col1, 7.5), gridspec_kw={"hspace": 0.05, "wspace": 0.05})
     correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[0], xlabel=f"{xlabel}\n{quantity} (G/B)", ylabel=f"{quantity} (G/B)", equal_aspect=True)
     correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[1], xlabel="", ylabel=f"{ylabel}\n{quantity} (G/R)", equal_aspect=True)
     correlation_plot_simple(x_RB, y_RB, xerr=x_err_RB, yerr=y_err_RB, ax=axs[2], xlabel=f"{quantity} (R/B)\n{xlabel}", ylabel=f"{quantity} (R/B)", equal_aspect=True)
