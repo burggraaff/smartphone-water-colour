@@ -24,7 +24,7 @@ persr = "[sr$^{-1}$]"
 # Dictionary mapping keys to LaTeX strings
 keys_latex = {"Lu": "$L_u$", "Lsky": "$L_{sky}$", "Ld": "$L_d$", "Ed": "$E_d$", "L": "$L$", "R_rs": "$R_{rs}$"}
 
-# Frontiers column widths
+# Frontiers column widths - OSA are very similar
 col1 = 85/25.4
 col2 = 180/25.4
 smallpanel = (2, 1.5)
