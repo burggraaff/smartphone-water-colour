@@ -318,7 +318,7 @@ def _plot_diagonal(ax=None, **kwargs):
     if ax is None:
         ax = plt.gca()
 
-    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', zorder=10, **kwargs)
+    ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', zorder=10, label="1:1", **kwargs)
 
 
 def _plot_linear_regression(func, ax=None, color="k", x=np.array([-1000., 1000.]), **kwargs):
@@ -360,7 +360,7 @@ def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, **kwargs):
 
     # Plot the text box
     bbox = {"boxstyle": "round", "facecolor": "white"}
-    ax.text(0.05, 0.95, text, transform=ax.transAxes, verticalalignment="top", multialignment="right", bbox=bbox, **kwargs)
+    ax.text(0.05, 0.95, text, transform=ax.transAxes, verticalalignment="top", multialignment="left", bbox=bbox, **kwargs)
 
 
 
@@ -390,6 +390,7 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
         ymax = 1.05*np.nanmax(y)
         if equal_aspect:
             xmax = ymax = max(xmax, ymax)
+            ax.set_aspect("equal")
         ax.set_xlim(xmax=xmax)
         ax.set_ylim(ymax=ymax)
 
@@ -495,6 +496,7 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
         ymax = _axis_limit_RGB(y, ydatalabel)[1]
         if equal_aspect:
             xmax = ymax = max(xmax, ymax)
+            ax.set_aspect("equal")
         ax.set_xlim(0, 1.05*xmax)
         ax.set_ylim(0, 1.05*ymax)
 
@@ -656,7 +658,7 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
         x_err_GB = y_err_GB = x_err_GR = y_err_GR = x_err_RB = y_err_RB = None
 
     # Plot the data
-    fig, axs = plt.subplots(nrows=3, sharex=True, sharey=True, figsize=(col1, 6), gridspec_kw={"hspace": 0.1, "wspace": 0.1})
+    fig, axs = plt.subplots(nrows=3, sharex=True, sharey=True, figsize=(col1, 8), gridspec_kw={"hspace": 0.05, "wspace": 0.05})
     correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[0], xlabel=f"{xlabel}\n{quantity} (G/B)", ylabel=f"{quantity} (G/B)", equal_aspect=True)
     correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[1], xlabel="", ylabel=f"{ylabel}\n{quantity} (G/R)", equal_aspect=True)
     correlation_plot_simple(x_RB, y_RB, xerr=x_err_RB, yerr=y_err_RB, ax=axs[2], xlabel=f"{quantity} (R/B)\n{xlabel}", ylabel=f"{quantity} (R/B)", equal_aspect=True)
@@ -673,6 +675,7 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
     # Switch xtick labels on the bottom plot to the top
     axs[0].tick_params(axis="x", bottom=False, labelbottom=False, top=True, labeltop=True)
     axs[0].xaxis.set_label_position("top")
+    axs[1].tick_params(axis="x", bottom=False, labelbottom=False)
 
     # Calculate statistics
     for ax, x, y, xerr, yerr in zip(axs, [x_GR, x_GB, x_RB], [y_GR, y_GB, y_RB], [x_err_GR, x_err_GB, x_err_RB], [y_err_GR, y_err_GB, y_err_RB]):
