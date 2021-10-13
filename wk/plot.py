@@ -360,7 +360,7 @@ def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, **kwargs):
 
     # Plot the text box
     bbox = {"boxstyle": "round", "facecolor": "white"}
-    ax.text(0.05, 0.95, text, transform=ax.transAxes, verticalalignment="top", multialignment="left", bbox=bbox, **kwargs)
+    ax.text(0.05, 0.95, text, transform=ax.transAxes, verticalalignment="top", multialignment="left", bbox=bbox, zorder=15, **kwargs)
 
 
 
