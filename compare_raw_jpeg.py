@@ -12,7 +12,7 @@ from wk import hydrocolor as hc, plot
 
 # Get the data folder from the command line
 path_data1, path_data2 = io.path_from_input(argv)
-phone_name = " ".join(path_data1.stem.split("_")[1:-1])
+phone_name = " ".join(path_data1.stem.split("_")[1:-2])
 
 # Find out if we're doing JPEG or RAW and make appropriate labels
 data_type1 = hc.data_type_RGB(path_data1)

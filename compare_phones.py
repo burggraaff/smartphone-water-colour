@@ -16,8 +16,8 @@ from wk import hydrocolor as hc, plot
 path_data1, path_data2 = io.path_from_input(argv)
 
 # Names of the two phones being compared and some useful labels
-phone1_name = " ".join(path_data1.stem.split("_")[1:-1])
-phone2_name = " ".join(path_data2.stem.split("_")[1:-1])
+phone1_name = " ".join(path_data1.stem.split("_")[1:-2])
+phone2_name = " ".join(path_data2.stem.split("_")[1:-2])
 saveto_base = f"results/comparison_{phone1_name}_X_{phone2_name}"
 print(f"Comparing data from {phone1_name} and {phone2_name}. Results will be saved to '{saveto_base}_XXX.pdf'.")
 
