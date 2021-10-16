@@ -164,6 +164,6 @@ def full_statistics_for_title(x, y, xerr=None, yerr=None):
     else:
         weights = weights_relative = None
     r, mad, z, sspb = correlation(x, y, w=weights), MAD(x, y, w=weights), zeta(x, y), SSPB(x, y)
-    parts = [f"r = {r:.2g}", f"{mad_symbol} = {mad:.2g}", f"$\zeta$ = {z:.2g}%", f"{sspb_symbol} = {sspb:+.2g}%"]
+    parts = [f"$r$ = {r:.2g}", f"{mad_symbol} = {mad:.2g}", f"$\zeta$ = {z:.2g}%", f"{sspb_symbol} = {sspb:+.2g}%"]
     statistic_text = "\n".join(parts)
     return [r, mad, z, sspb], statistic_text
