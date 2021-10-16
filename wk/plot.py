@@ -542,7 +542,7 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, ax=None, xerrlabel=None, 
 
 
 
-def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None):
+def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", regression="none", difference_unit="", saveto=None):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
     `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
@@ -575,7 +575,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
 
     # Labels
     axs[1].set_xlabel(xlabel)
-    axs[1].set_ylabel("Difference")
+    axs[1].set_ylabel(f"Difference {difference_unit}")
     axs[0].set_ylabel(ylabel)
 
     # Save the result

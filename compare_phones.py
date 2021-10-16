@@ -51,7 +51,7 @@ plot.correlation_plot_radiance(data1, data2, xlabel=phone1_name, ylabel=phone2_n
 
 # Correlation plot: Remote sensing reflectance
 label_R_rs = plot.keys_latex["R_rs"]
-plot.correlation_plot_RGB_equal(data1, data2, "R_rs", errlabel="R_rs_err", xlabel=f"{phone1_name} {label_R_rs} {plot.persr}", ylabel=f"{phone2_name}\n{label_R_rs} {plot.persr}", regression="all", saveto=f"{saveto_base}_R_rs.pdf")
+plot.correlation_plot_RGB_equal(data1, data2, "R_rs", errlabel="R_rs_err", xlabel=f"{phone1_name} {label_R_rs} {plot.persr}", ylabel=f"{phone2_name}\n{label_R_rs} {plot.persr}", regression="all", difference_unit=plot.persr, saveto=f"{saveto_base}_R_rs.pdf")
 
 # Correlation plot: Band ratios
 plot.correlation_plot_bands(data1, data2, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=phone1_name, ylabel=phone2_name, saveto=f"{saveto_base}_band_ratio.pdf")
