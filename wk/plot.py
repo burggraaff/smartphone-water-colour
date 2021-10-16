@@ -24,6 +24,9 @@ persr = "[sr$^{-1}$]"
 # Dictionary mapping keys to LaTeX strings
 keys_latex = {"Lu": "$L_u$", "Lsky": "$L_{sky}$", "Ld": "$L_d$", "Ed": "$E_d$", "L": "$L$", "R_rs": "$R_{rs}$"}
 
+# bbox for text
+bbox_text = {"boxstyle": "round", "facecolor": "white"}
+
 # Frontiers column widths - OSA are very similar
 col1 = 85/25.4
 col2 = 180/25.4
@@ -347,7 +350,7 @@ def _plot_linear_regression_RGB(funcs, *args, **kwargs):
         _plot_linear_regression(func, *args, color=c, path_effects=path_effects_RGBlines, **kwargs)
 
 
-def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, **kwargs):
+def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, fontsize=9, **kwargs):
     """
     Plot statistics about the data into a text box in the top right corner.
     Statistics: r, MAD, zeta, SSPB.
@@ -359,8 +362,7 @@ def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, **kwargs):
     statistics, text = stats.full_statistics_for_title(x, y, xerr, yerr)
 
     # Plot the text box
-    bbox = {"boxstyle": "round", "facecolor": "white"}
-    ax.text(0.05, 0.95, text, transform=ax.transAxes, verticalalignment="top", multialignment="left", bbox=bbox, zorder=15, **kwargs)
+    ax.text(0.05, 0.95, text, transform=ax.transAxes, verticalalignment="top", multialignment="left", bbox=bbox_text, zorder=15, fontsize=fontsize, **kwargs)
 
 
 
@@ -613,6 +615,8 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
         xerr, yerr = stats.ravel_table(x_radiance, "L_err ({c})"), stats.ravel_table(y_radiance, "L_err ({c})")
 
         func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)[2]
+        y_fitted = func_linear(xdata)
+        _plot_statistics(ydata, y_fitted, axs[-1])
         for ax in axs:
             _plot_linear_regression(func_linear, ax)
 
@@ -625,14 +629,16 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
     # Plot settings
     axs[0].set_xlim(_axis_limit_RGB(x_radiance, "L ({c})"))
     axs[0].set_ylim(_axis_limit_RGB(y_radiance, "L ({c})"))
+    for ax in axs[:-1]:
+        ax.tick_params(axis="x", bottom=False, labelbottom=False)
 
-    # Labels
+    # Add labels to the corners of each plot to indicate which radiance they show
     if combine:
         keys = keys + ["L"]  # Don't use append because it changes the original object
     axs[-1].set_xlabel(xlabel)
     for ax, key in zip(axs, keys):
         ax.set_title(None)  # Remove default titles
-        ax.text(0.05, 0.95, keys_latex[key], transform=ax.transAxes, fontsize=14, verticalalignment="top")
+        ax.text(0.85, 0.15, keys_latex[key], transform=ax.transAxes, fontsize=10, verticalalignment="top", multialignment="right", bbox=bbox_text)
 
     # Save the result
     _saveshow(saveto)
@@ -680,7 +686,7 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
     # Calculate statistics
     for ax, x, y, xerr, yerr in zip(axs, [x_GR, x_GB, x_RB], [y_GR, y_GB, y_RB], [x_err_GR, x_err_GB, x_err_RB], [y_err_GR, y_err_GB, y_err_RB]):
         ax.set_title("")
-        _plot_statistics(x, y, ax, xerr=xerr, yerr=yerr, fontsize=8)
+        _plot_statistics(x, y, ax, xerr=xerr, yerr=yerr)
 
     # Save the result
     _saveshow(saveto)
