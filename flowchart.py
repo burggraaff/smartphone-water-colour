@@ -114,83 +114,11 @@ plot.plot_correlation_matrix_radiance(all_covariance, x1=data_all[4], y1=data_al
 # Average G and G2
 all_mean_RGB = hc.convert_RGBG2_to_RGB(all_mean)
 all_covariance_RGB = hc.convert_RGBG2_to_RGB_covariance(all_covariance)
-water_mean_RGB, sky_mean_RGB, card_mean_RGB = hc.split_combined_radiances(all_mean_RGB)
-
-# Add Rref to covariance matrix
-all_covariance_RGB_Rref = hc.add_Rref_to_covariance(all_covariance_RGB)
-
-# Calculate Ed from Ld
-Ld_covariance_RGB = all_covariance_RGB[-3:, -3:]  # Take only the Ld-Ld elements from the covariance matrix
-Ed = hc.convert_Ld_to_Ed(card_mean_RGB)
-Ed_covariance = hc.convert_Ld_to_Ed_covariance(Ld_covariance_RGB, Ed)
-
-# Convert to remote sensing reflectances
-R_rs = hc.R_RS(water_mean_RGB, sky_mean_RGB, card_mean_RGB)
-R_rs_covariance = hc.R_rs_covariance(all_covariance_RGB_Rref, R_rs, card_mean_RGB)
-print("Calculated remote sensing reflectances")
-
-# Derive naive uncertainty and correlation from covariance
-R_rs_uncertainty = stats.uncertainty_from_covariance(R_rs_covariance)  # Uncertainty per band, ignoring covariance
-
-
-# HydroColor
-for reflectance, reflectance_uncertainty, c in zip(R_rs, R_rs_uncertainty, "RGB"):
-    print(f"R_rs({c}) = ({reflectance:.3f} +- {reflectance_uncertainty:.3f}) sr^-1   ({100*reflectance_uncertainty/reflectance:.0f}% uncertainty)")
-
-# Plot the result
-plot.plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_uncertainty)
-
-# Calculate band ratios
-bandratios = hc.calculate_bandratios(*R_rs)
-bandratios_covariance = hc.calculate_bandratios_covariance(*R_rs, R_rs_covariance)
-hc.print_bandratios(bandratios, bandratios_covariance)
-
-# WACODI
-
-# Convert RGB to XYZ
-R_rs_XYZ = camera.convert_to_XYZ(R_rs)
-R_rs_XYZ_covariance = camera.XYZ_matrix @ R_rs_covariance @ camera.XYZ_matrix.T
-
-# Calculate xy chromaticity
-R_rs_xy = wa.convert_XYZ_to_xy(R_rs_XYZ)
-R_rs_xy_covariance = wa.convert_XYZ_to_xy_covariance(R_rs_XYZ_covariance, R_rs_XYZ)
-
-# Calculate correlation, uncertainty
-R_rs_xy_correlation = stats.correlation_from_covariance(R_rs_xy_covariance)
-R_rs_xy_uncertainty = stats.uncertainty_from_covariance(R_rs_xy_covariance)
-
-# Calculate correlation, uncertainty
-R_rs_xy_correlation = stats.correlation_from_covariance(R_rs_xy_covariance)
-R_rs_xy_uncertainty = stats.uncertainty_from_covariance(R_rs_xy_covariance)
-
-print("Converted to xy")
-
-# Plot chromaticity
-plot.plot_xy_on_gamut_covariance(R_rs_xy, R_rs_xy_covariance)
-
-# Calculate hue angle
-R_rs_hue = wa.convert_xy_to_hue_angle(R_rs_xy)
-R_rs_hue_uncertainty = wa.convert_xy_to_hue_angle_covariance(R_rs_xy_covariance, R_rs_xy)
-print("Calculated hue angles")
-
-# Convert to Forel-Ule index
-R_rs_FU = wa.convert_hue_angle_to_ForelUle(R_rs_hue)
-R_rs_FU_range = wa.convert_hue_angle_to_ForelUle_uncertainty(R_rs_hue_uncertainty, R_rs_hue)
-print("Determined Forel-Ule indices:")
+data_RGB = hc.split_combined_radiances(all_mean_RGB)
 
 # Save the resulting vectors to file
-hc.output_latex_vector(all_mean, saveto=saveto/"vector_L_RGBG2.tex")
-hc.output_latex_vector(all_mean_RGB, saveto=saveto/"vector_L_RGB.tex")
-hc.output_latex_vector(R_rs, label=r"R_{rs}", saveto=saveto/"vector_Rrs.tex")
-hc.output_latex_vector(R_rs_XYZ, label=r"R_{rs}", saveto=saveto/"vector_Rrs_XYZ.tex")
-hc.output_latex_vector(R_rs_xy, label=r"R_{rs}", saveto=saveto/"vector_Rrs_xy.tex")
+for vector_RGB, label in zip(data_RGB, ["Ld", "Lsky", "Lu"]):
+    hc.output_latex_vector(vector_RGB, saveto=saveto/f"vector_{label}.tex")
 
 # Save the resulting covariance matrices to file
-hc.output_latex_matrix(all_covariance, saveto=saveto/"matrix_L_RGBG2.tex")
 hc.output_latex_matrix(all_covariance_RGB, saveto=saveto/"matrix_L_RGB.tex")
-hc.output_latex_matrix(R_rs_covariance, label=r"R_{rs}", saveto=saveto/"matrix_Rrs.tex")
-hc.output_latex_matrix(R_rs_XYZ_covariance, label=r"R_{rs}", saveto=saveto/"matrix_Rrs_XYZ.tex")
-hc.output_latex_matrix(R_rs_xy_covariance, label=r"R_{rs}", saveto=saveto/"matrix_Rrs_xy.tex")
-
-# Save the hue angle and Forel-Ule index to file
-hc.output_latex_hueangle_FU(R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range, saveto=saveto/"wacodi.tex")
