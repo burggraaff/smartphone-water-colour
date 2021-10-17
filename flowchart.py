@@ -87,7 +87,7 @@ plot.plot_image_small(images_central_slices, saveto=saveto/"slice_{label}.pdf") 
 plot.plot_image_small_RGBG2(images_RGBG, camera, saveto=saveto/"RGBG2_{label}.pdf")
 
 # Reshape the central images to lists
-data_RGBG = np.array([image.reshape(4, -1) for image in images_central_slices])
+data_RGBG = images_RGBG.reshape((3, 4, -1))
 
 # Divide by the spectral bandwidths to normalise to ADU nm^-1
 data_RGBG /= effective_bandwidths[:, np.newaxis]
@@ -117,7 +117,7 @@ all_covariance_RGB = hc.convert_RGBG2_to_RGB_covariance(all_covariance)
 data_RGB = hc.split_combined_radiances(all_mean_RGB)
 
 # Save the resulting vectors to file
-for vector_RGB, label in zip(data_RGB, ["Ld", "Lsky", "Lu"]):
+for vector_RGB, label in zip(data_RGB, ["Lu", "Lsky", "Ld"]):
     hc.output_latex_vector(vector_RGB, label=plot.keys_latex[label].strip("$"), saveto=saveto/f"vector_{label}.tex")
 
 # Save the resulting covariance matrices to file
