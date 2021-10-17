@@ -490,8 +490,8 @@ def output_latex_vector(data, label="L", separator=r"\\", saveto=None):
     Save a vector in LaTeX format for the flowchart.
     """
     # Start and end, always the same
-    start = "\\mathbf{" + label + "} &=\n    \\begin{bmatrix}"
-    end = "    \\end{bmatrix} \\\\"
+    start = "\\mathbf{" + label + "} =\n    \\begin{bmatrix}"
+    end = "    \\end{bmatrix}"
 
     # Put the data in the middle
     # If the data are long, show the first and last two elements
