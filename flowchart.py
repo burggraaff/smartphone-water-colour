@@ -84,7 +84,7 @@ print("Demosaicked")
 plot.plot_image_small(images_raw, saveto=saveto/"rawimage_{label}.pdf")
 plot.plot_image_small(images_flatfield_corrected, saveto=saveto/"flatimage_{label}.pdf")
 plot.plot_image_small(images_central_slices, saveto=saveto/"slice_{label}.pdf")  # Make this use the same vmin/vmax as above
-plot.plot_image_small_RGBG2(images_RGBG, camera, saveto=saveto/"RGBG2_{label}.pdf")
+plot.plot_image_small_RGBG2(images_RGBG, camera, equal_aspect=True, saveto=saveto/"RGBG2_{label}.pdf")
 
 # Reshape the central images to lists
 data_RGBG = images_RGBG.reshape((3, 4, -1))

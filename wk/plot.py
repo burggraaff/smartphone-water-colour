@@ -133,12 +133,16 @@ def plot_image_small(image, vmin=0, vmax=None, saveto=None):
 
 
 @_plot_triple
-def plot_image_small_RGBG2(images_RGBG2, camera, vmin=0, vmax=None, saveto=None):
+def plot_image_small_RGBG2(images_RGBG2, camera, vmin=0, vmax=None, equal_aspect=False, saveto=None):
     """
     Plot RGBG2 demosaicked images.
     """
     # Create a figure
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=smallpanel, sharex=True, sharey=True)
+    if equal_aspect:
+        figsize = (smallpanel[0], smallpanel[0])
+    else:
+        figsize = smallpanel
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=figsize, sharex=True, sharey=True)
     axs = np.ravel(axs)
 
     # Get the vmin and vmax if none were given
