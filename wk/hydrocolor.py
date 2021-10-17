@@ -485,21 +485,21 @@ def _print_or_save_latex(text, saveto=None):
             print(text, file=file)
 
 
-def output_latex_vector(data, label="L", saveto=None):
+def output_latex_vector(data, label="L", separator=r"\\", saveto=None):
     """
     Save a vector in LaTeX format for the flowchart.
     """
     # Start and end, always the same
     start = "\\mathbf{" + label + "} &=\n    \\begin{bmatrix}"
-    end = "    \\end{bmatrix}^T \\\\"
+    end = "    \\end{bmatrix} \\\\"
 
     # Put the data in the middle
     # If the data are long, show the first and last two elements
     if len(data) >= 4:
-        middle = f"        {data[0]:.2g} & {data[1]:.2g} & \\dots & {data[-1]:.2g}"
+        middle = f"        {data[0]:.2g} {separator} {data[1]:.2g} {separator} \\dots {separator} {data[-1]:.2g}"
     # Else, just show the whole vector
     else:
-        middle = "        " + " & ".join(f"{d:.2g}" for d in data)
+        middle = "        " + f" {separator} ".join(f"{d:.2g}" for d in data)
 
     # Combine them with line breaks in between
     combined = "\n".join([start, middle, end])

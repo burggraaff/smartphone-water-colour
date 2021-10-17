@@ -118,7 +118,7 @@ data_RGB = hc.split_combined_radiances(all_mean_RGB)
 
 # Save the resulting vectors to file
 for vector_RGB, label in zip(data_RGB, ["Ld", "Lsky", "Lu"]):
-    hc.output_latex_vector(vector_RGB, saveto=saveto/f"vector_{label}.tex")
+    hc.output_latex_vector(vector_RGB, label=plot.keys_latex[label].strip("$"), saveto=saveto/f"vector_{label}.tex")
 
 # Save the resulting covariance matrices to file
 hc.output_latex_matrix(all_covariance_RGB, saveto=saveto/"matrix_L_RGB.tex")
