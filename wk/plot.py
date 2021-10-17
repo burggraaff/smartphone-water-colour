@@ -724,7 +724,7 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
     Plot a given correlation matrix consisting of RGB or RGBG2 radiances.
     """
     # Plot correlation coefficients
-    kwargs = {"cmap": plt.cm.get_cmap("cividis", 10), "s": 5, "rasterized": True}
+    kwargs = {"cmap": plt.cm.get_cmap("magma", 10), "s": 5, "rasterized": True}
 
     # Calculate the correlation matrix
     correlation_matrix = stats.correlation_from_covariance(covariance_matrix)
