@@ -723,39 +723,43 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
     """
     Plot a given correlation matrix consisting of RGB or RGBG2 radiances.
     """
-    # Plot correlation coefficients
-    kwargs = {"cmap": plt.cm.get_cmap("magma", 10), "s": 5, "rasterized": True}
-
     # Calculate the correlation matrix
     correlation_matrix = stats.correlation_from_covariance(covariance_matrix)
 
-    fig, axs = plt.subplots(ncols=3, figsize=(col2,3), dpi=600)
+    fig, axs = plt.subplots(nrows=3, figsize=(col1,8), dpi=600)
 
     divider = make_axes_locatable(axs[0])
-    cax = divider.append_axes('bottom', size='10%', pad=0.3)
-    im = axs[0].imshow(correlation_matrix, extent=(0,1,1,0), cmap=plt.cm.get_cmap("cividis", 5), vmin=0, vmax=1, origin="lower")
-    fig.colorbar(im, cax=cax, orientation='horizontal', ticks=np.arange(0,1.1,0.2), label="Pearson $r$")
+    cax = divider.append_axes('right', size='5%', pad=0.05)
+    im = axs[0].imshow(correlation_matrix, extent=(0,1,0,1), cmap=plt.cm.get_cmap("cividis", 5), vmin=0, vmax=1, origin="lower")
+    fig.colorbar(im, cax=cax, orientation='vertical', ticks=np.arange(0,1.1,0.2), label="Pearson $r$")
 
-    ticks = np.linspace(0,1,4)
-    axs[0].set_xticks(ticks)
-    xtick_offset = " "*10
-    axs[0].set_xticklabels([f"{xtick_offset}{keys_latex['Lu']}", f"{xtick_offset}{keys_latex['Lsky']}", f"{xtick_offset}{keys_latex['Ld']}", ""])
-    axs[0].set_yticks(ticks)
-    axs[0].set_yticklabels([f"\n\n{keys_latex['Ld']}", f"\n\n{keys_latex['Lsky']}", f"\n\n{keys_latex['Lu']}", ""])
+    # Put the different radiances on the matrix plot ticks
+    majorticks = np.linspace(0,1,4)
+    minorticks = majorticks[:-1] + 1/6
+    for axis in [axs[0].xaxis, axs[0].yaxis]:
+        axis.set_ticks(majorticks)
+        axis.set_ticks(minorticks, minor=True)
+        axis.set_tick_params(which="major", labelleft=False, labelbottom=False)
+        axis.set_tick_params(which="minor", left=False, bottom=False)
+        axis.set_ticklabels([keys_latex[key] for key in ["Lu", "Lsky", "Ld"]], minor=True)
 
+    # Parameters for density scatter plot
+    kwargs = {"cmap": plt.cm.get_cmap("magma", 10), "s": 5, "rasterized": True}
+
+    # Plot the density scatter plots
     for ax, x, y, xlabel, ylabel in zip(axs[1:], [x1, x2], [y1, y2], [x1label, x2label], [y1label, y2label]):
         density_scatter(x, y, ax=ax, **kwargs)
+
+        # Plot parameters
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
-        ax.set_title("$r =" + f"{stats.correlation(x,y):.2g}" + "$")
+        ax.text(0.05, 0.95, "$r =" + f"{stats.correlation(x,y):.2g}" + "$", transform=ax.transAxes, verticalalignment="top", multialignment="left", bbox=bbox_text, zorder=15)
 
         ax.set_aspect("equal")
         ax.grid(ls="--", c="0.5", alpha=0.5)
 
-    axs[2].yaxis.set_label_position("right")
-    axs[2].yaxis.tick_right()
+    fig.subplots_adjust(hspace=0.3)
 
-    plt.subplots_adjust(wspace=0.5)
     # Save the result
     _saveshow(saveto)
 
