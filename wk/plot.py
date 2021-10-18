@@ -33,6 +33,13 @@ col2 = 180/25.4
 smallpanel = (2, 1.5)
 
 
+def _textbox(ax, text, x=0.05, y=0.95, fontsize=10, **kwargs):
+    """
+    Add a text box with given text and some standard parameters.
+    """
+    ax.text(x, y, text, transform=ax.transAxes, verticalalignment="top", bbox=bbox_text, zorder=15, fontsize=fontsize, **kwargs)
+
+
 def _histogram_axis_settings(axs, column_labels):
     """
     Helper function.
@@ -366,7 +373,7 @@ def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, fontsize=9, **kwargs):
     statistics, text = stats.full_statistics_for_title(x, y, xerr, yerr)
 
     # Plot the text box
-    ax.text(0.05, 0.95, text, transform=ax.transAxes, verticalalignment="top", multialignment="left", bbox=bbox_text, zorder=15, fontsize=fontsize, **kwargs)
+    _textbox(ax, text, fontsize=fontsize, **kwargs)
 
 
 
@@ -642,7 +649,7 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
     axs[-1].set_xlabel(xlabel)
     for ax, key in zip(axs, keys):
         ax.set_title(None)  # Remove default titles
-        ax.text(0.85, 0.15, keys_latex[key], transform=ax.transAxes, fontsize=10, verticalalignment="top", multialignment="right", bbox=bbox_text)
+        _textbox(ax, keys_latex[key], x=0.85, y=0.15, multialignment="right")
 
     # Save the result
     _saveshow(saveto)
@@ -753,7 +760,7 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
         # Plot parameters
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
-        ax.text(0.05, 0.95, "$r =" + f"{stats.correlation(x,y):.2g}" + "$", transform=ax.transAxes, verticalalignment="top", multialignment="left", bbox=bbox_text, zorder=15)
+        _textbox(ax, "$r =" + f"{stats.correlation(x,y):.2g}" + "$", fontsize=fontsize, **kwargs)
 
         ax.set_aspect("equal")
         ax.grid(ls="--", c="0.5", alpha=0.5)
@@ -867,8 +874,9 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     # Median absolute deviation and number of FU matches
     mad_hueangle = stats.MAD(x, y)
     FU_matches, FU_near_matches, mad_FU = compare_FU_matches_from_hue_angle(x, y)
-    title = f"{stats.mad_symbol} = ${mad_hueangle:.1f} \\degree$ ({mad_FU:.0f} FU)\n{FU_matches:.0f}% $\Delta$FU$= 0$   {FU_near_matches:.0f}% $\Delta$FU$\leq 1$"
-    ax.set_title(title)
+    stats_text = f"{stats.mad_symbol} = ${mad_hueangle:.1f} \\degree$\n{stats.mad_symbol} = {mad_FU:.0f} FU\n{FU_matches:.0f}% $\Delta$FU$= 0$\n{FU_near_matches:.0f}% $\Delta$FU$\leq 1$"
+    _textbox(ax, stats_text)
+    ax.set_title("")
 
     # Save the result
     _saveshow(saveto)
