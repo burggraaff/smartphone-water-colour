@@ -12,7 +12,7 @@ from scipy.interpolate import interpn
 from . import colours
 
 mad_symbol = r"$\mathcal{M}$"
-sspb_symbol = r"$\beta$"
+sspb_symbol = r"$\mathcal{B}$"
 
 
 def weighted_median(x, w=None):
