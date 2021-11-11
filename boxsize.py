@@ -47,6 +47,8 @@ RGB_wavelengths = hc.effective_wavelength(calibration_folder)
 
 # Generate camera slices
 boxsizes = np.arange(30, 200, 2)
+default = 100
+index_default = np.where(boxsizes == default)[0][0]
 slices = [camera.central_slice(box, box) for box in boxsizes]
 
 for data_path in hc.generate_folders(folders, pattern):
@@ -101,6 +103,9 @@ for data_path in hc.generate_folders(folders, pattern):
     all_mean_per_image = np.moveaxis(all_mean, 0, -1)
     all_snr_per_image = np.moveaxis(all_snr, 0, -1)  # New shape: [images, RGBG channels, box sizes]
 
+    # Normalise the means
+    all_mean_per_image /= all_mean_per_image[...,index_default,np.newaxis]
+
     # Plot the result
     # Plot Mean in one column, SNR in next
     labels = [plot.keys_latex[key] for key in ["Lu", "Lsky", "Ld"]]
@@ -111,7 +116,8 @@ for data_path in hc.generate_folders(folders, pattern):
         for ax in ax_row:
             plot._textbox(ax, label)
     for ax in axs[:,0]:
-        ax.set_ylabel("Mean")
+        ax.set_ylabel("Mean (normalised)")
+        ax.set_ylim(0.85, 1.15)
     for ax in axs[:,1]:
         ax.set_ylabel("SNR")
         ax.yaxis.set_label_position("right")
@@ -119,11 +125,14 @@ for data_path in hc.generate_folders(folders, pattern):
         ax.set_ylim(0, 60)
     for ax in axs.ravel():
         ax.grid(ls="--")
+        ax.axvline(default, ls="--", c="k")
     for ax in axs[-1]:
         ax.set_xlabel("Box size")
     fig.suptitle(data_path.parents[0].stem)
     plt.show()
     plt.close()
+
+    # NORMALISE BY VALUE AT 100/50 PX
 
     # # Create a timestamp from EXIF (assume time zone UTC+2)
     # UTC = hc.UTC_timestamp(water_exif, data_path)
