@@ -46,10 +46,14 @@ effective_bandwidths = camera.spectral_bands
 RGB_wavelengths = hc.effective_wavelength(calibration_folder)
 
 # Generate camera slices
-boxsizes = np.arange(20, 200, 4)
+boxsizes = np.arange(20, 201, 2)
 default = 100
 index_default = np.where(boxsizes == default)[0][0]
 slices = [camera.central_slice(box, box) for box in boxsizes]
+
+# Empty lists to store results
+means_list = []
+snrs_list = []
 
 for data_path in hc.generate_folders(folders, pattern):
     print("\n  ", data_path)
@@ -132,11 +136,29 @@ for data_path in hc.generate_folders(folders, pattern):
     plt.show()
     plt.close()
 
-    # NORMALISE BY VALUE AT 100/50 PX
+    # Attach results to previously made lists
+    means_list.append(all_mean_per_image)
+    snrs_list.append(all_snr_per_image)
 
-    # # Create a timestamp from EXIF (assume time zone UTC+2)
-    # UTC = hc.UTC_timestamp(water_exif, data_path)
+# Combine the results into arrays
+means_list = np.array(means_list)
+snrs_list = np.array(snrs_list)
 
-    # # Write the result to file
-    # saveto = data_path.with_name(data_path.stem + "_raw.csv")
-    # hc.write_results(saveto, UTC, all_mean_RGB, all_covariance_RGB, Ed, Ed_covariance, R_rs, R_rs_covariance, bandratios, bandratios_covariance, R_rs_xy, R_rs_xy_covariance, R_rs_hue, R_rs_hue_uncertainty, R_rs_FU, R_rs_FU_range)
+# Compare the means and SNRs at 50, 100, 150, 200 px box sizes
+selection = np.searchsorted(boxsizes, [50, 100, 150, 200])
+
+mean_median = np.median(means_list, axis=0)
+mean_std = np.std(means_list, axis=0)
+
+snr_median = np.median(snrs_list, axis=0)
+snr_std = np.std(snrs_list, axis=0)
+
+# Calculate the typical deviations from the mean value at the default box size, in percent
+deviations_percent = 100*np.abs(1 - means_list)
+
+dev_median = np.median(deviations_percent, axis=0)
+dev_std = np.std(deviations_percent, axis=0)
+
+threshold = 2.
+fraction_below_threshold = 100*np.sum(deviations_percent <= threshold, axis=0) / deviations_percent.shape[0]
+print(fraction_below_threshold[..., selection])
