@@ -46,7 +46,7 @@ effective_bandwidths = camera.spectral_bands
 RGB_wavelengths = hc.effective_wavelength(calibration_folder)
 
 # Generate camera slices
-boxsizes = np.arange(30, 200, 2)
+boxsizes = np.arange(20, 200, 4)
 default = 100
 index_default = np.where(boxsizes == default)[0][0]
 slices = [camera.central_slice(box, box) for box in boxsizes]
