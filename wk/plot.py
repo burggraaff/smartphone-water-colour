@@ -760,7 +760,7 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
         # Plot parameters
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
-        _textbox(ax, "$r =" + f"{stats.correlation(x,y):.2g}" + "$", fontsize=fontsize, **kwargs)
+        _textbox(ax, "$r =" + f"{stats.correlation(x,y):.2g}" + "$")
 
         ax.set_aspect("equal")
         ax.grid(ls="--", c="0.5", alpha=0.5)
