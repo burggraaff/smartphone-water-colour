@@ -131,7 +131,7 @@ for data_path in hc.generate_folders(folders, pattern):
         ax.grid(ls="--")
         ax.axvline(default, ls="--", c="k")
     for ax in axs[-1]:
-        ax.set_xlabel("Box size")
+        ax.set_xlabel("Box size [pixels]")
     fig.suptitle(data_path.parents[0].stem)
     plt.show()
     plt.close()
