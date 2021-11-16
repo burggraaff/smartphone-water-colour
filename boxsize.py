@@ -145,6 +145,7 @@ for data_path in hc.generate_folders(folders, pattern):
 # Combine the results into arrays
 means_list = np.array(means_list)
 differences_list = np.array(differences_list)
+differences_list_abs = np.abs(differences_list)
 snrs_list = np.array(snrs_list)
 
 # Compare the means and SNRs at 50, 100, 150, 200 px box sizes
@@ -154,13 +155,28 @@ mean_median = np.median(means_list, axis=0)
 mean_std = np.std(means_list, axis=0)
 
 difference_median = np.median(differences_list, axis=0)
-difference_median_abs = np.median(np.abs(differences_list), axis=0)
+difference_median_abs = np.median(differences_list_abs, axis=0)
 difference_std = np.std(differences_list, axis=0)
 
 snr_median = np.median(snrs_list, axis=0)
 snr_std = np.std(snrs_list, axis=0)
 
+# Combine the image and RGBG2 axes to treat every channel as a separate image
+# This is just for simplicity in the final table
+mean_reshaped, differences_list_reshaped, snr_reshaped = [np.moveaxis(d, 2, 1) for d in [means_list, differences_list_abs, snrs_list]]
+mean_reshaped, differences_list_reshaped, snr_reshaped = [np.reshape(d, (-1, *d.shape[2:])) for d in [mean_reshaped, differences_list_reshaped, snr_reshaped]]
+
 # How many images are below a given threshold?
-threshold = 3.
-fraction_below_threshold = 100*np.sum(differences_list <= threshold, axis=0) / differences_list.shape[0]
-print(fraction_below_threshold[..., selection])
+threshold = 5.
+fraction_below_threshold = 100*np.sum(differences_list_reshaped <= threshold, axis=0) / differences_list_reshaped.shape[0]
+
+# Get the results and put them into a LaTeX-parseable string
+diff = np.median(differences_list_reshaped, axis=0)[..., selection]
+frac = fraction_below_threshold[..., selection]
+snr = np.median(snr_reshaped, axis=0)[..., selection]
+
+final_string = \
+f"50 px & {diff[0,0]:.2f}\\% & {diff[1,0]:.2f}\\% & {diff[2,0]:.2f}\\% & {frac[0,0]:.0f}\\% & {frac[1,0]:.0f}\\% & {frac[2,0]:.0f}\\% & {snr[0,0]:.0f} & {snr[1,0]:.0f} & {snr[2,0]:.0f} \\\\\n \
+100 px & -- & -- & -- & -- & -- & -- & {snr[0,1]:.0f} & {snr[1,1]:.0f} & {snr[2,1]:.0f} \\\\\n \
+150 px & {diff[0,2]:.2f}\\% & {diff[1,2]:.2f}\\% & {diff[2,2]:.2f}\\% & {frac[0,2]:.0f}\\% & {frac[1,2]:.0f}\\% & {frac[2,2]:.0f}\\% &  {snr[0,2]:.0f} & {snr[1,2]:.0f} & {snr[2,2]:.0f} \\\\\n \
+200 px & {diff[0,3]:.2f}\\% & {diff[1,3]:.2f}\\% & {diff[2,3]:.2f}\\% & {frac[0,3]:.0f}\\% & {frac[1,3]:.0f}\\% & {frac[2,3]:.0f}\\% &  {snr[0,3]:.0f} & {snr[1,3]:.0f} & {snr[2,3]:.0f} \n"
