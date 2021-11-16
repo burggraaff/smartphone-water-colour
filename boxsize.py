@@ -53,6 +53,7 @@ slices = [camera.central_slice(box, box) for box in boxsizes]
 
 # Empty lists to store results
 means_list = []
+differences_list = []
 snrs_list = []
 
 for data_path in hc.generate_folders(folders, pattern):
@@ -108,20 +109,20 @@ for data_path in hc.generate_folders(folders, pattern):
     all_snr_per_image = np.moveaxis(all_snr, 0, -1)  # New shape: [images, RGBG channels, box sizes]
 
     # Normalise the means
-    all_mean_per_image /= all_mean_per_image[...,index_default,np.newaxis]
+    all_differences_per_image = 100*(1 - all_mean_per_image[...,index_default,np.newaxis]/all_mean_per_image)
 
     # Plot the result
     # Plot Mean in one column, SNR in next
     labels = [plot.keys_latex[key] for key in ["Lu", "Lsky", "Ld"]]
     fig, axs = plt.subplots(ncols=2, nrows=3, sharex=True, sharey="col", figsize=(plot.col2, 6), tight_layout=True)
-    for ax_row, means, snrs, label in zip(axs, all_mean_per_image, all_snr_per_image, labels):
-        _rgbplot(boxsizes, means, func=ax_row[0].plot, lw=3)
+    for ax_row, diffs, snrs, label in zip(axs, all_differences_per_image, all_snr_per_image, labels):
+        _rgbplot(boxsizes, diffs, func=ax_row[0].plot, lw=3)
         _rgbplot(boxsizes, snrs, func=ax_row[1].plot, lw=3)
         for ax in ax_row:
             plot._textbox(ax, label)
     for ax in axs[:,0]:
-        ax.set_ylabel("Mean (normalised)")
-        ax.set_ylim(0.85, 1.15)
+        ax.set_ylabel("Difference [%]")
+        ax.set_ylim(-5, 5)
     for ax in axs[:,1]:
         ax.set_ylabel("SNR")
         ax.yaxis.set_label_position("right")
@@ -138,10 +139,12 @@ for data_path in hc.generate_folders(folders, pattern):
 
     # Attach results to previously made lists
     means_list.append(all_mean_per_image)
+    differences_list.append(all_differences_per_image)
     snrs_list.append(all_snr_per_image)
 
 # Combine the results into arrays
 means_list = np.array(means_list)
+differences_list = np.array(differences_list)
 snrs_list = np.array(snrs_list)
 
 # Compare the means and SNRs at 50, 100, 150, 200 px box sizes
@@ -150,15 +153,14 @@ selection = np.searchsorted(boxsizes, [50, 100, 150, 200])
 mean_median = np.median(means_list, axis=0)
 mean_std = np.std(means_list, axis=0)
 
+difference_median = np.median(differences_list, axis=0)
+difference_median_abs = np.median(np.abs(differences_list), axis=0)
+difference_std = np.std(differences_list, axis=0)
+
 snr_median = np.median(snrs_list, axis=0)
 snr_std = np.std(snrs_list, axis=0)
 
-# Calculate the typical deviations from the mean value at the default box size, in percent
-deviations_percent = 100*np.abs(1 - means_list)
-
-dev_median = np.median(deviations_percent, axis=0)
-dev_std = np.std(deviations_percent, axis=0)
-
-threshold = 2.
-fraction_below_threshold = 100*np.sum(deviations_percent <= threshold, axis=0) / deviations_percent.shape[0]
+# How many images are below a given threshold?
+threshold = 3.
+fraction_below_threshold = 100*np.sum(differences_list <= threshold, axis=0) / differences_list.shape[0]
 print(fraction_below_threshold[..., selection])
