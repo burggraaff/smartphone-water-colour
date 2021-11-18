@@ -109,7 +109,7 @@ max_correlation = stats.max_correlation_in_covariance_matrix(all_covariance)
 print(f"Calculated covariance and correlation matrices. Maximum off-diagonal correlation r = {max_correlation:.2f}")
 
 # Plot correlation coefficients
-plot.plot_correlation_matrix_radiance(all_covariance, x1=data_all[4], y1=data_all[5], x1label="$L_s$ (R) [a.u.]", y1label="$L_s$ (G) [a.u.]", x2=data_all[1], y2=data_all[9], x2label="$L_u$ (G) [a.u.]", y2label="$L_d$ (G) [a.u.]", saveto=data_path/"correlation_raw.pdf")
+plot.plot_correlation_matrix_radiance(all_covariance, x1=data_all[4], y1=data_all[5], x1label=f"{plot.keys_latex['Lsky']} (R)", y1label=f"{plot.keys_latex['Lsky']} (G)", x2=data_all[1], y2=data_all[9], x2label=f"{plot.keys_latex['Lu']} (G)", y2label=f"{plot.keys_latex['Ld']} (G)", saveto=data_path/"correlation_raw.pdf")
 
 # Average G and G2
 all_mean_RGB = hc.convert_RGBG2_to_RGB(all_mean)
