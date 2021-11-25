@@ -657,31 +657,30 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
 
 def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{rs}$", xlabel="", ylabel="", saveto=None):
     """
-    Make a correlation plot between the band ratios G/R and G/B.
+    Make a correlation plot for each of the band ratios G/R, B/G, R/B.
     """
     # Get the data out of the input tables
-    GB_label, GR_label, RB_label = [f"{datalabel} ({c})" for c in hc.bandratio_labels]
-    x_GB, y_GB = x[GB_label], y[GB_label]
-    x_GR, y_GR = x[GR_label], y[GR_label]
-    x_RB, y_RB = x[RB_label], y[RB_label]
+    datalabel_bandratio = [f"{datalabel} ({c})" for c in hc.bandratio_labels]
+    xy_pairs = [(x[label], y[label]) for label in datalabel_bandratio]
 
     # Get the uncertainties out of the input tables if available
     if errlabel is not None:
-        GB_err_label, GR_err_label, RB_err_label = [f"{errlabel} ({c})" for c in hc.bandratio_labels]
-        x_err_GB, y_err_GB = x[GB_err_label], y[GB_err_label]
-        x_err_GR, y_err_GR = x[GR_err_label], y[GR_err_label]
-        x_err_RB, y_err_RB = x[RB_err_label], y[RB_err_label]
+        errlabel_bandratio = [f"{errlabel} ({c})" for c in hc.bandratio_labels]
+        xy_err_pairs = [(x[label], y[label]) for label in errlabel_bandratio]
     else:
-        x_err_GB = y_err_GB = x_err_GR = y_err_GR = x_err_RB = y_err_RB = None
+        xy_err_pairs = [(None, None)] * 3
+
+    # Prepare x- and y-labels for the panels
+    xlabels = [f"{xlabel}\n{quantity} ({hc.bandratio_labels[0]})", "", f"{quantity} ({hc.bandratio_labels[2]})\n{xlabel}"]
+    ylabels = [f"{quantity} ({hc.bandratio_labels[0]})", f"{ylabel}\n{quantity} ({hc.bandratio_labels[1]})", f"{quantity} ({hc.bandratio_labels[2]})"]
 
     # Plot the data
     fig, axs = plt.subplots(nrows=3, sharex=True, sharey=True, figsize=(col1, 7.5), gridspec_kw={"hspace": 0.05, "wspace": 0.05})
-    correlation_plot_simple(x_GB, y_GB, xerr=x_err_GB, yerr=y_err_GB, ax=axs[0], xlabel=f"{xlabel}\n{quantity} (G/B)", ylabel=f"{quantity} (G/B)", equal_aspect=True)
-    correlation_plot_simple(x_GR, y_GR, xerr=x_err_GR, yerr=y_err_GR, ax=axs[1], xlabel="", ylabel=f"{ylabel}\n{quantity} (G/R)", equal_aspect=True)
-    correlation_plot_simple(x_RB, y_RB, xerr=x_err_RB, yerr=y_err_RB, ax=axs[2], xlabel=f"{quantity} (R/B)\n{xlabel}", ylabel=f"{quantity} (R/B)", equal_aspect=True)
+    for xy, xy_err, ax, xlabel, ylabel in zip(xy_pairs, xy_err_pairs, axs, xlabels, ylabels):
+        correlation_plot_simple(*xy, xerr=xy_err[0], yerr=xy_err[1], ax=ax, xlabel=xlabel, ylabel=ylabel, equal_aspect=True)
 
     # Axis settings
-    data_combined = [x_GR, x_GB, x_RB, y_GR, y_GB, y_RB]
+    data_combined = [element for sublist in xy_pairs for element in sublist]
     axmin, axmax = np.nanmin(data_combined)-0.05, np.nanmax(data_combined)+0.05
     axs[0].set_xlim(axmin, axmax)
     axs[0].set_ylim(axmin, axmax)
@@ -695,9 +694,9 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
     axs[1].tick_params(axis="x", bottom=False, labelbottom=False)
 
     # Calculate statistics
-    for ax, x, y, xerr, yerr in zip(axs, [x_GR, x_GB, x_RB], [y_GR, y_GB, y_RB], [x_err_GR, x_err_GB, x_err_RB], [y_err_GR, y_err_GB, y_err_RB]):
+    for ax, xy, xy_err in zip(axs, xy_pairs, xy_err_pairs):
         ax.set_title("")
-        _plot_statistics(x, y, ax, xerr=xerr, yerr=yerr)
+        _plot_statistics(*xy, ax, xerr=xy_err[0], yerr=xy_err[1])
 
     # Save the result
     _saveshow(saveto)

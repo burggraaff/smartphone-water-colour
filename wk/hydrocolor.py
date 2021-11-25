@@ -18,7 +18,8 @@ M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
                            [0, 0  , 1, 0  ]])
 
 # Labels for band ratios, in the correct order
-bandratio_labels = ["G/R", "G/B", "R/B"]
+bandratio_pairs = [("G", "R"), ("B", "G"), ("R", "B")]
+bandratio_labels = [f"{bands[0]}/{bands[1]}" for bands in bandratio_pairs]
 
 # Grey card reflectance, empirically determined
 # R_ref, R_ref_uncertainty = 0.21872167469852127, 0.02428559578772454
@@ -250,13 +251,13 @@ def get_radiances(data, parameters=["Lu", "Lsky", "Ld"]):
 
 def calculate_bandratios(data_R, data_G, data_B):
     """
-    Calculate the G/B, G/R, and R/B band ratios between given data.
+    Calculate the B/G, G/R, and R/B band ratios between given data.
     """
     GR = data_G / data_R  # G/R
-    GB = data_G / data_B  # G/B
+    BG = data_B / data_G  # B/G
     RB = data_R / data_B  # R/B
 
-    return GR, GB, RB
+    return GR, BG, RB
 
 
 def calculate_bandratios_covariance(data_R, data_G, data_B, data_covariance):
@@ -264,11 +265,11 @@ def calculate_bandratios_covariance(data_R, data_G, data_B, data_covariance):
     Propagate a covariance matrix for band ratios.
     """
     # Calculate the band ratios first
-    GR, GB, RB = calculate_bandratios(data_R, data_G, data_B)
+    GR, BG, RB = calculate_bandratios(data_R, data_G, data_B)
 
     # Construct the Jacobian matrix
     bandratios_J = np.array([[-GR/data_R, 1/data_R, 0         ],
-                             [0         , 1/data_B, -GB/data_B],
+                             [0         , -BG/data_G, 1/data_G],
                              [1/data_B  , 0       , -RB/data_B]])
 
     # Do the propagation
