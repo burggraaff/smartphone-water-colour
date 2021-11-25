@@ -589,6 +589,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     axs[1].set_xlabel(xlabel)
     axs[1].set_ylabel(f"Difference {difference_unit}")
     axs[0].set_ylabel(ylabel)
+    fig.align_ylabels(axs)
 
     # Save the result
     fig.subplots_adjust(hspace=0.1)
