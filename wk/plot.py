@@ -3,6 +3,7 @@ Module with common plotting functions
 """
 from matplotlib import pyplot as plt, transforms, patheffects as pe
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Ellipse
 
 import numpy as np
@@ -732,7 +733,11 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
     # Calculate the correlation matrix
     correlation_matrix = stats.correlation_from_covariance(covariance_matrix)
 
-    fig, axs = plt.subplots(nrows=3, figsize=(col1,8), dpi=600)
+    fig = plt.figure(figsize=(col1, 4.5), dpi=600, constrained_layout=True)
+    gs = GridSpec(nrows=2, ncols=2, figure=fig)
+    ax_imshow = fig.add_subplot(gs[0, :])
+    axs_scatter = [fig.add_subplot(gs[1, j]) for j in (0, 1)]
+    axs = [ax_imshow, *axs_scatter]
 
     divider = make_axes_locatable(axs[0])
     cax = divider.append_axes('right', size='5%', pad=0.05)
@@ -764,7 +769,11 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
         ax.set_aspect("equal")
         ax.grid(ls="--", c="0.5", alpha=0.5)
 
-    fig.subplots_adjust(hspace=0.3)
+    # Move the y-axis label to the right on the second scatter plot
+    axs[-1].yaxis.tick_right()
+    axs[-1].yaxis.set_label_position("right")
+    fig.align_xlabels(axs[1:])
+    fig.align_ylabels(axs[1:])
 
     # Save the result
     _saveshow(saveto)
