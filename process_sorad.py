@@ -25,8 +25,8 @@ print("Input folder:", folder.absolute())
 filename_Ed = folder/"Ed_2019-07-03.csv"
 filename_Ls = folder/"Ls_2019-07-03.csv"
 filename_Lt = folder/"Lt_2019-07-03.csv"
-filename_R_rs = folder/"Rrs_finger_2019-07-03.csv"
-filename_meta = folder/"Meta_2019-07-03.csv"
+filename_R_rs = folder/"Rrs_3C_2019-07-03.csv"
+filename_meta = folder/"metadata_2019-07-03.csv"
 filename_qc = folder/"QCmask_2019-07-03.csv"
 
 wavelengths = np.arange(320, 955, 3.3)
@@ -56,21 +56,29 @@ data_ls = read_data(filename_Ls, rename="Lsky")
 data_lt = read_data(filename_Lt, rename="Lu")
 data_rrs = read_data(filename_R_rs, rename="R_rs", normalise=False)
 data_meta = table.Table.read(filename_meta)
-data_qc = table.Table.read(filename_qc)
 print("Finished reading data")
 
+# Adjust header for metadata
+data_meta.rename_column("col0", "index")
+
 # Join tables into one
-data = table.hstack([data_meta, data_qc, data_ed, data_ls, data_lt, data_rrs])
+data = table.hstack([data_meta, data_ed, data_ls, data_lt, data_rrs])
 print("Joined data tables")
 
 # Remove invalid data
-remove = np.where(data["Q_rad_finger"] == 0.0)
+remove = np.where(data["q"] < 1)
 len_orig = len(data)
 data.remove_rows(remove)
 print(f"Removed {len_orig - len(data)}/{len_orig} rows flagged as invalid.")
 
+# Remove data with bad solar zenith angles
+remove = np.where(data["theta_s"] < 30)
+len_orig = len(data)
+data.remove_rows(remove)
+print(f"Removed {len_orig - len(data)}/{len_orig} rows with solar zenith angles < 30 degrees.")
+
 # Add UTC timestamps
-sorad_datetime = [datetime.fromisoformat(DT) for DT in data["trigger_id"]]
+sorad_datetime = [datetime.fromisoformat(DT) for DT in data["timestamp"]]
 sorad_timestamps = [dt.timestamp() for dt in sorad_datetime]
 data.add_column(table.Column(data=sorad_timestamps, name="UTC"))
 data.sort("UTC")
