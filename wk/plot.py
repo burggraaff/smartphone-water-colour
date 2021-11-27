@@ -25,6 +25,9 @@ persr = "[sr$^{-1}$]"
 # Dictionary mapping keys to LaTeX strings
 keys_latex = {"Lu": "$L_u$", "Lsky": "$L_{sky}$", "Ld": "$L_d$", "Ed": "$E_d$", "L": "$L$", "R_rs": "$R_{rs}$"}
 
+# Dictionary mapping keys to marker symbols
+markers = {"Lu": "o", "Lsky": "v", "Ld": "s"}
+
 # bbox for text
 bbox_text = {"boxstyle": "round", "facecolor": "white"}
 
@@ -450,7 +453,7 @@ def force_equal_ticks(ax):
     ax.set_xticks(ax.get_yticks())
 
 
-def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False, regression="none"):
+def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False, regression="none", **kwargs):
     """
     Plot data into a correlation plot.
     Helper function.
@@ -481,7 +484,7 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
             yerr = y[yerrlabel.format(c=c)]
         except (KeyError, AttributeError):
             yerr = None
-        ax.errorbar(xdata, ydata, xerr=xerr, yerr=yerr, color=pc, fmt="o")
+        ax.errorbar(xdata, ydata, xerr=xerr, yerr=yerr, color=pc, fmt="o", **kwargs)
 
         # If wanted, perform a linear regression
         if regression == "rgb":
@@ -515,7 +518,7 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
         ax.set_ylim(0, 1.05*ymax)
 
 
-def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, ax=None, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None):
+def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, ax=None, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None, **kwargs):
     """
     Make a correlation plot between two tables `x` and `y`. Use the labels
     `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
@@ -531,7 +534,7 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, ax=None, xerrlabel=None, 
         newfig = False
 
     # Plot in the one panel
-    _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, regression=regression)
+    _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, regression=regression, **kwargs)
 
     # y=x line and grid lines
     _correlation_plot_gridlines(ax)
@@ -596,7 +599,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     _saveshow(saveto)
 
 
-def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", xunit=ADUnmsr, yunit=ADUnmsr, regression="all",  saveto=None):
+def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", xunit=ADUnmsr, yunit=ADUnmsr, regression="all", saveto=None):
     """
     Make a multi-panel plot comparing radiances.
     Each panel represents one of the keys, for example upwelling, sky, and downwelling radiance.
@@ -652,6 +655,54 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
     for ax, key in zip(axs, keys):
         ax.set_title(None)  # Remove default titles
         _textbox(ax, keys_latex[key], x=0.85, y=0.15, multialignment="right")
+
+    # Save the result
+    _saveshow(saveto)
+
+
+def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="x", ylabel="y", xunit=ADUnmsr, yunit=ADUnmsr, regression="all", saveto=None):
+    """
+    Make a single-panel plot comparing the combined radiances from x and y.
+    Do a combined linear regression and plot the result.
+    """
+    # Create the figure and panels
+    fig = plt.figure(figsize=(col1, col1))
+    ax = plt.gca()
+
+    # Bit of a hack - plot each key into the panel separately
+    for key in keys:
+        key_c = key + " ({c})"
+        key_c_err = key + "_err ({c})"
+        correlation_plot_RGB(x, y, key_c, key_c, ax=ax, xerrlabel=key_c_err, yerrlabel=key_c_err, xlabel=None, ylabel=ylabel, marker=markers[key])
+
+
+    # Generate a combined radiance table
+    x_radiance, y_radiance = hc.get_radiances(x, keys), hc.get_radiances(y, keys)
+    key_c = "L ({c})"
+    key_c_err = "L_err ({c})"
+
+    # Combined linear regression
+    if regression == "all":
+        xdata, ydata = stats.ravel_table(x_radiance, "L ({c})"), stats.ravel_table(y_radiance, "L ({c})")
+        xerr, yerr = stats.ravel_table(x_radiance, "L_err ({c})"), stats.ravel_table(y_radiance, "L_err ({c})")
+
+        func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)[2]
+        y_fitted = func_linear(xdata)
+        _plot_statistics(ydata, y_fitted, ax)
+        _plot_linear_regression(func_linear, ax)
+
+    # If RGB regression, do each band separately
+    elif regression == "rgb":
+        funcs_linear = [stats.linear_regression(x_radiance[f"L ({c})"], y_radiance[f"L ({c})"], x_radiance[f"L_err ({c})"], y_radiance[f"L_err ({c})"])[2] for c in colours]
+        _plot_linear_regression_RGB(funcs_linear, ax)
+
+    # Plot settings
+    ax.set_xlim(_axis_limit_RGB(x_radiance, "L ({c})"))
+    ax.set_ylim(_axis_limit_RGB(y_radiance, "L ({c})"))
+
+    # Add labels to the corners of each plot to indicate which radiance they show
+    ax.set_xlabel(xlabel)
+    ax.set_title(None)  # Remove default titles
 
     # Save the result
     _saveshow(saveto)

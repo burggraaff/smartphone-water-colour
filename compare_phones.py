@@ -48,6 +48,7 @@ data2 = table.vstack(data2)
 
 # Correlation plot: Radiances
 plot.correlation_plot_radiance(data1, data2, xlabel=phone1_name, ylabel=phone2_name, saveto=f"{saveto_base}_radiance.pdf")
+plot.correlation_plot_radiance_combined(data1, data2, xlabel=phone1_name, ylabel=phone2_name, saveto=f"{saveto_base}_radiance_simple.pdf")
 
 # Correlation plot: Remote sensing reflectance
 label_R_rs = plot.keys_latex["R_rs"]

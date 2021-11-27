@@ -240,12 +240,18 @@ def get_radiances(data, parameters=["Lu", "Lsky", "Ld"]):
     # ravel an RGB table for one parameter, e.g. combine Lu (R), Lu (G), Lu (B).
     # Here, we have to flip the order of operations and use a different loop_keys
     # argument to get the results in the right order.
-    radiance_RGB = [stats.ravel_table(data, "{c} "+f"({c})", loop_keys=parameters) for c in colours]
-    radiance_RGB_err = [stats.ravel_table(data, "{c}_err "+f"({c})", loop_keys=parameters) for c in colours]
+    radiance_RGB = np.array([stats.ravel_table(data, "{c} "+f"({c})", loop_keys=parameters) for c in colours])
+    radiance_RGB_err = np.array([stats.ravel_table(data, "{c}_err "+f"({c})", loop_keys=parameters) for c in colours])
     cols = [f"L ({c})" for c in colours] + [f"L_err ({c})" for c in colours]
     radiance = np.concatenate([radiance_RGB, radiance_RGB_err]).T
 
     radiance = table.Table(data=radiance, names=cols)
+
+    # Add labels to indicate where the radiance came from
+    sources = np.repeat(parameters, len(data))  # Repeats each of the parameter keys once for each row
+    sources = table.Column(data=sources, name="source", dtype="S4")
+    radiance.add_column(sources)
+
     return radiance
 
 
