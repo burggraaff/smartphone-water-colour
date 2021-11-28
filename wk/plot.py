@@ -350,7 +350,7 @@ def _plot_linear_regression(func, ax=None, color="k", x=np.array([-1000., 1000.]
         ax = plt.gca()
 
     y = func(x)
-    ax.plot(x, y, color=color, ls="--", zorder=10, **kwargs)
+    return ax.plot(x, y, color=color, ls="--", zorder=10, **kwargs)
 
 
 def _plot_linear_regression_RGB(funcs, *args, **kwargs):
@@ -686,10 +686,11 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
         xdata, ydata = stats.ravel_table(x_radiance, "L ({c})"), stats.ravel_table(y_radiance, "L ({c})")
         xerr, yerr = stats.ravel_table(x_radiance, "L_err ({c})"), stats.ravel_table(y_radiance, "L_err ({c})")
 
-        func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)[2]
+        params, _, func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)
         y_fitted = func_linear(xdata)
         _plot_statistics(ydata, y_fitted, ax)
-        _plot_linear_regression(func_linear, ax)
+        regression_line, = _plot_linear_regression(func_linear, ax)
+        regression_label = f"$y =$\n${params[1]:.3g} + {params[0]:.3g} x$"
 
     # If RGB regression, do each band separately
     elif regression == "rgb":
@@ -704,6 +705,10 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
     # Generate a legend where each symbol has an entry, with coloured markers
     labels = [keys_latex[key] for key in keys]
     scatters = [tuple([ax.scatter([-1], [-1], marker=markers[key], label=keys_latex[key], color=c) for c in RGB_OkabeIto]) for key in keys]
+    # If a regression on all data was done, add its line to the legend
+    if regression == "all":
+        scatters.append(regression_line)
+        labels.append(regression_label)
     ax.legend(scatters, labels, numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)}, loc="lower right", edgecolor='k', framealpha=1)
 
     # Save the result
