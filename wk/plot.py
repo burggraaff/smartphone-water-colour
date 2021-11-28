@@ -674,7 +674,7 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
     for key in keys:
         key_c = key + " ({c})"
         key_c_err = key + "_err ({c})"
-        correlation_plot_RGB(x, y, key_c, key_c, ax=ax, xerrlabel=key_c_err, yerrlabel=key_c_err, xlabel=None, ylabel=ylabel, marker=markers[key])
+        correlation_plot_RGB(x, y, key_c, key_c, ax=ax, xerrlabel=key_c_err, yerrlabel=key_c_err, xlabel=xlabel, ylabel=ylabel, marker=markers[key])
 
     # Generate a combined radiance table
     x_radiance, y_radiance = hc.get_radiances(x, keys), hc.get_radiances(y, keys)
@@ -699,9 +699,6 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
     # Plot settings
     ax.set_xlim(_axis_limit_RGB(x_radiance, "L ({c})"))
     ax.set_ylim(_axis_limit_RGB(y_radiance, "L ({c})"))
-
-    # Add labels to the corners of each plot to indicate which radiance they show
-    ax.set_xlabel(xlabel)
     ax.set_title(None)  # Remove default titles
 
     # Generate a legend where each symbol has an entry, with coloured markers
