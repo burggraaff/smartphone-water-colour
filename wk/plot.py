@@ -686,9 +686,13 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
         xdata, ydata = stats.ravel_table(x_radiance, "L ({c})"), stats.ravel_table(y_radiance, "L ({c})")
         xerr, yerr = stats.ravel_table(x_radiance, "L_err ({c})"), stats.ravel_table(y_radiance, "L_err ({c})")
 
+        # Fit x to y so the MAD is in x units - this is useful when comparing a reference (x) to a smartphone (y)
+        *_, func_y_to_x = stats.linear_regression(ydata, xdata, yerr, xerr)
+        x_fitted = func_y_to_x(ydata)
+        _plot_statistics(xdata, x_fitted, ax)
+
+        # Fit y to x as normal and plot this
         params, _, func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)
-        y_fitted = func_linear(xdata)
-        _plot_statistics(ydata, y_fitted, ax)
         regression_line, = _plot_linear_regression(func_linear, ax)
         regression_label = f"$y =$\n${params[1]:.3g} + {params[0]:.3g} x$"
 
