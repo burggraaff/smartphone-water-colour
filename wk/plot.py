@@ -694,7 +694,7 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
         # Fit y to x as normal and plot this
         params, _, func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)
         regression_line, = _plot_linear_regression(func_linear, ax)
-        regression_label = f"$y =$\n${params[1]:.3g} + {params[0]:.3g} x$"
+        regression_label = "Best fit"# f"$y =$\n${params[1]:.3g} + {params[0]:.3g} x$"
 
     # If RGB regression, do each band separately
     elif regression == "rgb":
