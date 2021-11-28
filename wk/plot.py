@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt, transforms, patheffects as pe
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Ellipse
+from matplotlib.legend_handler import HandlerTuple
 
 import numpy as np
 from colorio._tools import plot_flat_gamut
@@ -675,7 +676,6 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
         key_c_err = key + "_err ({c})"
         correlation_plot_RGB(x, y, key_c, key_c, ax=ax, xerrlabel=key_c_err, yerrlabel=key_c_err, xlabel=None, ylabel=ylabel, marker=markers[key])
 
-
     # Generate a combined radiance table
     x_radiance, y_radiance = hc.get_radiances(x, keys), hc.get_radiances(y, keys)
     key_c = "L ({c})"
@@ -703,6 +703,11 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
     # Add labels to the corners of each plot to indicate which radiance they show
     ax.set_xlabel(xlabel)
     ax.set_title(None)  # Remove default titles
+
+    # Generate a legend where each symbol has an entry, with coloured markers
+    labels = [keys_latex[key] for key in keys]
+    scatters = [tuple([ax.scatter([-1], [-1], marker=markers[key], label=keys_latex[key], color=c) for c in RGB_OkabeIto]) for key in keys]
+    ax.legend(scatters, labels, numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)}, loc="lower right", edgecolor='k', framealpha=1)
 
     # Save the result
     _saveshow(saveto)
