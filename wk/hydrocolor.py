@@ -135,11 +135,25 @@ def generate_folders(folders, pattern):
                 yield data_path
 
 
-def generate_paths(data_path, extension=".dng"):
+def generate_paths(data_path, extension=".dng", image_names=("water", "sky", "greycard"), multiple=False):
     """
-    Generate the paths to the water, sky, and greycard images
+    Generate the paths to the water, sky, and greycard images (in that order!).
+    If desired, this can be changed to any set of images.
+    If `multiple` is False, generate paths only to data_path/water.extension, etc.
+    If `multiple` is True, generate paths to *any* files matching the pattern data_path/water*.extension, etc.
+
+    Example: generate_paths("C:/myfolder/", extension=".dng")
     """
-    paths = [data_path/(photo + extension) for photo in ("water", "sky", "greycard")]
+    # Add a wildcard to the file extension if desired
+    if multiple:
+        extension = "*" + extension
+
+    # Find all filenames in the data folder that match the pattern, and concatenate them into one big list
+    paths = sum([sorted(data_path.glob(photo + extension)) for photo in image_names], [])
+
+    # Check that the right number of files have been returned
+    # Note that this assertion is NOT triggered if, for example, 5 'water' images are present but zero of the others
+    assert len(paths) >= 3, f"Fewer than {len(image_names)} images found in folder {data_path}. Only the following files were present:\n{paths}"
     return paths
 
 
