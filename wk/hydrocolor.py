@@ -144,11 +144,19 @@ def generate_paths(data_path, extension=".dng"):
 
 
 def load_raw_images(filenames):
+    """
+    Load RAW images located at `filenames` (iterable).
+    The images are stacked into one array.
+    """
     raw_images = np.array([io.load_raw_image(filename) for filename in filenames])
     return raw_images
 
 
 def load_jpeg_images(filenames):
+    """
+    Load JPEG images located at `filenames` (iterable).
+    The images are stacked into one array, with the colour (RGB) axis moved to the front, like load_raw_images.
+    """
     jpg_images = np.array([io.load_jpg_image(filename) for filename in filenames])
 
     # Move the colour axis forwards: (x, y, 3) -> (3, x, y)
@@ -156,8 +164,14 @@ def load_jpeg_images(filenames):
     return jpg_images
 
 
-def load_raw_thumbnails(filenames):
-    thumbnails = np.array([io.load_raw_image_postprocessed(filename, half_size=True, user_flip=0) for filename in filenames])
+def load_raw_thumbnails(filenames, **kwargs):
+    """
+    Load RAW images located at `filenames` (iterable) and generate thumbnails from these.
+    By default, the thumbnails are half-size and flipped.
+    Additional **kwargs are passed to `load_raw_image_postprocessed`.
+    The thumbnails are stacked into one array.
+    """
+    thumbnails = np.array([io.load_raw_image_postprocessed(filename, half_size=True, user_flip=0, **kwargs) for filename in filenames])
     return thumbnails
 
 
