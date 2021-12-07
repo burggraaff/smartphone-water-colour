@@ -175,17 +175,6 @@ def load_raw_thumbnails(filenames, **kwargs):
     return thumbnails
 
 
-box_size = 100
-def central_slice_jpeg(*images, size=box_size):
-    central_x, central_y = images[0].shape[0]//2, images[0].shape[1]//2
-    central_slice = np.s_[central_x-size:central_x+size+1, central_y-size:central_y+size+1, :]
-
-    images_cut = [image[central_slice] for image in images]
-    print(f"Selected central {2*size}x{2*size} pixels in the JPEG data")
-
-    return images_cut
-
-
 def convert_RGBG2_to_RGB_without_average(*arrays):
     """
     Convert RGBG2 arrays to RGB, keeping all pixels.
