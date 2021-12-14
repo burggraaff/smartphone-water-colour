@@ -104,8 +104,10 @@ for data_path in hc.generate_folders(folders, pattern):
     uncertainty_relative = 100 * all_std/all_mean
     print("Calculated mean values and uncertainties per image, per channel")
 
-    # Convert to remote sensing reflectances
-    R_rs = hc.R_RS(*mean_per_stack_RGB)
+    # Convert to remote sensing reflectances - use every combination of Lu, Lsky, Ld
+    water, sky, card = mean_per_stack_RGB
+    R_rs = hc.R_RS(water[:,np.newaxis,np.newaxis], sky[np.newaxis,:,np.newaxis], card)
+    R_rs = R_rs.reshape(-1, 3)
     print("Calculated remote sensing reflectances")
 
     # Calculate mean values
