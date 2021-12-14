@@ -60,4 +60,5 @@ plot._saveshow(f"{saveto_base}_relative_uncertainty.pdf")
 pct5, pct95 = symmetric_percentiles(data_RGB, percent=5, axis=1)
 medians = np.nanmedian(data_RGB, axis=1)
 stats_table = table.Table(data=[keys_RGB, pct5, medians, pct95], names=["Key", "5%", "Median", "95%"])
-print(stats_table)
+with open(f"{saveto_base}_statistics.dat", "w") as file:
+    print(stats_table, file=file)
