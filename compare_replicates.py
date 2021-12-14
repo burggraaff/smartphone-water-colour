@@ -7,7 +7,7 @@ Command-line inputs:
 
 import numpy as np
 from sys import argv
-from spectacle import io
+from spectacle import io, symmetric_percentiles
 from astropy import table
 from wk import hydrocolor as hc, plot
 from matplotlib import pyplot as plt
@@ -27,7 +27,7 @@ data = hc.table.Table.read(path_data)
 keys = ["Lu", "Lsky", "Ld", "R_rs"]
 nr_keys = len(keys)
 keys_RGB = hc.extend_keys_to_RGB(keys)
-data_RGB = np.stack([data[key_RGB] for key_RGB in keys_RGB]).T
+data_RGB = np.stack([data[key_RGB] for key_RGB in keys_RGB])
 data_max = data_RGB.max()
 
 # Plot parameters
@@ -40,7 +40,7 @@ colours = plot.RGB_OkabeIto * nr_keys
 fig = plt.figure(figsize=(plot.col1, plot.col1))
 
 # Plot the data
-bplot = plt.boxplot(data_RGB, positions=positions, labels=labels, patch_artist=True)
+bplot = plt.boxplot(data_RGB.T, positions=positions, labels=labels, patch_artist=True)
 
 # Adjust the colours
 for patch, colour in zip(bplot["boxes"], colours):
@@ -55,3 +55,9 @@ plt.grid(axis="y", ls="--")
 
 # Save/show the result
 plot._saveshow(f"{saveto_base}_relative_uncertainty.pdf")
+
+# Calculate and print statistics
+pct5, pct95 = symmetric_percentiles(data_RGB, percent=5, axis=1)
+medians = np.nanmedian(data_RGB, axis=1)
+stats_table = table.Table(data=[keys_RGB, pct5, medians, pct95], names=["Key", "5%", "Median", "95%"])
+print(stats_table)
