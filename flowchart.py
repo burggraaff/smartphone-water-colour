@@ -116,9 +116,15 @@ all_mean_RGB = hc.convert_RGBG2_to_RGB(all_mean)
 all_covariance_RGB = hc.convert_RGBG2_to_RGB_covariance(all_covariance)
 data_RGB = hc.split_combined_radiances(all_mean_RGB)
 
+# Convert to remote sensing reflectances
+R_rs = hc.R_RS(*data_RGB)
+
 # Save the resulting vectors to file
-for vector_RGB, label in zip(data_RGB, ["Lu", "Lsky", "Ld"]):
+results = [*data_RGB, R_rs]
+labels = ["Lu", "Lsky", "Ld", "R_rs"]
+for vector_RGB, label in zip(results, labels):
     hc.output_latex_vector(vector_RGB, label=plot.keys_latex[label].strip("$"), saveto=saveto/f"vector_{label}.tex")
+    print("Written to file:", label)
 
 # Save the resulting covariance matrices to file
 hc.output_latex_matrix(all_covariance_RGB, saveto=saveto/"matrix_L_RGB.tex")
