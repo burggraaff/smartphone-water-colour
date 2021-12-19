@@ -22,8 +22,9 @@ bandratio_pairs = [("G", "R"), ("B", "G"), ("R", "B")]
 bandratio_labels = [f"{bands[0]}/{bands[1]}" for bands in bandratio_pairs]
 
 # Grey card reflectance, empirically determined
-# R_ref, R_ref_uncertainty = 0.21872167469852127, 0.02428559578772454
-R_ref, R_ref_uncertainty = 0.185, 0.01
+# R_ref, R_ref_uncertainty = 0.21872167469852127, 0.02428559578772454  # From comparing Lu and Ed
+# R_ref, R_ref_uncertainty = 0.185, 0.01  # From comparing measurements with a cosine collector
+R_ref, R_ref_uncertainty = 0.18, 0.01
 
 def add_Rref_to_covariance(covariance, R_ref_uncertainty=R_ref_uncertainty):
     """
