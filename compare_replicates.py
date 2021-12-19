@@ -3,6 +3,9 @@ Analyse replicate smartphone images that have been pre-processed using process_r
 
 Command-line inputs:
     * path_data: Path to the combined data file.
+
+Example:
+    %run compare_replicates.pywater-colour-data/balaton_Samsung_Galaxy_S8_raw_replicates.csv
 """
 
 import numpy as np
@@ -15,7 +18,7 @@ from matplotlib import pyplot as plt
 # Get the data folder from the command line
 path_data = io.path_from_input(argv)
 
-# Names of the two phones being compared and some useful labels
+# Name of the phone and some useful labels
 phone_name = " ".join(path_data.stem.split("_")[1:-2])
 saveto_base = f"results/replicates_{phone_name}"
 print(f"Analysing replicate data from {phone_name}. Results will be saved to '{saveto_base}_XXX.pdf'.")
