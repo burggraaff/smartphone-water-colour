@@ -36,12 +36,12 @@ pattern = calibration_folder.stem
 camera = load_camera(calibration_folder)
 print(f"Loaded Camera object:\n{camera}")
 
-# ISO speed and exposure time are assumed equal between all three images and
-# thus can be ignored
-
 # Load effective spectral bandwidths
 camera.load_spectral_bands()
 effective_bandwidths = camera.spectral_bands
+
+# Destination for results
+saveto = f"results/boxsize_{camera.name}.tex"
 
 # Find the effective wavelength corresponding to the RGB bands
 RGB_wavelengths = hc.effective_wavelength(calibration_folder)
@@ -181,4 +181,7 @@ f"50 px & {diff[0,0]:.2f}\\% & {diff[1,0]:.2f}\\% & {diff[2,0]:.2f}\\% & {frac[0
 100 px & -- & -- & -- & -- & -- & -- & {snr[0,1]:.0f} & {snr[1,1]:.0f} & {snr[2,1]:.0f} \\\\\n \
 150 px & {diff[0,2]:.2f}\\% & {diff[1,2]:.2f}\\% & {diff[2,2]:.2f}\\% & {frac[0,2]:.0f}\\% & {frac[1,2]:.0f}\\% & {frac[2,2]:.0f}\\% &  {snr[0,2]:.0f} & {snr[1,2]:.0f} & {snr[2,2]:.0f} \\\\\n \
 200 px & {diff[0,3]:.2f}\\% & {diff[1,3]:.2f}\\% & {diff[2,3]:.2f}\\% & {frac[0,3]:.0f}\\% & {frac[1,3]:.0f}\\% & {frac[2,3]:.0f}\\% &  {snr[0,3]:.0f} & {snr[1,3]:.0f} & {snr[2,3]:.0f} \n"
-print(final_string)
+
+# Save to file
+with open(saveto, "w") as file:
+    print(final_string, file=file)
