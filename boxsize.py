@@ -1,7 +1,8 @@
 """
-Process three images (water, sky, grey card), calibrated using SPECTACLE, to
-calculate the remote sensing reflectance in the RGB channels, following the
-HydroColor protocol.
+Investigate the impact of different central box sizes for the R_rs calculation from RAW smartphone images.
+Processes all RAW images matching a given smartphone in the given data folder.
+For each set of RAW images, the difference in radiance L and signal-to-noise ratio SNR is calculated for varying box sizes.
+Statistics on the typical effects across all box sizes are compiled at the end.
 
 Requires the following SPECTACLE calibrations:
     - Metadata
@@ -14,7 +15,7 @@ Command-line inputs:
     * Any number of folders containing data
 
 Example:
-    %run process_raw.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton_20190703/*
+    %run boxsize.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton_20190703/*
 """
 
 import numpy as np
@@ -180,3 +181,4 @@ f"50 px & {diff[0,0]:.2f}\\% & {diff[1,0]:.2f}\\% & {diff[2,0]:.2f}\\% & {frac[0
 100 px & -- & -- & -- & -- & -- & -- & {snr[0,1]:.0f} & {snr[1,1]:.0f} & {snr[2,1]:.0f} \\\\\n \
 150 px & {diff[0,2]:.2f}\\% & {diff[1,2]:.2f}\\% & {diff[2,2]:.2f}\\% & {frac[0,2]:.0f}\\% & {frac[1,2]:.0f}\\% & {frac[2,2]:.0f}\\% &  {snr[0,2]:.0f} & {snr[1,2]:.0f} & {snr[2,2]:.0f} \\\\\n \
 200 px & {diff[0,3]:.2f}\\% & {diff[1,3]:.2f}\\% & {diff[2,3]:.2f}\\% & {frac[0,3]:.0f}\\% & {frac[1,3]:.0f}\\% & {frac[2,3]:.0f}\\% &  {snr[0,3]:.0f} & {snr[1,3]:.0f} & {snr[2,3]:.0f} \n"
+print(final_string)
