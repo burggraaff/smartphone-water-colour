@@ -40,10 +40,10 @@ labels = np.ravel([["", plot.keys_latex[key], ""] for key in keys])
 colours = plot.RGB_OkabeIto * nr_keys
 
 # Make a box-plot of the relative uncertainties
-fig = plt.figure(figsize=(plot.col1, plot.col1))
+fig = plt.figure(figsize=(plot.col1, 0.7*plot.col1))
 
 # Plot the data
-bplot = plt.boxplot(data_RGB.T, positions=positions, labels=labels, patch_artist=True)
+bplot = plt.boxplot(data_RGB.T, positions=positions, labels=labels, sym=".", patch_artist=True)
 
 # Adjust the colours
 for patch, colour in zip(bplot["boxes"], colours):
@@ -51,7 +51,7 @@ for patch, colour in zip(bplot["boxes"], colours):
 
 # Plot settings
 plt.yticks(np.arange(0, data_max+5, 5))
-plt.ylim(0, data_max*1.05)
+plt.ylim(0, data_max+2)
 plt.ylabel("Relative uncertainty [%]")
 plt.tick_params(axis="x", bottom=False)
 plt.grid(axis="y", ls="--")
