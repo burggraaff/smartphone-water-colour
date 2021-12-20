@@ -116,12 +116,22 @@ for data_path in hc.generate_folders(folders, pattern):
     uncertainty_relative_R_rs = 100 * R_rs_std/R_rs_mean
     print("Calculated mean values and uncertainties per image, per channel, for R_rs")
 
+    # Convert to hue angle and FU colour
+    R_rs_XYZ = camera.convert_to_XYZ(R_rs)
+    R_rs_xy = wa.convert_XYZ_to_xy(R_rs_XYZ)
+    R_rs_hue = wa.convert_xy_to_hue_angle(R_rs_xy)
+    R_rs_FU = wa.convert_hue_angle_to_ForelUle(R_rs_hue)
+
+    # Calculate statistics
+    hue_std = R_rs_hue.std(axis=0)
+    FU_std = R_rs_FU.std(axis=0)
+
     # Create a timestamp from EXIF (assume time zone UTC+2)
     UTC = hc.UTC_timestamp(water_exif, data_path)
 
     # Put all data into a single array
-    data = [[UTC.timestamp(), UTC.isoformat(), *np.ravel(uncertainty_relative), *np.ravel(uncertainty_relative_R_rs)]]
-    header = ["UTC", "UTC (ISO)"] + hc.extend_keys_to_RGB(["Lu", "Lsky", "Ld", "R_rs"])
+    data = [[UTC.timestamp(), UTC.isoformat(), *np.ravel(uncertainty_relative), *np.ravel(uncertainty_relative_R_rs), hue_std, FU_std]]
+    header = ["UTC", "UTC (ISO)"] + hc.extend_keys_to_RGB(["Lu", "Lsky", "Ld", "R_rs"]) + ["R_rs (hue)", "R_rs (FU)"]
     data_table = hc.table.Table(rows=data, names=header)
 
     # Write the result to file
