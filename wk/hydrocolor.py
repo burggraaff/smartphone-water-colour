@@ -20,6 +20,7 @@ M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
 # Labels for band ratios, in the correct order
 bandratio_pairs = [("G", "R"), ("B", "G"), ("R", "B")]
 bandratio_labels = [f"{bands[0]}/{bands[1]}" for bands in bandratio_pairs]
+bandratio_labels_latex = [r"$\frac{" + bands[0] + r"}{" + bands[1] + r"}$" for bands in bandratio_pairs]
 
 # Grey card reflectance, empirically determined
 # R_ref, R_ref_uncertainty = 0.21872167469852127, 0.02428559578772454  # From comparing Lu and Ed
@@ -276,12 +277,12 @@ def get_radiances(data, parameters=["Lu", "Lsky", "Ld"]):
 def calculate_bandratios(data_R, data_G, data_B):
     """
     Calculate the B/G, G/R, and R/B band ratios between given data.
-    """
+        """
     GR = data_G / data_R  # G/R
     BG = data_B / data_G  # B/G
     RB = data_R / data_B  # R/B
 
-    return GR, BG, RB
+    return np.array([GR, BG, RB])
 
 
 def calculate_bandratios_covariance(data_R, data_G, data_B, data_covariance):

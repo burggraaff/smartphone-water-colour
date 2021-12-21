@@ -28,16 +28,16 @@ data = hc.table.Table.read(path_data)
 
 # Turn the data into an array matplotlib can understand
 keys = ["Lu", "Lsky", "Ld", "R_rs"]
-nr_keys = len(keys)
-keys_RGB = hc.extend_keys_to_RGB(keys)
+keys_RGB = hc.extend_keys_to_RGB(keys) + [f"R_rs ({c})" for c in hc.bandratio_labels]
 data_RGB = np.stack([data[key_RGB] for key_RGB in keys_RGB])
 data_max = data_RGB.max()
 
 # Plot parameters
 # We want the boxes for the same parameter to be close together
-positions = np.ravel(np.array([0, 0.6, 1.2]) + 2.5*np.arange(nr_keys)[:,np.newaxis])
-labels = np.ravel([["", plot.keys_latex[key], ""] for key in keys])
-colours = plot.RGB_OkabeIto * nr_keys
+positions = np.ravel(np.array([0, 0.6, 1.2]) + 2.5*np.arange(5)[:,np.newaxis])
+labels = sum([["", plot.keys_latex[key], ""] for key in keys], start=[]) + hc.bandratio_labels_latex
+labels[-2] = labels[-2] + "\n" + plot.keys_latex["R_rs"]
+colours = plot.RGB_OkabeIto * 4 + 3*["k"]
 
 # Make a box-plot of the relative uncertainties
 fig = plt.figure(figsize=(plot.col1, 0.7*plot.col1))
