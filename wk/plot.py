@@ -340,7 +340,7 @@ def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err=Non
 
     ax.set_ylabel("R$_{rs}$ [sr$^{-1}$]")
     ax.set_yticks(np.arange(0, 0.1, 0.01))
-    ax.set_ylim(0, 0.06)
+    ax.set_ylim(0, 0.07)
 
     ax.grid(ls="--")
     ax.set_title(title)
