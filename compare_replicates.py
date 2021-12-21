@@ -26,18 +26,22 @@ print(f"Analysing replicate data from {phone_name}. Results will be saved to '{s
 # Read the data
 data = hc.table.Table.read(path_data)
 
+# Multiply the FU index values by 5 so they fit in the plot
+data["R_rs (FU)"] *= 5
+
 # Turn the data into an array matplotlib can understand
 keys = ["Lu", "Lsky", "Ld", "R_rs"]
-keys_RGB = hc.extend_keys_to_RGB(keys) + [f"R_rs ({c})" for c in hc.bandratio_labels]
+keys_RGB = hc.extend_keys_to_RGB(keys) + [f"R_rs ({c})" for c in hc.bandratio_labels + ["hue", "FU"]]
 data_RGB = np.stack([data[key_RGB] for key_RGB in keys_RGB])
 data_max = data_RGB.max()
 
 # Plot parameters
 # We want the boxes for the same parameter to be close together
-positions = np.ravel(np.array([0, 0.6, 1.2]) + 2.5*np.arange(5)[:,np.newaxis])
-labels = sum([["$R$", "$G$\n"+plot.keys_latex[key], "$B$"] for key in keys], start=[]) + hc.bandratio_labels_latex
-labels[-2] = labels[-2] + "\n" + plot.keys_latex["R_rs"]
-colours = plot.RGB_OkabeIto * 4 + 3*["k"]
+positions = np.ravel(np.array([0, 0.6, 1.2]) + 2.5*np.arange(6)[:,np.newaxis])
+positions = np.delete(positions, -2)  # Remove position between hue angle/FU
+labels = sum([["$R$", "$G$\n"+plot.keys_latex[key], "$B$"] for key in keys], start=[]) + hc.bandratio_labels_latex + [r"$\alpha$", "FU"]
+labels[-4] += "\n" + plot.keys_latex["R_rs"]
+colours = plot.RGB_OkabeIto * 4 + 5*["k"]
 
 # Make a box-plot of the relative uncertainties
 fig = plt.figure(figsize=(plot.col1, 0.7*plot.col1))
@@ -52,9 +56,16 @@ for patch, colour in zip(bplot["boxes"], colours):
 # Plot settings
 plt.yticks(np.arange(0, data_max+5, 5))
 plt.ylim(0, data_max+2)
-plt.ylabel("Relative uncertainty [%]")
+plt.ylabel("Uncertainty [%, $^\circ$]")
 plt.tick_params(axis="x", bottom=False)
 plt.grid(axis="y", ls="--")
+
+# Add a second y-axis for FU
+ax1 = plt.gca()
+ax2 = ax1.twinx()
+ax2.set_yticks(ax1.get_yticks()/5)
+ax2.set_ylim(np.array(ax1.get_ylim())/5)
+ax2.set_ylabel("Uncertainty [FU]")
 
 # Save/show the result
 plot._saveshow(f"{saveto_base}_relative_uncertainty.pdf")
