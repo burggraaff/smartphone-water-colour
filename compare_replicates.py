@@ -37,14 +37,14 @@ data_max = data_RGB.max()
 
 # Plot parameters
 # We want the boxes for the same parameter to be close together
-positions = np.ravel(np.array([0, 0.6, 1.2]) + 2.5*np.arange(6)[:,np.newaxis])
-positions = np.delete(positions, -2)  # Remove position between hue angle/FU
+positions = np.ravel(np.array([0, 0.6, 1.2]) + 2.5*np.arange(5)[:,np.newaxis])
+positions = np.append(positions, positions[-1]+np.array([0.8, 1.6]))  # Positions for hue angle/FU
 labels = sum([["$R$", "$G$\n"+plot.keys_latex[key], "$B$"] for key in keys], start=[]) + hc.bandratio_labels_latex + [r"$\alpha$", "FU"]
 labels[-4] += "\n" + plot.keys_latex["R_rs"]
 colours = plot.RGB_OkabeIto * 4 + 5*["k"]
 
 # Make a box-plot of the relative uncertainties
-fig = plt.figure(figsize=(plot.col1, 0.7*plot.col1))
+fig = plt.figure(figsize=(plot.col1, 0.8*plot.col1))
 
 # Plot the data
 bplot = plt.boxplot(data_RGB.T, positions=positions, labels=labels, sym=".", patch_artist=True)
@@ -59,6 +59,7 @@ plt.ylim(0, data_max+2)
 plt.ylabel("Uncertainty [%, $^\circ$]")
 plt.tick_params(axis="x", bottom=False)
 plt.grid(axis="y", ls="--")
+plt.title("Variations between replicate images")
 
 # Add a second y-axis for FU
 ax1 = plt.gca()
