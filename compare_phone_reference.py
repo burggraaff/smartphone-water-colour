@@ -134,23 +134,13 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
     saveto = f"results/{ref_small}_comparison/{camera.name}_{data_type}_{phone_time}.pdf".replace(":", "-")
 
     # Plot the spectrum for comparison
-    R_rs = np.array([row_reference[f"R_rs_{wvl:.1f}"][0] for wvl in wavelengths])
-    R_rs_err = np.array([row_reference[f"R_rs_err_{wvl:.1f}"][0] for wvl in wavelengths])
-    plt.figure(figsize=(3.3,3.3), tight_layout=True)
-    plt.plot(wavelengths, R_rs, c="k")
-    plt.fill_between(wavelengths, R_rs-R_rs_err, R_rs+R_rs_err, facecolor="0.3")
-    for j, (c, pc) in enumerate(zip("RGB", plot.RGB_OkabeIto)):
-        plt.errorbar(RGB_wavelengths[j], row[f"R_rs ({c})"], xerr=effective_bandwidths[j]/2, yerr=row[f"R_rs_err ({c})"], fmt="o", c=pc)
-        plt.errorbar(RGB_wavelengths[j], row_reference[f"R_rs ({c})"][0], xerr=effective_bandwidths[j]/2, yerr=row_reference[f"R_rs_err ({c})"][0], fmt="^", c=pc)
-    plt.grid(True, ls="--")
-    plt.xlim(300, 900)
-    plt.xlabel("Wavelength [nm]")
-    plt.ylim(0, 0.15)
-    plt.ylabel(f"{plot.keys_latex['R_rs']} {plot.persr}")
-    plt.title(f"{cameralabel}\n{phone_time}")
-    plt.savefig(saveto)
-    plt.show()
-    plt.close()
+    R_rs_reference = np.array([row_reference[f"R_rs_{wvl:.1f}"][0] for wvl in wavelengths])
+    R_rs_reference_uncertainty = np.array([row_reference[f"R_rs_err_{wvl:.1f}"][0] for wvl in wavelengths])
+
+    R_rs_phone = list(row[hc.extend_keys_to_RGB(["R_rs"])])
+    R_rs_phone_err = list(row[hc.extend_keys_to_RGB(["R_rs_err"])])
+
+    plot.plot_R_rs_RGB(RGB_wavelengths, R_rs_phone, effective_bandwidths, R_rs_phone_err, reference=[wavelengths, R_rs_reference, R_rs_reference_uncertainty], title=f"{cameralabel}\n{phone_time}", saveto=saveto)
 
 # Make new tables from the match-up rows
 data_phone = table.vstack(data_phone)

@@ -13,7 +13,7 @@ from colorio._tools import plot_flat_gamut
 from . import statistics as stats, colours, hydrocolor as hc
 from .wacodi import FU_hueangles, compare_FU_matches_from_hue_angle
 
-from spectacle.plot import RGB_OkabeIto, _saveshow, cmaps
+from spectacle.plot import RGB_OkabeIto, _rgbplot, _saveshow, cmaps
 
 
 # Commonly used unit strings
@@ -295,27 +295,59 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto=None, normalisation=2
         print(f"Saved statistics plot to `{saveto}`")
 
 
-def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths, R_rs_err, saveto=None):
+def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err=None, reference=None, ax=None, title=None, saveto=None):
     """
-    Plot RGB R_rs data.
+    Plot RGB R_rs data, with an optional hyperspectral reference.
+    `reference` must contain 2 or 3 elements: [wavelengths, R_rs, R_rs_uncertainty (optional)]
     """
-    # Create the figure
-    plt.figure(figsize=(col1,2))
+    # Turn the effective bandwidth into an xerr by halving it, if values were given
+    try:
+        xerr = effective_bandwidths/2
+    except TypeError:
+        xerr = [None]*3
+
+    # Add decoy elements to R_rs_err if necessary
+    if R_rs_err is None:
+        R_rs_err = [None]*3
+
+    # If no Axes object was given, make a new one
+    if ax is None:
+        newaxes = True
+        plt.figure(figsize=smallpanel)
+        ax = plt.gca()
+    else:
+        newaxes = False
 
     # Plot the RGB bands
     for j, c in enumerate(RGB_OkabeIto[:3]):
-        plt.errorbar(RGB_wavelengths[j], R_rs[j], xerr=effective_bandwidths[j]/2, yerr=R_rs_err[j], c=c, fmt="o")
+        ax.errorbar(RGB_wavelengths[j], R_rs[j], xerr=xerr[j], yerr=R_rs_err[j], c=c, fmt="o")
+
+    # Plot the reference line if one was given
+    if reference:
+        wavelengths_reference, R_rs_reference = reference[:2]
+        ax.plot(wavelengths_reference, R_rs_reference, c='k')
+        try:
+            R_rs_reference_uncertainty = reference[2]
+        except IndexError:
+            pass
+        else:
+            ax.fill_between(wavelengths_reference, R_rs_reference-R_rs_reference_uncertainty, R_rs_reference+R_rs_reference_uncertainty, facecolor="0.5")
 
     # Plot settings
-    plt.xlabel("Wavelength [nm]")
-    plt.ylabel("R$_{rs}$ [sr$^{-1}$]")
-    plt.xlim(390, 700)
-    plt.ylim(0, 0.1)
-    plt.yticks(np.arange(0, 0.12, 0.02))
-    plt.grid(ls="--")
+    ax.set_xlabel("Wavelength [nm]")
+    ax.set_xticks(np.arange(300, 1000, 100))
+    ax.set_xlim(350, 850)
+
+    ax.set_ylabel("R$_{rs}$ [sr$^{-1}$]")
+    ax.set_yticks(np.arange(0, 0.1, 0.01))
+    ax.set_ylim(0, 0.06)
+
+    ax.grid(ls="--")
+    ax.set_title(title)
 
     # Save the result
-    _saveshow(saveto)
+    if newaxes:
+        _saveshow(saveto)
 
 
 def _correlation_plot_gridlines(ax=None):
