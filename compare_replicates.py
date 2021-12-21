@@ -35,7 +35,7 @@ data_max = data_RGB.max()
 # Plot parameters
 # We want the boxes for the same parameter to be close together
 positions = np.ravel(np.array([0, 0.6, 1.2]) + 2.5*np.arange(5)[:,np.newaxis])
-labels = sum([["", plot.keys_latex[key], ""] for key in keys], start=[]) + hc.bandratio_labels_latex
+labels = sum([["$R$", "$G$\n"+plot.keys_latex[key], "$B$"] for key in keys], start=[]) + hc.bandratio_labels_latex
 labels[-2] = labels[-2] + "\n" + plot.keys_latex["R_rs"]
 colours = plot.RGB_OkabeIto * 4 + 3*["k"]
 
