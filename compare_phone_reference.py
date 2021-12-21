@@ -163,15 +163,11 @@ for key in keys_uncertainties:
     data_reference[key][indices_single_match] = np.nanmedian(data_reference[key][indices_multiple_matches])
 
 # Add band ratios to reference data
-bandratios = hc.calculate_bandratios(data_reference["R_rs (R)"], data_reference["R_rs (G)"], data_reference["R_rs (B)"])
-for col, label in zip(bandratios, hc.bandratio_labels):
-    col.name = f"R_rs ({label})"
+bandratios = table.Table(data=hc.calculate_bandratios(data_reference["R_rs (R)"], data_reference["R_rs (G)"], data_reference["R_rs (B)"]).T, names=[f"R_rs ({label})" for label in hc.bandratio_labels])
 
-bandratio_uncertainties = [bandratio * np.sqrt(data_reference[f"R_rs_err ({bands[0]})"]**2/data_reference[f"R_rs ({bands[0]})"]**2 + data_reference[f"R_rs_err ({bands[1]})"]**2/data_reference[f"R_rs ({bands[1]})"]**2) for bandratio, bands in zip(bandratios, hc.bandratio_pairs)]
-for col, label in zip(bandratio_uncertainties, hc.bandratio_labels):
-    col.name = f"R_rs_err ({label})"
+bandratio_uncertainties = table.Table(data=[bandratios[col] * np.sqrt(data_reference[f"R_rs_err ({bands[0]})"]**2/data_reference[f"R_rs ({bands[0]})"]**2 + data_reference[f"R_rs_err ({bands[1]})"]**2/data_reference[f"R_rs ({bands[1]})"]**2) for col, bands in zip(bandratios.colnames, hc.bandratio_pairs)], names=[f"R_rs_err ({label})" for label in hc.bandratio_labels])
 
-data_reference.add_columns([*bandratios, *bandratio_uncertainties])
+data_reference = table.hstack([data_reference, bandratios, bandratio_uncertainties])
 
 # Save the comparison table to file
 saveto_data = f"{saveto_base}_data.csv"
