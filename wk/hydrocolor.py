@@ -415,9 +415,14 @@ def extend_keys_to_RGB(keys):
     For a given set of keys, e.g. ["Lu", "Lsky"], generate variants
     for each RGB band.
     """
+    # If only one key was given, put it into a list
+    if isinstance(keys, str):
+        keys = [keys]
+
+    # Add suffixes
     list_RGB = [key + " ({c})" for key in keys]
     list_RGB_full = [[s.format(c=c) for c in colours] for s in list_RGB]
-    list_RGB_flat = [item for sublist in list_RGB_full for item in sublist]
+    list_RGB_flat = sum(list_RGB_full, start=[])
 
     return list_RGB_flat
 
@@ -487,8 +492,8 @@ def read_results(filename):
 
     # Iterate over the covariance matrices and calculate simple uncertainties from them
     covariance_keys_split = [np.ravel([[f"L{sub}_err ({c})" for c in colours] for sub in ["u", "sky", "d"]]),
-                             extend_keys_to_RGB(["Ed_err"]),
-                             extend_keys_to_RGB(["R_rs_err"]),
+                             extend_keys_to_RGB("Ed_err"),
+                             extend_keys_to_RGB("R_rs_err"),
                              [f"R_rs_err ({c})" for c in bandratio_labels],
                              [f"R_rs_err ({c})" for c in "xy"]]
     for key, keys_split in zip(covariance_keys, covariance_keys_split):
