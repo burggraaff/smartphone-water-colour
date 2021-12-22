@@ -3,7 +3,7 @@ Process data from the PML So-Rad-mounted TriOS.
 
 Command line inputs:
     * Folder containing the So-Rad data file.
-        Example: "water-colour-data\Balaton_20190703\SoRad"
+        Example: %run process_sorad.py "water-colour-data\Balaton_20190703\SoRad"
 
 Outputs:
     * File containing Ed, Ls, Lt, R_rs
