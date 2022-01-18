@@ -88,6 +88,11 @@ print("Input file:", filename.absolute())
 # Convert to table
 data = load_wisp_data(filename)
 
+# Manually remove data from 2019-07-05 10:35:51 because these look like noise
+bad_row = np.where(data["timestamp"] == "2019-07-05T10:36:00")[0][0]
+data.remove_row(bad_row)
+print(f"Removed row {bad_row}.")
+
 # Add WACODI data - XYZ, xy, hue angle, Forel-Ule
 data = wa.add_colour_data_to_table(data)
 
