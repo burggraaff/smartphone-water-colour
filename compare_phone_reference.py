@@ -18,7 +18,7 @@ from astropy import table
 from wk import hydrocolor as hc, plot
 
 # Time limit for inclusion
-max_time_diff = 60*5  # 5 minutes for everything except NZ data
+max_time_diff = 60*10  # 10 minutes for everything except NZ data
 # max_time_diff = 60*60  # 60 minutes for NZ data
 
 # Get the data folder from the command line
