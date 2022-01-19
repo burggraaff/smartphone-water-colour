@@ -28,8 +28,9 @@ from spectacle.linearity import sRGB_inverse
 from wk import hydrocolor as hc, wacodi as wa, plot, statistics as stats
 
 # Get the data folder from the command line
-linearise, calibration_folder, *folders = io.path_from_input(argv)
-linearise = bool(linearise.stem == "True")
+mode, calibration_folder, *folders = io.path_from_input(argv)
+mode = str(mode).lower()
+assert mode in ("normal", "linear", "raw"), f"Unknown processing mode '{mode}'"
 pattern = calibration_folder.stem
 
 # Get Camera object
@@ -55,13 +56,16 @@ for data_path in hc.generate_folders(folders, pattern):
     print("Loaded JPEG data")
 
     # Optional: Linearise JPEG data
-    if linearise:
+    if mode == "normal":
+        sub = ""
+        print("Processing JPEG data as they are")
+    elif mode == "linear":
         images_jpeg = sRGB_inverse(images_jpeg, normalization=255)
         sub = "_linear"
         print("Linearised JPEG data")
-    else:
-        sub = ""
-        print("Not linearising JPEG data")
+    elif mode == "raw":
+        sub = "_fromraw"
+        print("Making JPEG data from RAW")
 
     # Filenames to save results to
     saveto_stats = data_path/f"statistics_jpeg{sub}.pdf"
