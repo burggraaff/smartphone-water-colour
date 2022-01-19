@@ -41,16 +41,14 @@ means_bias_corrected = camera.correct_bias(means, selection=central_slice)
 print("Applied SPECTACLE corrections")
 
 # Average per image
-mean_values = means_bias_corrected.mean(axis=(1,2))
-uncertainties = means_bias_corrected.std(axis=(1,2))
+normalisation = means_bias_corrected[angles==40]
+means_normalised = means_bias_corrected / normalisation
 
-# Normalise by the values at 40 degrees
-normalisation = mean_values[angles==40]
-mean_values_normalised = mean_values / normalisation
-uncertainties_normalised = uncertainties / normalisation
+mean_values = means_normalised.mean(axis=(1,2))
+uncertainties = means_normalised.std(axis=(1,2))
 
 # Plot the result
-plt.errorbar(angles, mean_values_normalised, yerr=uncertainties_normalised, fmt="o", c="k")
+plt.errorbar(angles, mean_values, yerr=uncertainties, fmt="o", c="k")
 
 plt.xlabel("Grey card angle [$^\circ$]")
 plt.ylabel("Mean value [ADU]")
@@ -62,4 +60,4 @@ plt.show()
 # Print the relevant values (within 5 degrees)
 indices = np.where((angles >= 35) & (angles <= 45))[0]
 for ind in indices:
-    print(f"Angle {angles[ind]:.2f} degrees: Mean {mean_values_normalised[ind]:.2f} +- {uncertainties_normalised[ind]:.2f}")
+    print(f"Angle {angles[ind]:.2f} degrees: Mean {mean_values[ind]:.2f} +- {uncertainties[ind]:.2f}")
