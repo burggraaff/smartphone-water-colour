@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from astropy import table
 from scipy.linalg import block_diag
 from os import walk
+from functools import partial
 
 from . import colours
 from . import statistics as stats
@@ -180,28 +181,21 @@ def load_jpeg_images(filenames):
     return jpg_images
 
 
-def load_raw_thumbnails(filenames, **kwargs):
-    """
-    Load RAW images located at `filenames` (iterable) and generate thumbnails from these.
-    By default, the thumbnails are half-size and flipped.
-    Additional **kwargs are passed to `load_raw_image_postprocessed`.
-    The thumbnails are stacked into one array.
-    """
-    thumbnails = np.array([io.load_raw_image_postprocessed(filename, half_size=True, user_flip=0, **kwargs) for filename in filenames])
-    return thumbnails
-
-
-def load_raw_images_as_jpeg(filenames, **kwargs):
+def load_raw_images_as_jpeg(filenames, user_flip=0, use_camera_wb=True, **kwargs):
     """
     Load RAW images located at `filenames` (iterable) and convert them to JPEG with standard settings.
     Additional **kwargs are passed to `load_raw_image_postprocessed`.
     The images are stacked into one array, with the colour (RGB) axis moved to the front, like load_raw_images.
     """
-    jpg_images = np.array([io.load_raw_image_postprocessed(filename, **kwargs) for filename in filenames])
+    jpg_images = np.array([io.load_raw_image_postprocessed(filename, user_flip=user_flip, use_camera_wb=use_camera_wb, **kwargs) for filename in filenames])
 
     # Move the colour axis forwards: (i, x, y, 3) -> (i, 3, x, y)
     jpg_images = np.moveaxis(jpg_images, -1, -3)
     return jpg_images
+
+
+# Function specifically for making thumbnails
+load_raw_thumbnails = partial(load_raw_images_as_jpeg, half_size=True, user_flip=0)
 
 
 def convert_RGBG2_to_RGB_without_average(*arrays):
