@@ -51,21 +51,24 @@ for data_path in hc.generate_folders(folders, pattern):
     print("\n  ", data_path)
 
     # Load data
-    image_paths = hc.generate_paths(data_path, ".JPG")
-    images_jpeg = hc.load_jpeg_images(image_paths)
-    print("Loaded JPEG data")
-
-    # Optional: Linearise JPEG data
-    if mode == "normal":
+    if mode in ("normal", "linear"):
         sub = ""
-        print("Processing JPEG data as they are")
-    elif mode == "linear":
-        images_jpeg = sRGB_inverse(images_jpeg, normalization=255)
-        sub = "_linear"
-        print("Linearised JPEG data")
+        image_paths = hc.generate_paths(data_path, ".JPG")
+        images_jpeg = hc.load_jpeg_images(image_paths)
+        print("Loaded JPEG data")
+
+        if mode == "linear":
+            images_jpeg = sRGB_inverse(images_jpeg, normalization=255)
+            sub = "_linear"
+            print("Linearised JPEG data")
+
     elif mode == "raw":
         sub = "_fromraw"
+        image_paths = hc.generate_paths(data_path, camera.raw_extension)
+        images_jpeg = hc.load_raw_images_as_jpeg(image_paths)
         print("Making JPEG data from RAW")
+
+    raise Exception
 
     # Filenames to save results to
     saveto_stats = data_path/f"statistics_jpeg{sub}.pdf"

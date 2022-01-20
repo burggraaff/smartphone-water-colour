@@ -175,7 +175,7 @@ def load_jpeg_images(filenames):
     """
     jpg_images = np.array([io.load_jpg_image(filename) for filename in filenames])
 
-    # Move the colour axis forwards: (x, y, 3) -> (3, x, y)
+    # Move the colour axis forwards: (i, x, y, 3) -> (i, 3, x, y)
     jpg_images = np.moveaxis(jpg_images, -1, -3)
     return jpg_images
 
@@ -189,6 +189,19 @@ def load_raw_thumbnails(filenames, **kwargs):
     """
     thumbnails = np.array([io.load_raw_image_postprocessed(filename, half_size=True, user_flip=0, **kwargs) for filename in filenames])
     return thumbnails
+
+
+def load_raw_images_as_jpeg(filenames, **kwargs):
+    """
+    Load RAW images located at `filenames` (iterable) and convert them to JPEG with standard settings.
+    Additional **kwargs are passed to `load_raw_image_postprocessed`.
+    The images are stacked into one array, with the colour (RGB) axis moved to the front, like load_raw_images.
+    """
+    jpg_images = np.array([io.load_raw_image_postprocessed(filename, **kwargs) for filename in filenames])
+
+    # Move the colour axis forwards: (i, x, y, 3) -> (i, 3, x, y)
+    jpg_images = np.moveaxis(jpg_images, -1, -3)
+    return jpg_images
 
 
 def convert_RGBG2_to_RGB_without_average(*arrays):
