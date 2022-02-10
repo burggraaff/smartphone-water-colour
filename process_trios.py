@@ -21,7 +21,7 @@ from wk import hydrocolor as hc, wacodi as wa
 # Get filenames
 filename = Path(argv[1])
 print("Input file:", filename.absolute())
-saveto = filename.parent / (filename.stem + "_TriOS_table.csv")
+filename_result = filename.parent / (filename.stem + "_TriOS_table.csv")
 
 
 # Label that matches column header
@@ -56,7 +56,8 @@ print("Added dummy radiance columns")
 data = wa.add_colour_data_to_table(data)
 
 # Write data to file
-data.write(saveto, format="ascii.fast_csv")
+data.write(filename_result, format="ascii.fast_csv")
+print("Output file:", filename_result.absolute())
 
 # Plot sample of data
 def plot_sample(data_plot, sample_quantity, ylabel="", saveto=None):

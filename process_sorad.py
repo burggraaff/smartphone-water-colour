@@ -97,6 +97,8 @@ data = wa.add_colour_data_to_table(data)
 # Write data to file
 filename_result = folder/"So-Rad_Balaton2019.csv"
 data.write(filename_result, format="ascii.fast_csv")
+print("Output file:", filename_result.absolute())
+
 
 # Plot histograms at multiple wavelengths
 def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702.8, 801.8, 900.8], bins=np.linspace(-0.01, 0.05, 15)):

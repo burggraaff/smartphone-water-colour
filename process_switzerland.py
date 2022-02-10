@@ -21,7 +21,7 @@ from wk import wacodi as wa, hydrocolor as hc
 # Get filenames
 folder = Path(argv[1])
 print("Input folder:", folder.absolute())
-saveto = Path("water-colour-data/TriOS_switzerland_table.csv")
+filename_result = Path("water-colour-data/TriOS_switzerland_table.csv")
 trios_filename = "Rrs_output_simis.csv"
 
 # Loop over the data folders for each lake
@@ -68,5 +68,5 @@ print("Added dummy radiance columns")
 data = wa.add_colour_data_to_table(data)
 
 # Write data to file
-data.write(saveto, format="ascii.fast_csv")
-print("Saved result to:", saveto.absolute())
+data.write(filename_result, format="ascii.fast_csv")
+print("Output file:", filename_result.absolute())

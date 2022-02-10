@@ -99,3 +99,4 @@ data = wa.add_colour_data_to_table(data)
 # Write to file
 filename_result = filename.with_name(filename.stem + "_table.csv")
 data.write(filename_result, format="ascii.fast_csv")
+print("Output file:", filename_result.absolute())
