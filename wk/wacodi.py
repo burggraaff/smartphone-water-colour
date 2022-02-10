@@ -1,9 +1,13 @@
 """
 Module with functions etc for WACODI
 """
-from spectacle.spectral import convolve_multi, cie_wavelengths, cie_xyz, convert_to_XYZ, array_slice
+from functools import partial
+
 import numpy as np
 from astropy import table
+
+from spectacle.spectral import convolve_multi, cie_wavelengths, cie_xyz, convert_to_XYZ, array_slice, convert_between_colourspaces
+
 from .statistics import MAD
 
 M_sRGB_to_XYZ = np.array([[0.4124564, 0.3575761, 0.1804375],
@@ -15,8 +19,12 @@ M_XYZ_D65_to_XYZ_E = np.array([[ 1.0502616,  0.0270757, -0.0232523],
                                [-0.0024047,  0.0026446,  0.9180873]])
 
 M_sRGB_to_XYZ_E = M_XYZ_D65_to_XYZ_E @ M_sRGB_to_XYZ
+M_XYZ_E_to_sRGB = np.linalg.inv(M_sRGB_to_XYZ_E)
 
 FU_hueangles = np.array([234.55, 227.168, 220.977, 209.994, 190.779, 163.084, 132.999, 109.054, 94.037, 83.346, 74.572, 67.957, 62.186, 56.435, 50.665, 45.129, 39.769, 34.906, 30.439, 26.337, 22.741])
+
+
+convert_XYZ_to_sRGB = partial(convert_between_colourspaces, conversion_matrix=M_XYZ_E_to_sRGB)
 
 
 def convert_XYZ_to_xy(XYZ_data, axis_XYZ=-1):
@@ -136,9 +144,12 @@ def add_colour_data_to_table(data, key="R_rs"):
     hue_angles = convert_xy_to_hue_angle(data_xy)
     FU_indices = convert_hue_angle_to_ForelUle(hue_angles)
 
+    # Convert to sRGB
+    data_sRGB = convert_XYZ_to_sRGB(data_XYZ, axis=-1)
+
     # Put WACODI data in a table
-    data_WACODI = [*data_XYZ.T, *data_xy.T, hue_angles, FU_indices]
-    header_WACODI = [f"{key} ({label})" for label in [*"XYZxy", "hue", "FU"]]
+    data_WACODI = [*data_XYZ.T, *data_xy.T, *data_sRGB.T, hue_angles, FU_indices]
+    header_WACODI = [f"{key} ({label})" for label in [*"XYZxy", "sR", "sG", "sB", "hue", "FU"]]
     table_WACODI = table.Table(data=data_WACODI, names=header_WACODI)
 
     # Merge convolved data table with original data table
