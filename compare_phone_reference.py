@@ -76,29 +76,29 @@ parameters = ["Ed", "Lsky", "Lu", "R_rs"]
 cols_example = get_keys_for_parameter(table_reference, parameters[0])
 wavelengths = get_wavelengths_from_keys(cols_example, key=parameters[0])
 
-# If we are using RAW data, convolve the hyperspectral data
-if data_type == "RAW":
-    # Convolve R_rs itself for now because of fingerprinting
-    for key in parameters:
-        cols = get_keys_for_parameter(table_reference, key)
-        data = np.array(table_reference[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
+# Convolve the hyperspectral data
+# Convolve R_rs itself for now because of fingerprinting
+for key in parameters:
+    cols = get_keys_for_parameter(table_reference, key)
+    data = np.array(table_reference[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
 
-        # Apply spectral convolution with the RGB (not G2) bands
-        data_convolved = camera.convolve_multi(wavelengths, data)[:3].T
+    # Apply spectral convolution with the RGB (not G2) bands
+    data_convolved = camera.convolve_multi(wavelengths, data)[:3].T
 
-        # Put convolved data in a table
-        keys_convolved = hc.extend_keys_to_RGB(key)
-        table_convolved = table.Table(data=data_convolved, names=keys_convolved)
+    # Put convolved data in a table
+    keys_convolved = hc.extend_keys_to_RGB(key)
+    table_convolved = table.Table(data=data_convolved, names=keys_convolved)
 
-        # Merge convolved data table with original data table
-        table_reference = table.hstack([table_reference, table_convolved])
+    # Merge convolved data table with original data table
+    table_reference = table.hstack([table_reference, table_convolved])
 
-# If we are using JPEG data, simply use the sRGB values already in the data files
-else:
-    for key in parameters:
-        bands_RGB = hc.extend_keys_to_RGB(key)
-        bands_sRGB = [f"{key} (s{band})" for band in hc.colours]
-        table_reference.rename_columns(bands_sRGB, bands_RGB)
+# Don't use for now -- doesn't seem to work very well
+# # If we are using JPEG data, simply use the sRGB values already in the data files
+# else:
+#     for key in parameters:
+#         bands_RGB = hc.extend_keys_to_RGB(key)
+#         bands_sRGB = [f"{key} (s{band})" for band in hc.colours]
+#         table_reference.rename_columns(bands_sRGB, bands_RGB)
 
 # For the WISP-3, where we have Lu, Lsky, and Ed, don't convolve R_rs directly
 if reference == "WISP-3":
