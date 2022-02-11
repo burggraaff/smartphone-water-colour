@@ -65,7 +65,7 @@ data = hc.add_dummy_columns(data)
 print("Added dummy radiance columns")
 
 # Add WACODI data - XYZ, xy, hue angle, Forel-Ule
-data = wa.add_colour_data_to_table(data)
+data = wa.add_colour_data_to_table_multiple_keys(data)
 
 # Write data to file
 data.write(filename_result, format="ascii.fast_csv")

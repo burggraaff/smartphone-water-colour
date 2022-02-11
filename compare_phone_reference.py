@@ -64,30 +64,47 @@ effective_bandwidths = camera.spectral_bands
 table_phone = hc.read_results(path_phone)
 table_reference = table.Table.read(path_reference)
 
+# Function to extract column names
+def get_keys_for_parameter(data, key_include, keys_exclude=[*"XYZxyRGB", "hue", "FU", "sR", "sG", "sB"]):
+    return [col for col in data.keys() if key_include in col and not any(f"({label})" in col for label in keys_exclude)]
+
+def get_wavelengths_from_keys(cols, key):
+    return np.array([float(col.split(key)[1][1:]) for col in cols])
+
 # Parameters of interest
 parameters = ["Ed", "Lsky", "Lu", "R_rs"]
+cols_example = get_keys_for_parameter(table_reference, parameters[0])
+wavelengths = get_wavelengths_from_keys(cols_example, key=parameters[0])
 
-# Spectral convolution
-# Convolve R_rs itself for now because of fingerprinting
-for key in parameters:
-    cols = [col for col in table_reference.keys() if key in col and not any(f"({label})" in col for label in [*"XYZxy", "hue", "FU", "sR", "sG", "sB"])]  # Find the relevant keys
-    wavelengths = np.array([float(col.split(key)[1][1:]) for col in cols])  # Data wavelengths
-    data = np.array(table_reference[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
+# If we are using RAW data, convolve the hyperspectral data
+if data_type == "RAW":
+    # Convolve R_rs itself for now because of fingerprinting
+    for key in parameters:
+        cols = get_keys_for_parameter(table_reference, key)
+        data = np.array(table_reference[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
 
-    # Apply spectral convolution with the RGB (not G2) bands
-    data_convolved = camera.convolve_multi(wavelengths, data)[:3].T
+        # Apply spectral convolution with the RGB (not G2) bands
+        data_convolved = camera.convolve_multi(wavelengths, data)[:3].T
 
-    # Put convolved data in a table
-    keys_convolved = hc.extend_keys_to_RGB(key)
-    table_convolved = table.Table(data=data_convolved, names=keys_convolved)
+        # Put convolved data in a table
+        keys_convolved = hc.extend_keys_to_RGB(key)
+        table_convolved = table.Table(data=data_convolved, names=keys_convolved)
 
-    # Merge convolved data table with original data table
-    table_reference = table.hstack([table_reference, table_convolved])
+        # Merge convolved data table with original data table
+        table_reference = table.hstack([table_reference, table_convolved])
+
+# If we are using JPEG data, simply use the sRGB values already in the data files
+else:
+    for key in parameters:
+        bands_RGB = hc.extend_keys_to_RGB(key)
+        bands_sRGB = [f"{key} (s{band})" for band in hc.colours]
+        table_reference.rename_columns(bands_sRGB, bands_RGB)
 
 # For the WISP-3, where we have Lu, Lsky, and Ed, don't convolve R_rs directly
 if reference == "WISP-3":
     for c in hc.colours:
         table_reference[f"R_rs ({c})"] = (table_reference[f"Lu ({c})"] - 0.028*table_reference[f"Lsky ({c})"])/table_reference[f"Ed ({c})"]
+
 
 # Find matches
 data_phone, data_reference = [], []  # Lists to contain matching table entries
@@ -115,6 +132,7 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
         row_reference = table.hstack([row_reference, row_uncertainties])
 
     # If the uncertainties on the reference data are above a threshold, disregard this match-up
+    # This may cause differences between RAW and JPEG matchup numbers for the same data set
     threshold = 0.1  # relative
     if any(row_reference[f"R_rs_err ({c})"]/row_reference[f"R_rs ({c})"] >= threshold for c in hc.colours):
         continue

@@ -127,10 +127,13 @@ def convert_hue_angle_to_ForelUle_uncertainty(hue_angle_uncertainty, hue_angle):
 
 def add_colour_data_to_table(data, key="R_rs"):
     """
-    Add colour data (XYZ, xy, hue angle, FU) to a data table.
+    Add colour data (XYZ, xy, hue angle, FU, sRGB) to a data table.
     """
     # Spectral convolution to XYZ
     cols = [col for col in data.keys() if key in col]  # Find the relevant keys
+
+    # Check that columns were actually found
+    assert len(cols) > 0, f"No columns were found for key '{key}'."
     wavelengths = np.array([float(col.split(key)[1][1:]) for col in cols])  # Data wavelengths
     data_array = np.array(data[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
 
@@ -154,6 +157,22 @@ def add_colour_data_to_table(data, key="R_rs"):
 
     # Merge convolved data table with original data table
     data = table.hstack([data, table_WACODI])
+
+    return data
+
+
+def add_colour_data_to_table_multiple_keys(data, keys=["R_rs", "Lu", "Lsky", "Ld", "Ed"]):
+    """
+    Add colour data (XYZ, xy, hue angle, FU, sRGB) to a data table.
+    Applies `add_colour_data_to_table` for each of the given keys.
+    Skips keys that were not found.
+    """
+    # Loop over keys
+    for key in keys:
+        try:
+            data = add_colour_data_to_table(data, key)
+        except AssertionError:
+            print(f"Key '{key}' was not found; continuing.")
 
     return data
 

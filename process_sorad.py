@@ -92,7 +92,7 @@ length_after_removal = len(data)
 print(f"Removed {length_original-length_after_removal} data points ({length_after_removal} remaining) taken after {switch_time}.")
 
 # Add WACODI data - XYZ, xy, hue angle, Forel-Ule
-data = wa.add_colour_data_to_table(data)
+data = wa.add_colour_data_to_table_multiple_keys(data)
 
 # Write data to file
 filename_result = folder/"So-Rad_Balaton2019.csv"

@@ -94,7 +94,7 @@ data.remove_row(bad_row)
 print(f"Removed row {bad_row}.")
 
 # Add WACODI data - XYZ, xy, hue angle, Forel-Ule
-data = wa.add_colour_data_to_table(data)
+data = wa.add_colour_data_to_table_multiple_keys(data)
 
 # Write to file
 filename_result = filename.with_name(filename.stem + "_table.csv")
