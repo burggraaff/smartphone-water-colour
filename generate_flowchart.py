@@ -14,7 +14,7 @@ Command-line inputs:
     * Folder containing data
 
 Example:
-    %run flowchart.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton_20190703/Ferry/utc07-45/
+    %run generate_flowchart.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton_20190703/Ferry/utc07-45/
 """
 
 import numpy as np
