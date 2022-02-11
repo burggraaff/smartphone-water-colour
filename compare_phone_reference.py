@@ -15,7 +15,7 @@ from sys import argv
 from matplotlib import pyplot as plt
 from spectacle import io, spectral, load_camera
 from astropy import table
-from wk import hydrocolor as hc, plot
+from wk import hydrocolor as hc, hyperspectral as hy, plot
 
 # Time limit for inclusion
 max_time_diff = 60*10  # 10 minutes for everything except NZ data
@@ -28,7 +28,7 @@ path_calibration, path_phone, path_reference = io.path_from_input(argv)
 data_type = hc.data_type_RGB(path_phone)
 
 # Find out what reference sensor we're using
-reference, ref_small = hc.get_reference_name(path_reference)
+reference, ref_small = hy.get_reference_name(path_reference)
 
 # Get Camera object
 camera = load_camera(path_calibration)
@@ -52,25 +52,18 @@ effective_bandwidths = camera.spectral_bands
 
 # Read the data
 table_phone = hc.read_results(path_phone)
-table_reference = table.Table.read(path_reference)
+table_reference = hy.read(path_reference)
 print("Finished reading data")
-
-# Function to extract column names
-def get_keys_for_parameter(data, key_include, keys_exclude=[*"XYZxyRGB", "hue", "FU", "sR", "sG", "sB"]):
-    return [col for col in data.keys() if key_include in col and not any(f"({label})" in col for label in keys_exclude)]
-
-def get_wavelengths_from_keys(cols, key):
-    return np.array([float(col.split(key)[1][1:]) for col in cols])
 
 # Parameters of interest
 parameters = ["Ed", "Lsky", "Lu", "R_rs"]
-cols_example = get_keys_for_parameter(table_reference, parameters[0])
-wavelengths = get_wavelengths_from_keys(cols_example, key=parameters[0])
+cols_example = hy.get_keys_for_parameter(table_reference, parameters[0])
+wavelengths = hy.get_wavelengths_from_keys(cols_example, key=parameters[0])
 
 # Convolve the hyperspectral data
 # Convolve R_rs itself for now because of fingerprinting
 for key in parameters:
-    cols = get_keys_for_parameter(table_reference, key)
+    cols = hy.get_keys_for_parameter(table_reference, key)
     data = np.array(table_reference[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
 
     # Apply spectral convolution with the RGB (not G2) bands
