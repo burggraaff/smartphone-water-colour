@@ -49,3 +49,11 @@ def get_wavelengths_from_keys(cols, key):
     For a given list of column names `cols`, get the corresponding wavelengths by removing a constant `key` from them.
     """
     return np.array([float(col.split(key)[1][1:]) for col in cols])
+
+
+def convert_columns_to_array(data, column_names, dtype=np.float64):
+    """
+    Extract data from a given list of column_names in a data table, and cast them to a pure numpy array.
+    """
+    data_as_array = np.array(data[column_names]).view(dtype).reshape((-1, len(column_names)))
+    return data_as_array

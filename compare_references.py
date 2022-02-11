@@ -38,16 +38,23 @@ print("Finished reading data")
 
 # Parameters of interest
 parameters = ["Ed", "Lsky", "Lu", "R_rs"]
+wavelengths = np.arange(390, 701, 1)
 
 # Interpolate both data sets to 390-700 nm in 1 nm steps.
 # Ignore covariance for now.
+for data in [table_data1, table_data2]:
+    # Get the number of spectra in each parameter (should be equal)
+    nr_spectra = len(data)
+
+    # Extract the data for each parameter
+    columns = [hy.get_keys_for_parameter(data, param) for param in parameters]
+    wavelengths_old = hy.get_wavelengths_from_keys(columns[0], key=parameters[0])
+    data_old = hy.convert_columns_to_array(data, columns[0])
+
 
 # Convolve to RGB for one phone, or just compare XYZ?
 
 raise Exception
-
-cols_example = hy.get_keys_for_parameter(table_reference, parameters[0])
-wavelengths = hy.get_wavelengths_from_keys(cols_example, key=parameters[0])
 
 # Find matches
 data1, data2 = [], []  # Lists to contain matching table entries

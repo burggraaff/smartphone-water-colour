@@ -64,7 +64,7 @@ wavelengths = hy.get_wavelengths_from_keys(cols_example, key=parameters[0])
 # Convolve R_rs itself for now because of fingerprinting
 for key in parameters:
     cols = hy.get_keys_for_parameter(table_reference, key)
-    data = np.array(table_reference[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
+    data = hy.convert_columns_to_array(table_reference, cols)
 
     # Apply spectral convolution with the RGB (not G2) bands
     data_convolved = camera.convolve_multi(wavelengths, data)[:3].T
