@@ -28,17 +28,7 @@ path_calibration, path_phone, path_reference = io.path_from_input(argv)
 data_type = hc.data_type_RGB(path_phone)
 
 # Find out what reference sensor we're using
-if "So-Rad" in path_reference.stem:
-    reference = "So-Rad"
-    ref_small = "sorad"
-elif "wisp" in path_reference.stem:
-    reference = "WISP-3"
-    ref_small = "wisp"
-elif "TriOS" in path_reference.stem:
-    reference = "TriOS"
-    ref_small = "trios"
-else:
-    raise ValueError(f"Unknown reference sensor for file {path_reference}")
+reference, ref_small = hc.get_reference_name(path_reference)
 
 # Get Camera object
 camera = load_camera(path_calibration)
@@ -63,6 +53,7 @@ effective_bandwidths = camera.spectral_bands
 # Read the data
 table_phone = hc.read_results(path_phone)
 table_reference = table.Table.read(path_reference)
+print("Finished reading data")
 
 # Function to extract column names
 def get_keys_for_parameter(data, key_include, keys_exclude=[*"XYZxyRGB", "hue", "FU", "sR", "sG", "sB"]):

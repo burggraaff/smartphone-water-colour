@@ -28,6 +28,25 @@ bandratio_labels_latex = [r"$\frac{" + bands[0] + r"}{" + bands[1] + r"}$" for b
 # R_ref, R_ref_uncertainty = 0.185, 0.01  # From comparing measurements with a cosine collector
 R_ref, R_ref_uncertainty = 0.18, 0.01
 
+
+def get_reference_name(path_reference):
+    """
+    From a given filename, extract the name of the sensor.
+    """
+    if "So-Rad" in path_reference.stem:
+        reference = "So-Rad"
+        ref_small = "sorad"
+    elif "wisp" in path_reference.stem:
+        reference = "WISP-3"
+        ref_small = "wisp"
+    elif "TriOS" in path_reference.stem:
+        reference = "TriOS"
+        ref_small = "trios"
+    else:
+        raise ValueError(f"Unknown reference sensor for file {path_reference}")
+
+    return reference, ref_small
+
 def add_Rref_to_covariance(covariance, R_ref_uncertainty=R_ref_uncertainty):
     """
     Add a column and row for R_ref to a covariance matrix.

@@ -24,6 +24,7 @@ print(f"Comparing data from {phone1_name} and {phone2_name}. Results will be sav
 # Read the data
 table_phone1 = hc.read_results(path_data1)
 table_phone2 = hc.read_results(path_data2)
+print("Finished reading data")
 
 # Find matches
 data1, data2 = [], []  # Lists to contain matching table entries
