@@ -38,7 +38,7 @@ print("Finished reading data")
 
 # Parameters of interest
 parameters = ["Ed", "Lsky", "Lu", "R_rs"]
-wavelengths = np.arange(390, 701, 1)
+wavelengths = np.arange(400, 701, 1)
 
 # Interpolate both data sets to 390-700 nm in 1 nm steps.
 # Ignore covariance for now.
