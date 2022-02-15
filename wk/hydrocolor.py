@@ -29,6 +29,14 @@ bandratio_labels_latex = [r"$\frac{" + bands[0] + r"}{" + bands[1] + r"}$" for b
 R_ref, R_ref_uncertainty = 0.18, 0.01
 
 
+def get_phone_name(path_phone):
+    """
+    From a given filename, extract the name of the smartphone.
+    """
+    phone_name = " ".join(path_phone.stem.split("_")[1:-2])
+    return phone_name
+
+
 def add_Rref_to_covariance(covariance, R_ref_uncertainty=R_ref_uncertainty):
     """
     Add a column and row for R_ref to a covariance matrix.

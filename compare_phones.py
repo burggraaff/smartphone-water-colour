@@ -16,8 +16,8 @@ from wk import hydrocolor as hc, plot
 path_data1, path_data2 = io.path_from_input(argv)
 
 # Names of the two phones being compared and some useful labels
-phone1_name = " ".join(path_data1.stem.split("_")[1:-2])
-phone2_name = " ".join(path_data2.stem.split("_")[1:-2])
+phone1_name = hc.get_phone_name(path_data1)
+phone2_name = hc.get_phone_name(path_data2)
 saveto_base = f"results/comparison_{phone1_name}_X_{phone2_name}"
 print(f"Comparing data from {phone1_name} and {phone2_name}. Results will be saved to '{saveto_base}_XXX.pdf'.")
 
@@ -28,19 +28,19 @@ print("Finished reading data")
 
 # Find matches
 data1, data2 = [], []  # Lists to contain matching table entries
-for row in table_phone1:  # Loop over the first table to look for matches
+for row_phone1 in table_phone1:  # Loop over the first table to look for matches
     # Find matches within a threshold
-    time_differences = np.abs(table_phone2["UTC"] - row["UTC"])
+    time_differences = np.abs(table_phone2["UTC"] - row_phone1["UTC"])
     closest = time_differences.argmin()
-    time_diff = time_differences[closest]
-    if time_diff > 100:  # Only consider it a match-up if it is within this many seconds
+    time_difference_closest = time_differences[closest]
+    if time_difference_closest > 100:  # Only consider it a match-up if it is within this many seconds
         continue
-    phone1_time = hc.iso_timestamp(row['UTC'])
+    phone1_time = hc.iso_timestamp(row_phone1["UTC"])
     phone2_time = hc.iso_timestamp(table_phone2[closest]["UTC"])
-    print(f"{phone1_name} time: {phone1_time} ; {phone2_name} time: {phone2_time} ; Difference: {time_diff:.1f} seconds")
+    print(f"{phone1_name} time: {phone1_time} ; {phone2_name} time: {phone2_time} ; Difference: {time_difference_closest:.0f} seconds")
 
     # Put the matching rows into the aforementioned lists
-    data1.append(row)
+    data1.append(row_phone1)
     data2.append(table_phone2[closest])
 
 # Make new tables from the match-up rows
