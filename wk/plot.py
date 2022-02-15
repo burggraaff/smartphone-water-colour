@@ -486,7 +486,7 @@ def force_equal_ticks(ax):
     ax.set_xticks(ax.get_yticks())
 
 
-def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False, regression="none", **kwargs):
+def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False, regression="none", marker="o", **kwargs):
     """
     Plot data into a correlation plot.
     Helper function.
@@ -517,7 +517,7 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
             yerr = y[yerrlabel.format(c=c)]
         except (KeyError, AttributeError):
             yerr = None
-        ax.errorbar(xdata, ydata, xerr=xerr, yerr=yerr, color=pc, fmt="o", **kwargs)
+        ax.errorbar(xdata, ydata, xerr=xerr, yerr=yerr, color=pc, marker=marker, linestyle="", **kwargs)
 
         # If wanted, perform a linear regression
         if regression == "rgb":
