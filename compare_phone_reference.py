@@ -56,13 +56,12 @@ table_reference = hy.read(path_reference)
 print("Finished reading data")
 
 # Parameters of interest
-parameters = ["Ed", "Lsky", "Lu", "R_rs"]
-cols_example = hy.get_keys_for_parameter(table_reference, parameters[0])
-wavelengths = hy.get_wavelengths_from_keys(cols_example, key=parameters[0])
+cols_example = hy.get_keys_for_parameter(table_reference, hy.parameters[0])
+wavelengths = hy.get_wavelengths_from_keys(cols_example, key=hy.parameters[0])
 
 # Convolve the hyperspectral data
 # Convolve R_rs itself for now because of fingerprinting
-for key in parameters:
+for key in hy.parameters:
     cols = hy.get_keys_for_parameter(table_reference, key)
     data = hy.convert_columns_to_array(table_reference, cols)
 
@@ -103,7 +102,7 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
 
     # Calculate the median Lu/Lsky/Ed/R_rs within the matching observations, and uncertainty on this spectrum
     row_reference = table.Table(table_reference[closest])
-    for key in parameters:
+    for key in hy.parameters:
         # Average over the "close enough" rows
         keys = [f"{key}_{wvl:.1f}" for wvl in wavelengths] + hc.extend_keys_to_RGB(key)
         keys_err = [f"{key}_err_{wvl:.1f}" for wvl in wavelengths] + hc.extend_keys_to_RGB(key+"_err")
@@ -148,7 +147,7 @@ data_reference = table.vstack(data_reference)
 
 # Add typical errors to R_rs (R, G, B) if only a single match was found
 indices_single_match, indices_multiple_matches = np.where(data_reference["nr_matches"] == 1), np.where(data_reference["nr_matches"] > 1)
-keys_uncertainties = hc.extend_keys_to_RGB([param+"_err" for param in parameters])
+keys_uncertainties = hc.extend_keys_to_RGB([param+"_err" for param in hy.parameters])
 for key in keys_uncertainties:
     data_reference[key][indices_single_match] = np.nanmedian(data_reference[key][indices_multiple_matches])
 
