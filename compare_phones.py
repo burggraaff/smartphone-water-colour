@@ -10,7 +10,7 @@ import numpy as np
 from sys import argv
 from spectacle import io
 from astropy import table
-from wk import hydrocolor as hc, plot
+from wk import hydrocolor as hc, hyperspectral as hy, plot
 
 # Get the data folder from the command line
 path_data1, path_data2 = io.path_from_input(argv)
@@ -30,14 +30,13 @@ print("Finished reading data")
 data1, data2 = [], []  # Lists to contain matching table entries
 for row_phone1 in table_phone1:  # Loop over the first table to look for matches
     # Find matches within a threshold
-    time_differences = np.abs(table_phone2["UTC"] - row_phone1["UTC"])
-    closest = time_differences.argmin()
-    time_difference_closest = time_differences[closest]
-    if time_difference_closest > 100:  # Only consider it a match-up if it is within this many seconds
+    nr_matches, close_enough, closest, min_time_diff = hy.find_elements_within_range(table_phone2, row_phone1["UTC"], maximum_difference=100)
+    if nr_matches < 1:  # If no close enough matches are found, skip this observation
         continue
+
     phone1_time = hc.iso_timestamp(row_phone1["UTC"])
     phone2_time = hc.iso_timestamp(table_phone2[closest]["UTC"])
-    print(f"{phone1_name} time: {phone1_time} ; {phone2_name} time: {phone2_time} ; Difference: {time_difference_closest:.0f} seconds")
+    print(f"{phone1_name} time: {phone1_time} ; {phone2_name} time: {phone2_time} ; Difference: {min_time_diff:.0f} seconds")
 
     # Put the matching rows into the aforementioned lists
     data1.append(row_phone1)
