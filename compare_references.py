@@ -36,33 +36,10 @@ table_data1 = hy.read(path_data1)
 table_data2 = hy.read(path_data2)
 print("Finished reading data")
 
-# Parameters of interest
-parameters = ["Ed", "Lsky", "Lu", "R_rs"]
-wavelengths = np.arange(400, 701, 1)
-
 # Interpolate both data sets to 400-700 nm in 1 nm steps.
 # Ignore covariance for now.
-for data in [table_data1, table_data2]:
-    # Get the number of spectra in each parameter (should be equal)
-    nr_spectra = len(data)
-
-    # Extract the data for each parameter
-    columns = [hy.get_keys_for_parameter(data, param) for param in parameters]
-    columns_flat = sum(columns, start=[])
-    wavelengths_old = hy.get_wavelengths_from_keys(columns[0], key=parameters[0])
-    data_old = hy.convert_columns_to_array(data, columns_flat)
-    data_old = data_old.reshape((-1, len(wavelengths_old)))
-
-    # Interpolate
-    data_new = spectral.interpolate_spectral_data(wavelengths_old, data_old, wavelengths)
-    data_new = data_new.reshape((len(data), -1))
-
-    # Put back into the data table
-    columns_new = [[f"{param}_{wvl:.1f}" for wvl in wavelengths] for param in parameters]
-    columns_new = sum(columns_new, start=[])
-    data.remove_columns(columns_flat)
-    table_data_new = table.Table(data=data_new, names=columns_new)
-    data.add_columns(table_data_new.columns)
+table_data1 = hy.interpolate_hyperspectral_table(table_data1)
+table_data2 = hy.interpolate_hyperspectral_table(table_data2)
 
 print("Interpolated data")
 

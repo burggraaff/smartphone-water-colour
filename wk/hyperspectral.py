@@ -14,7 +14,14 @@ from . import colours
 from . import statistics as stats
 
 
+# Function for reading astropy tables - short-hand
 read = table.Table.read
+
+# Parameters measured by our hyperspectral sensors
+parameters = ["Ed", "Lsky", "Lu", "R_rs"]
+
+# Standard wavelength range to interpolate to.
+wavelengths_interpolation = np.arange(400, 701, 1)
 
 
 def get_reference_name(path_reference):
@@ -57,3 +64,32 @@ def convert_columns_to_array(data, column_names, dtype=np.float64):
     """
     data_as_array = np.array(data[column_names]).view(dtype).reshape((-1, len(column_names)))
     return data_as_array
+
+
+def interpolate_hyperspectral_table(data, parameters=parameters, wavelengths=wavelengths_interpolation):
+    """
+    For a table containing hyperspectral data, extract the data corresponding to each `parameter` and interpolate these to a new wavelength range.
+    Then creates a new table that contains the interpolated hyperspectral data, but not the original hyperspectral data.
+    """
+    # Get the number of spectra in each parameter
+    nr_spectra = len(data)
+
+    # Extract the data for each parameter
+    columns = [get_keys_for_parameter(data, param) for param in parameters]
+    columns_flat = sum(columns, start=[])
+    wavelengths_old = get_wavelengths_from_keys(columns[0], key=parameters[0])
+    data_old = convert_columns_to_array(data, columns_flat)
+    data_old = data_old.reshape((-1, len(wavelengths_old)))
+
+    # Interpolate
+    data_new = spectral.interpolate_spectral_data(wavelengths_old, data_old, wavelengths)
+    data_new = data_new.reshape((len(data), -1))
+
+    # Put back into the data table
+    columns_new = [[f"{param}_{wvl:.1f}" for wvl in wavelengths] for param in parameters]
+    columns_new = sum(columns_new, start=[])
+    data.remove_columns(columns_flat)
+    table_data_new = table.Table(data=data_new, names=columns_new)
+    table_data_combined = table.hstack([data, table_data_new])
+
+    return table_data_combined
