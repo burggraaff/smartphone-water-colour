@@ -7,12 +7,11 @@ import numpy as np
 from datetime import datetime, timedelta
 from astropy import table
 from scipy.linalg import block_diag
-from os import walk
 from functools import partial
 
-from . import colours
 from . import statistics as stats
 
+# Add max_time_diff as a dictionary here, with keys corresponding to the different cases (ref-ref, ref-phone, NZ)
 
 # Function for reading astropy tables - short-hand
 read = table.Table.read
@@ -93,3 +92,21 @@ def interpolate_hyperspectral_table(data, parameters=parameters, wavelengths=wav
     table_data_combined = table.hstack([data, table_data_new])
 
     return table_data_combined
+
+
+def find_elements_within_range(data, reference_value, maximum_difference=60, key="UTC"):
+    """
+    Find elements in a table containing hyperspectral data that are within a certain margin from a reference value.
+    Typically used to find elements within a certain timespan from a reference time, for example when matching observations between data sets.
+    """
+    # Calculate the differences
+    differences_all = np.abs(data[key] - reference_value)
+
+    # Find elements that are within the given range, and the closest element
+    close_enough_indices = np.where(differences_all <= maximum_difference)[0]
+    closest_index = differences_all.argmin()
+    minimum_difference = differences_all[closest_index]
+    nr_matches = len(close_enough_indices)
+
+    # Return the results
+    return nr_matches, close_enough_indices, closest_index, minimum_difference

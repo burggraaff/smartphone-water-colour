@@ -94,13 +94,11 @@ if reference == "WISP-3":
 data_phone, data_reference = [], []  # Lists to contain matching table entries
 for row in table_phone:  # Loop over the smartphone table to look for matches
     # Find matches within a threshold
-    time_differences = np.abs(table_reference["UTC"] - row["UTC"])
-    close_enough = np.where(time_differences <= max_time_diff)[0]
-    closest = time_differences.argmin()
-    min_time_diff = time_differences[closest]
-    if min_time_diff > max_time_diff:  # If no close enough matches are found, skip this observation
+    nr_matches, close_enough, closest, min_time_diff = hy.find_elements_within_range(table_reference, row["UTC"], maximum_difference=max_time_diff)
+    if nr_matches < 1:  # If no close enough matches are found, skip this observation
         continue
-    phone_time = hc.iso_timestamp(row['UTC'])
+
+    phone_time = hc.iso_timestamp(row["UTC"])
     reference_time = hc.iso_timestamp(table_reference[closest]["UTC"])
 
     # Calculate the median Lu/Lsky/Ed/R_rs within the matching observations, and uncertainty on this spectrum
@@ -122,7 +120,7 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
         continue
 
     # Add some metadata that may be used to identify the quality of the match
-    metadata = table.Table(names=["nr_matches", "closest_match"], data=np.array([len(close_enough), time_differences[closest]]))
+    metadata = table.Table(names=["nr_matches", "closest_match"], data=np.array([nr_matches, min_time_diff]))
     row_reference = table.hstack([metadata, row_reference])
     print("----")
     print(f"Phone time: {phone_time} ; {reference} time: {reference_time}")

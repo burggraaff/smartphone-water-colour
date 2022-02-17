@@ -1,6 +1,12 @@
 """
 Compare two sets of hyperspectral data.
 
+This script loops over the first data set (in our case, WISP-3) and finds unique timestamps (e.g. 2019-07-03T07:29:00, then 2019-07-03T07:31:00, etc.).
+It then finds all data in both data sets taken within max_time_diff seconds of that time stamp.
+These spectra are averaged and compared.
+
+This script is somewhat hard-coded for our WISP-3 vs. SoRad comparison, and is probably not suitable for a general hyperspectral-hyperspectral data comparison.
+
 Command-line inputs:
     * Hyperspectral reference data file 1
     * Hyperspectral reference data file 2
@@ -17,8 +23,7 @@ from astropy import table
 from wk import hydrocolor as hc, hyperspectral as hy, plot
 
 # Time limit for inclusion
-max_time_diff = 60*10  # 10 minutes for everything except NZ data
-# max_time_diff = 60*60  # 60 minutes for NZ data
+max_time_diff = 60*3  # 3 minutes
 
 # Get the data folder from the command line
 path_data1, path_data2 = io.path_from_input(argv)
@@ -40,25 +45,29 @@ print("Finished reading data")
 # Ignore covariance for now.
 table_data1 = hy.interpolate_hyperspectral_table(table_data1)
 table_data2 = hy.interpolate_hyperspectral_table(table_data2)
-
 print("Interpolated data")
 
 # Convolve to RGB for one phone, or just compare XYZ?
 
-raise Exception
+# Find unique time stamps in table 1
+table_data1_timestamps, table_data1_timestamps_indices = np.unique(table_data1["timestamp"], return_index=True)
 
 # Find matches
 data1, data2 = [], []  # Lists to contain matching table entries
-for row in table_phone:  # Loop over the smartphone table to look for matches
-    # Find matches within a threshold
-    time_differences = np.abs(table_reference["UTC"] - row["UTC"])
-    close_enough = np.where(time_differences <= max_time_diff)[0]
-    closest = time_differences.argmin()
-    min_time_diff = time_differences[closest]
-    if min_time_diff > max_time_diff:  # If no close enough matches are found, skip this observation
+for timestamp, index_table1 in zip(table_data1_timestamps, table_data1_timestamps_indices):  # Loop over the unique time stamps
+    reference_time = table_data1[index_table1]["UTC"]
+
+    # Find matches in table 1
+    nr_matches1, close_enough1, closest1, min_time_diff1 = hy.find_elements_within_range(table_data1, reference_time, maximum_difference=max_time_diff)
+
+    # Find matches in table 2
+    nr_matches2, close_enough2, closest2, min_time_diff2 = hy.find_elements_within_range(table_data2, reference_time, maximum_difference=max_time_diff)
+
+    if nr_matches1 < 1 or nr_matches2 < 1:  # If no close enough matches are found, skip this observation
         continue
-    phone_time = hc.iso_timestamp(row['UTC'])
-    reference_time = hc.iso_timestamp(table_reference[closest]["UTC"])
+
+    print(timestamp, nr_matches1, nr_matches2, min_time_diff1, min_time_diff2)
+    continue
 
     # Calculate the median Lu/Lsky/Ed/R_rs within the matching observations, and uncertainty on this spectrum
     row_reference = table.Table(table_reference[closest])
@@ -100,6 +109,8 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
     R_rs_phone_err = list(row[hc.extend_keys_to_RGB("R_rs_err")])
 
     plot.plot_R_rs_RGB(RGB_wavelengths, R_rs_phone, effective_bandwidths, R_rs_phone_err, reference=[wavelengths, R_rs_reference, R_rs_reference_uncertainty], title=f"{cameralabel}\n{phone_time}", saveto=saveto)
+
+raise Exception
 
 # Make new tables from the match-up rows
 data2 = table.vstack(data2)
