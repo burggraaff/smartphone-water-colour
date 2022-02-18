@@ -189,8 +189,8 @@ def fill_in_median_uncertainties(data, parameters=parameters_uncertainty, keys_c
     """
     Find rows in `data` that only had a single match, and fill in the uncertainties in those rows with the median of that column.
     """
-    # Get the colour-specific keys for the uncertainties
-    keys_uncertainties = hc.extend_keys_to_RGB(parameters, keys_colour)
+    # Get the keys corresponding to uncertainties
+    keys_uncertainties = (key for key in data.keys() if "_err" in key)
 
     # Find the rows with 1 vs multiple matches
     indices_single_match, indices_multiple_matches = find_single_and_multiple_matchups(data)
