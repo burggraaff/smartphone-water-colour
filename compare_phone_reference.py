@@ -80,7 +80,7 @@ for key in hy.parameters:
 # else:
 #     for key in parameters:
 #         bands_RGB = hc.extend_keys_to_RGB(key)
-#         bands_sRGB = [f"{key} (s{band})" for band in hc.colours]
+#         bands_sRGB = hc.extend_keys_to_RGB(key, hc.bands_sRGB)
 #         table_reference.rename_columns(bands_sRGB, bands_RGB)
 
 # For the WISP-3, where we have Lu, Lsky, and Ed, don't convolve R_rs directly
@@ -138,10 +138,7 @@ data_phone = table.vstack(data_phone)
 data_reference = table.vstack(data_reference)
 
 # Add typical errors to R_rs (R, G, B) if only a single match was found
-indices_single_match, indices_multiple_matches = np.where(data_reference["nr_matches"] == 1), np.where(data_reference["nr_matches"] > 1)
-keys_uncertainties = hc.extend_keys_to_RGB([param+"_err" for param in hy.parameters])
-for key in keys_uncertainties:
-    data_reference[key][indices_single_match] = np.nanmedian(data_reference[key][indices_multiple_matches])
+data_reference = hy.fill_in_median_uncertainties(data_reference)
 
 # Add band ratios to reference data
 bandratios = table.Table(data=hc.calculate_bandratios(data_reference["R_rs (R)"], data_reference["R_rs (G)"], data_reference["R_rs (B)"]).T, names=[f"R_rs ({label})" for label in hc.bandratio_labels])

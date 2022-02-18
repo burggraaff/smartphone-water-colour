@@ -67,7 +67,7 @@ for timestamp, index_table1 in zip(table_data1_timestamps, table_data1_timestamp
         continue
 
     # Calculate the median Lu/Lsky/Ed/R_rs within the matching observations, and uncertainty on this spectrum
-    colour_keys = [*"XYZxy", "sR", "sG", "sB", "hue", "FU"]
+    colour_keys = [*"XYZxy", *hc.bands_sRGB, "hue", "FU"]
     default_index1 = np.where(close_enough1 == closest1)[0][0]
     default_index2 = np.where(close_enough2 == closest2)[0][0]
     data1_averaged = hy.average_hyperspectral_data(table_data1[close_enough1], default_row=default_index1, colour_keys=colour_keys)
@@ -103,11 +103,15 @@ for timestamp, index_table1 in zip(table_data1_timestamps, table_data1_timestamp
 data1 = table.vstack(data1)
 data2 = table.vstack(data2)
 
-# # Add typical errors to R_rs (R, G, B) if only a single match was found
-# indices_single_match, indices_multiple_matches = np.where(data1["nr_matches"] == 1), np.where(data1["nr_matches"] > 1)
-# keys_uncertainties = hc.extend_keys_to_RGB([param+"_err" for param in parameters])
-# for key in keys_uncertainties:
-#     data1[key][indices_single_match] = np.nanmedian(data1[key][indices_multiple_matches])
+# Rename sRGB to RGB
+parameters_RGB = hc.extend_keys_to_RGB(hy.parameters+hy.parameters_uncertainty)
+parameters_sRGB = hc.extend_keys_to_RGB(hy.parameters+hy.parameters_uncertainty, hc.bands_sRGB)
+data1.rename_columns(parameters_sRGB, parameters_RGB)
+data2.rename_columns(parameters_sRGB, parameters_RGB)
+
+# Add typical errors to R_rs (R, G, B) if only a single match was found
+data1 = hy.fill_in_median_uncertainties(data1)
+data2 = hy.fill_in_median_uncertainties(data2)
 
 # Save the comparison table to file
 saveto_data = f"{saveto_base}_data.csv"
@@ -116,19 +120,17 @@ table_combined.remove_columns([key for key in table_combined.keys() if "cov_" in
 table_combined.write(saveto_data, format="ascii.fast_csv", overwrite=True)
 print(f"Saved comparison table to `{saveto_data}`.")
 
-raise Exception
-
 # Correlation plot: Radiances and irradiance
-plot.correlation_plot_radiance(data1, data2, keys=["Lu", "Lsky"], xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_radiance.pdf")
-plot.correlation_plot_radiance_combined(data1, data2, keys=["Lu", "Lsky"], xlabel=f"{reference}\n$L$ {plot.Wnmsr}", ylabel=f"{cameralabel} $L$ [a.u.]", saveto=f"{saveto_base}_radiance_simple.pdf")
-plot.correlation_plot_RGB(data1, data2, "Ed ({c})", "Ed ({c})", xerrlabel="Ed_err ({c})", yerrlabel="Ed_err ({c})", xlabel=f"{reference} {plot.keys_latex['Ed']} {plot.Wnm}", ylabel=f"{cameralabel} {plot.keys_latex['Ed']} {plot.ADUnm}", regression="rgb", saveto=f"{saveto_base}_Ed.pdf")
+plot.correlation_plot_radiance(data1, data2, keys=["Lu", "Lsky"], xlabel=reference1, ylabel=reference2, saveto=f"{saveto_base}_radiance.pdf")
+plot.correlation_plot_radiance_combined(data1, data2, keys=["Lu", "Lsky"], xlabel=f"{reference1}\n$L$ {plot.Wnmsr}", ylabel=f"{reference2} $L$ {plot.Wnmsr}", saveto=f"{saveto_base}_radiance_simple.pdf")
+plot.correlation_plot_RGB(data1, data2, "Ed ({c})", "Ed ({c})", xerrlabel="Ed_err ({c})", yerrlabel="Ed_err ({c})", xlabel=f"{reference1} {plot.keys_latex['Ed']} {plot.Wnm}", ylabel=f"{reference2} {plot.keys_latex['Ed']} {plot.Wnm}", regression="rgb", saveto=f"{saveto_base}_Ed.pdf")
 
 # Correlation plot: Remote sensing reflectance
 label_R_rs = plot.keys_latex["R_rs"]
-plot.correlation_plot_RGB_equal(data1, data2, "R_rs", errlabel="R_rs_err", xlabel=f"{reference} {label_R_rs} {plot.persr}", ylabel=f"{cameralabel}\n{label_R_rs} {plot.persr}", regression="all", difference_unit=plot.persr, saveto=f"{saveto_base}_R_rs.pdf")
+plot.correlation_plot_RGB_equal(data1, data2, "R_rs", errlabel="R_rs_err", xlabel=f"{reference1} {label_R_rs} {plot.persr}", ylabel=f"{reference2} {label_R_rs} {plot.persr}", regression="all", difference_unit=plot.persr, saveto=f"{saveto_base}_R_rs.pdf")
 
 # Correlation plot: Band ratios
-plot.correlation_plot_bands(data1, data2, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_band_ratio.pdf")
+# plot.correlation_plot_bands(data1, data2, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_band_ratio.pdf")
 
 # Correlation plot: hue angle and Forel-Ule index
-plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_hueangle_ForelUle.pdf")
+plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=reference1, ylabel=reference2, saveto=f"{saveto_base}_hueangle_ForelUle.pdf")

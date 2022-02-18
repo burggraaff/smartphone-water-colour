@@ -9,7 +9,7 @@ from astropy import table
 from scipy.linalg import block_diag
 from functools import partial
 
-from . import statistics as stats, hydrocolor as hc
+from . import statistics as stats, hydrocolor as hc, colours
 
 # Add max_time_diff as a dictionary here, with keys corresponding to the different cases (ref-ref, ref-phone, NZ)
 
@@ -43,7 +43,7 @@ def get_reference_name(path_reference):
     return reference, ref_small
 
 
-def get_keys_for_parameter(data, parameter, keys_exclude=[*"XYZxyRGB", "hue", "FU", "sR", "sG", "sB"]):
+def get_keys_for_parameter(data, parameter, keys_exclude=[*"XYZxyRGB", *hc.bands_sRGB, "hue", "FU"]):
     """
     For a given parameter `parameter`, e.g. 'R_rs', get all keys in a table `data` that include that parameter, but exclude all of the `keys_exclude`.
     This is used for example to get hyperspectral R_rs from a reference data table without also getting convolved data.
@@ -129,7 +129,7 @@ def extend_keys_to_wavelengths(keys, wavelengths=wavelengths_interpolation):
     return list_wavelengths_flat
 
 
-def average_hyperspectral_data(data, *, parameters=parameters, wavelengths=wavelengths_interpolation, colour_keys=[*"RGBXYZxy", "sR", "sG", "sB", "hue", "FU"], default_row=0, func_average=np.nanmedian, func_uncertainty=np.nanstd):
+def average_hyperspectral_data(data, *, parameters=parameters, wavelengths=wavelengths_interpolation, colour_keys=[*"RGBXYZxy", *hc.bands_sRGB, "hue", "FU"], default_row=0, func_average=np.nanmedian, func_uncertainty=np.nanstd):
     """
     Calculate the average (default: median) across multiple rows of a given data table.
     The uncertainties are also estimated using np.nanstd by default.
@@ -174,3 +174,33 @@ def print_matchup_metadata(instrument_name, nr_matches, min_time_diff):
     Simply print the number of match-ups and the closest match-up for a given sensor.
     """
     print(f"{instrument_name}: Number of matches: {nr_matches:>3.0f}; Closest match: {min_time_diff:>4.0f} s")
+
+
+def find_single_and_multiple_matchups(data):
+    """
+    Find the indices of the rows in `data` where nr_matches == 1 and > 1.
+    """
+    indices_single_match = np.where(data["nr_matches"] == 1)[0]
+    indices_multiple_matches = np.where(data["nr_matches"] > 1)[0]
+    return indices_single_match, indices_multiple_matches
+
+
+def fill_in_median_uncertainties(data, parameters=parameters_uncertainty, keys_colour=colours):
+    """
+    Find rows in `data` that only had a single match, and fill in the uncertainties in those rows with the median of that column.
+    """
+    # Get the colour-specific keys for the uncertainties
+    keys_uncertainties = hc.extend_keys_to_RGB(parameters, keys_colour)
+
+    # Find the rows with 1 vs multiple matches
+    indices_single_match, indices_multiple_matches = find_single_and_multiple_matchups(data)
+
+    # If no rows with only a single match were found, do nothing
+    if len(indices_single_match) < 1:
+        return data
+
+    # Else, go ahead and calculate the medians
+    for key in keys_uncertainties:
+        data[key][indices_single_match] = np.nanmedian(data[key][indices_multiple_matches])
+
+    return data

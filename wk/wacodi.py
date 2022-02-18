@@ -9,6 +9,7 @@ from astropy import table
 from spectacle.spectral import convolve_multi, cie_wavelengths, cie_xyz, convert_to_XYZ, array_slice, convert_between_colourspaces
 
 from .statistics import MAD
+from . import hydrocolor as hc
 
 M_sRGB_to_XYZ = np.array([[0.4124564, 0.3575761, 0.1804375],
                           [0.2126729, 0.7151522, 0.0721750],
@@ -152,7 +153,7 @@ def add_colour_data_to_table(data, key="R_rs"):
 
     # Put WACODI data in a table
     data_WACODI = [*data_XYZ.T, *data_xy.T, *data_sRGB.T, hue_angles, FU_indices]
-    header_WACODI = [f"{key} ({label})" for label in [*"XYZxy", "sR", "sG", "sB", "hue", "FU"]]
+    header_WACODI = [f"{key} ({label})" for label in [*"XYZxy", *hc.bands_sRGB, "hue", "FU"]]
     table_WACODI = table.Table(data=data_WACODI, names=header_WACODI)
 
     # Merge convolved data table with original data table

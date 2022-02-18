@@ -13,6 +13,9 @@ from functools import partial
 from . import colours
 from . import statistics as stats
 
+# sRGB band names
+bands_sRGB = [f"s{band}" for band in colours]
+
 # Matrix for converting RGBG2 to RGB data
 M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
                            [0, 0.5, 0, 0.5],
