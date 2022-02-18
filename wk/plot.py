@@ -295,6 +295,73 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto=None, normalisation=2
         print(f"Saved statistics plot to `{saveto}`")
 
 
+def plot_reference_spectrum(wavelengths, spectrum, uncertainty=None, *, ax=None, title=None, saveto=None, facecolor="k", **kwargs):
+    """
+    Plot a hyperspectral reference spectrum, with uncertainties if available.
+    """
+    # If no Axes object was given, make a new one
+    if ax is None:
+        newaxes = True
+        plt.figure(figsize=smallpanel)
+        ax = plt.gca()
+    else:
+        newaxes = False
+
+    # Plot the spectrum
+    ax.plot(wavelengths, spectrum, c=facecolor, **kwargs)
+
+    # If uncertainties were given, plot these too
+    if uncertainty is not None:
+        ax.fill_between(wavelengths, spectrum-uncertainty, spectrum+uncertainty, facecolor=facecolor, alpha=0.5)
+
+    # If this is a new plot, add a title and save/show the result
+    if newaxes:
+        ax.set_title(title)
+        _saveshow(saveto)
+
+
+def _plot_settings_R_rs(ax, title=None):
+    """
+    Apply some default settings to an R_rs plot.
+    """
+    # Labels
+    ax.set_xlabel("Wavelength [nm]")
+    ax.set_ylabel(f"{keys_latex['R_rs']} {persr}")
+    ax.set_title(title)
+
+    # Axis limits and ticks
+    ax.set_yticks(np.arange(0, 0.1, 0.01))
+    ax.set_ylim(0, 0.07)
+    ax.set_xticks(np.arange(300, 1000, 100))
+    ax.set_xlim(350, 850)
+    ax.grid(ls="--")
+
+
+def plot_R_rs_multi(spectrums, labels=None, title=None, saveto=None, **kwargs):
+    """
+    Plot multiple hyperspectral reference spectra in one panel.
+    """
+    # If no labels were given, make a decoy list
+    if labels is None:
+        labels = [None]*len(spectrums)
+
+    # Create a new figure
+    plt.figure(figsize=smallpanel)
+    ax = plt.gca()
+
+    # Plot the spectra
+    colours = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    for spectrum, label, colour in zip(spectrums, labels, colours):
+        plot_reference_spectrum(*spectrum, ax=ax, label=label, facecolor=colour, **kwargs)
+
+    # Panel properties
+    _plot_settings_R_rs(ax, title=title)
+    ax.legend(loc="best")
+
+    # Save/show the result
+    _saveshow(saveto)
+
+
 def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err=None, reference=None, ax=None, title=None, saveto=None):
     """
     Plot RGB R_rs data, with an optional hyperspectral reference.
@@ -324,26 +391,10 @@ def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err=Non
 
     # Plot the reference line if one was given
     if reference:
-        wavelengths_reference, R_rs_reference = reference[:2]
-        ax.plot(wavelengths_reference, R_rs_reference, c='k')
-        try:
-            R_rs_reference_uncertainty = reference[2]
-        except IndexError:
-            pass
-        else:
-            ax.fill_between(wavelengths_reference, R_rs_reference-R_rs_reference_uncertainty, R_rs_reference+R_rs_reference_uncertainty, facecolor="0.5")
+        plot_reference_spectrum(*reference, ax=ax)
 
     # Plot settings
-    ax.set_xlabel("Wavelength [nm]")
-    ax.set_xticks(np.arange(300, 1000, 100))
-    ax.set_xlim(350, 850)
-
-    ax.set_ylabel("R$_{rs}$ [sr$^{-1}$]")
-    ax.set_yticks(np.arange(0, 0.1, 0.01))
-    ax.set_ylim(0, 0.07)
-
-    ax.grid(ls="--")
-    ax.set_title(title)
+    _plot_settings_R_rs(ax, title=title)
 
     # Save the result
     if newaxes:

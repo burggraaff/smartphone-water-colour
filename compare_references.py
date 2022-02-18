@@ -86,18 +86,18 @@ for timestamp, index_table1 in zip(table_data1_timestamps, table_data1_timestamp
     data1.append(data1_averaged)
     data2.append(data2_averaged)
 
-    # Convert ":" to - in the filename when saving
-    saveto = f"results/{ref_small1}_{ref_small2}_comparison/{reference1}_X_{reference2}_{timestamp}.pdf".replace(":", "-")
-
     # Plot the spectra for comparison
     R_rs1 = hy.convert_columns_to_array(data1_averaged, hy.extend_keys_to_wavelengths("R_rs"))[0]
     R_rs1_uncertainty = hy.convert_columns_to_array(data1_averaged, hy.extend_keys_to_wavelengths("R_rs_err"))[0]
+    spectrum1 = [hy.wavelengths_interpolation, R_rs1, R_rs1_uncertainty]
 
     R_rs2 = hy.convert_columns_to_array(data2_averaged, hy.extend_keys_to_wavelengths("R_rs"))[0]
     R_rs2_uncertainty = hy.convert_columns_to_array(data2_averaged, hy.extend_keys_to_wavelengths("R_rs_err"))[0]
-    continue
+    spectrum2 = [hy.wavelengths_interpolation, R_rs2, R_rs2_uncertainty]
 
-    plot.plot_R_rs_RGB(RGB_wavelengths, R_rs_phone, effective_bandwidths, R_rs_phone_err, reference=[wavelengths, R_rs_reference, R_rs_reference_uncertainty], title=f"{cameralabel}\n{phone_time}", saveto=saveto)
+    # Convert ":" to - in the filename when saving
+    saveto = f"results/{ref_small1}_{ref_small2}_comparison/{reference1}_X_{reference2}_{timestamp}.pdf".replace(":", "-")
+    plot.plot_R_rs_multi([spectrum1, spectrum2], labels=[reference1, reference2], title=timestamp, saveto=saveto)
 
 # Make new tables from the match-up rows
 data1 = table.vstack(data1)
