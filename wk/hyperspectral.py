@@ -185,7 +185,7 @@ def find_single_and_multiple_matchups(data):
     return indices_single_match, indices_multiple_matches
 
 
-def fill_in_median_uncertainties(data, parameters=parameters_uncertainty, keys_colour=colours):
+def fill_in_median_uncertainties(data):
     """
     Find rows in `data` that only had a single match, and fill in the uncertainties in those rows with the median of that column.
     """
