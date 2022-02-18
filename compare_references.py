@@ -103,27 +103,20 @@ for timestamp, index_table1 in zip(table_data1_timestamps, table_data1_timestamp
 data1 = table.vstack(data1)
 data2 = table.vstack(data2)
 
-raise Exception
-
-# Add typical errors to R_rs (R, G, B) if only a single match was found
-indices_single_match, indices_multiple_matches = np.where(data1["nr_matches"] == 1), np.where(data1["nr_matches"] > 1)
-keys_uncertainties = hc.extend_keys_to_RGB([param+"_err" for param in parameters])
-for key in keys_uncertainties:
-    data1[key][indices_single_match] = np.nanmedian(data1[key][indices_multiple_matches])
-
-# Add band ratios to reference data
-bandratios = table.Table(data=hc.calculate_bandratios(data1["R_rs (R)"], data1["R_rs (G)"], data1["R_rs (B)"]).T, names=[f"R_rs ({label})" for label in hc.bandratio_labels])
-
-bandratio_uncertainties = table.Table(data=[bandratios[col] * np.sqrt(data1[f"R_rs_err ({bands[0]})"]**2/data1[f"R_rs ({bands[0]})"]**2 + data1[f"R_rs_err ({bands[1]})"]**2/data1[f"R_rs ({bands[1]})"]**2) for col, bands in zip(bandratios.colnames, hc.bandratio_pairs)], names=[f"R_rs_err ({label})" for label in hc.bandratio_labels])
-
-data1 = table.hstack([data1, bandratios, bandratio_uncertainties])
+# # Add typical errors to R_rs (R, G, B) if only a single match was found
+# indices_single_match, indices_multiple_matches = np.where(data1["nr_matches"] == 1), np.where(data1["nr_matches"] > 1)
+# keys_uncertainties = hc.extend_keys_to_RGB([param+"_err" for param in parameters])
+# for key in keys_uncertainties:
+#     data1[key][indices_single_match] = np.nanmedian(data1[key][indices_multiple_matches])
 
 # Save the comparison table to file
 saveto_data = f"{saveto_base}_data.csv"
-table_combined = table.hstack([data1, data2], table_names=["reference", "phone"])
+table_combined = table.hstack([data1, data2], table_names=[ref_small1, ref_small2])
 table_combined.remove_columns([key for key in table_combined.keys() if "cov_" in key])
 table_combined.write(saveto_data, format="ascii.fast_csv", overwrite=True)
 print(f"Saved comparison table to `{saveto_data}`.")
+
+raise Exception
 
 # Correlation plot: Radiances and irradiance
 plot.correlation_plot_radiance(data1, data2, keys=["Lu", "Lsky"], xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_radiance.pdf")
