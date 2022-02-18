@@ -85,25 +85,25 @@ for timestamp, index_table1 in zip(table_data1_timestamps, table_data1_timestamp
     # Store matched rows in lists
     data1.append(data1_averaged)
     data2.append(data2_averaged)
-    continue
 
     # Convert ":" to - in the filename when saving
-    saveto = f"results/{ref_small}_comparison/{camera.name}_{data_type}_{phone_time}.pdf".replace(":", "-")
+    saveto = f"results/{ref_small1}_{ref_small2}_comparison/{reference1}_X_{reference2}_{timestamp}.pdf".replace(":", "-")
 
-    # Plot the spectrum for comparison
-    R_rs_reference = np.array([row_reference[f"R_rs_{wvl:.1f}"][0] for wvl in wavelengths])
-    R_rs_reference_uncertainty = np.array([row_reference[f"R_rs_err_{wvl:.1f}"][0] for wvl in wavelengths])
+    # Plot the spectra for comparison
+    R_rs1 = hy.convert_columns_to_array(data1_averaged, hy.extend_keys_to_wavelengths("R_rs"))[0]
+    R_rs1_uncertainty = hy.convert_columns_to_array(data1_averaged, hy.extend_keys_to_wavelengths("R_rs_err"))[0]
 
-    R_rs_phone = list(row[hc.extend_keys_to_RGB("R_rs")])
-    R_rs_phone_err = list(row[hc.extend_keys_to_RGB("R_rs_err")])
+    R_rs2 = hy.convert_columns_to_array(data2_averaged, hy.extend_keys_to_wavelengths("R_rs"))[0]
+    R_rs2_uncertainty = hy.convert_columns_to_array(data2_averaged, hy.extend_keys_to_wavelengths("R_rs_err"))[0]
+    continue
 
     plot.plot_R_rs_RGB(RGB_wavelengths, R_rs_phone, effective_bandwidths, R_rs_phone_err, reference=[wavelengths, R_rs_reference, R_rs_reference_uncertainty], title=f"{cameralabel}\n{phone_time}", saveto=saveto)
 
-raise Exception
-
 # Make new tables from the match-up rows
-data2 = table.vstack(data2)
 data1 = table.vstack(data1)
+data2 = table.vstack(data2)
+
+raise Exception
 
 # Add typical errors to R_rs (R, G, B) if only a single match was found
 indices_single_match, indices_multiple_matches = np.where(data1["nr_matches"] == 1), np.where(data1["nr_matches"] > 1)
