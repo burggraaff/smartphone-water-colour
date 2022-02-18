@@ -604,10 +604,9 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
 
 def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, ax=None, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None, **kwargs):
     """
-    Make a correlation plot between two tables `x` and `y`. Use the labels
-    `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
-    For example, if `xlabel` == `f"R_rs ({c})"` then the columns "R_rs (R)",
-    "R_rs (G)", and "R_rs (B)" will be used.
+    Make a correlation plot between two tables `x` and `y`.
+    Use the labels `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
+    For example, if `xlabel` == `f"R_rs ({c})"` then the columns "R_rs (R)", "R_rs (G)", and "R_rs (B)" will be used.
     """
     # Create figure if none was given
     if ax is None:
@@ -643,10 +642,9 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, ax=None, xerrlabel=None, 
 
 def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", regression="none", difference_unit="", saveto=None):
     """
-    Make a correlation plot between two tables `x` and `y`. Use the labels
-    `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
-    For example, if `xlabel` == `f"R_rs ({c})"` then the columns "R_rs (R)",
-    "R_rs (G)", and "R_rs (B)" will be used.
+    Make a correlation plot between two tables `x` and `y`.
+    Use the labels `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
+    For example, if `xlabel` == `f"R_rs ({c})"` then the columns "R_rs (R)", "R_rs (G)", and "R_rs (B)" will be used.
     """
     # Convert the data and error labels to RGB-aware ones
     datalabel, errlabel = [label + " ({c})" for label in (datalabel, errlabel)]
