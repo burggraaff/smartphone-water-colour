@@ -67,24 +67,25 @@ for timestamp, index_table1 in zip(table_data1_timestamps, table_data1_timestamp
         continue
 
     # Calculate the median Lu/Lsky/Ed/R_rs within the matching observations, and uncertainty on this spectrum
+    colour_keys = [*"XYZxy", "sR", "sG", "sB", "hue", "FU"]
     default_index1 = np.where(close_enough1 == closest1)[0][0]
     default_index2 = np.where(close_enough2 == closest2)[0][0]
-    data1_averaged = hy.average_hyperspectral_data(table_data1[close_enough1], default_row=default_index1, colour_keys=[*"XYZxy", "sR", "sG", "sB", "hue", "FU"])
-    data2_averaged = hy.average_hyperspectral_data(table_data2[close_enough2], default_row=default_index2, colour_keys=[*"XYZxy", "sR", "sG", "sB", "hue", "FU"])
-
-    print(data1_averaged, "\n", data2_averaged)
-    continue
+    data1_averaged = hy.average_hyperspectral_data(table_data1[close_enough1], default_row=default_index1, colour_keys=colour_keys)
+    data2_averaged = hy.average_hyperspectral_data(table_data2[close_enough2], default_row=default_index2, colour_keys=colour_keys)
 
     # Add some metadata that may be used to identify the quality of the match
-    metadata = table.Table(names=["nr_matches", "closest_match"], data=np.array([len(close_enough), time_differences[closest]]))
-    row_reference = table.hstack([metadata, row_reference])
+    data1_averaged = hy.add_hyperspectral_matchup_metadata(data1_averaged, nr_matches1, min_time_diff1)
+    data2_averaged = hy.add_hyperspectral_matchup_metadata(data2_averaged, nr_matches2, min_time_diff2)
+
     print("----")
-    print(f"Phone time: {phone_time} ; {reference} time: {reference_time}")
-    print(f"Number of matches: {row_reference['nr_matches'][0]:.0f}; Closest match: {row_reference['closest_match'][0]:.0f} s difference")
+    print(f"Time: {timestamp}")
+    hy.print_matchup_metadata(reference1, nr_matches1, min_time_diff1)
+    hy.print_matchup_metadata(reference2, nr_matches2, min_time_diff2)
 
     # Store matched rows in lists
-    data2.append(row)
-    data1.append(row_reference)
+    data1.append(data1_averaged)
+    data2.append(data2_averaged)
+    continue
 
     # Convert ":" to - in the filename when saving
     saveto = f"results/{ref_small}_comparison/{camera.name}_{data_type}_{phone_time}.pdf".replace(":", "-")

@@ -155,3 +155,22 @@ def average_hyperspectral_data(data, *, parameters=parameters, wavelengths=wavel
     # Combine the averages and uncertainties and return the result
     data_averaged = table.hstack([data_averaged, table_uncertainties])
     return data_averaged
+
+
+def add_hyperspectral_matchup_metadata(data, nr_matches, min_time_diff):
+    """
+    Add columns relating to the number of successful match-ups and the minimum time difference to a data table.
+    """
+    # Generate a new table containing these metadata
+    metadata = table.Table(names=["nr_matches", "closest_match"], data=np.array([nr_matches, min_time_diff]), dtype=[int, np.float64])
+
+    # Create and return a new table that contains the original data and the new metadata
+    data_with_metadata = table.hstack([metadata, data])
+    return data_with_metadata
+
+
+def print_matchup_metadata(instrument_name, nr_matches, min_time_diff):
+    """
+    Simply print the number of match-ups and the closest match-up for a given sensor.
+    """
+    print(f"{instrument_name}: Number of matches: {nr_matches:>3.0f}; Closest match: {min_time_diff:>4.0f} s")

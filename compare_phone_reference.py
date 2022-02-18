@@ -111,11 +111,11 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
         continue
 
     # Add some metadata that may be used to identify the quality of the match
-    metadata = table.Table(names=["nr_matches", "closest_match"], data=np.array([nr_matches, min_time_diff]))
-    row_reference = table.hstack([metadata, row_reference])
+    row_reference = hy.add_hyperspectral_matchup_metadata(row_reference, nr_matches, min_time_diff)
+
     print("----")
     print(f"Phone time: {phone_time} ; {reference} time: {reference_time}")
-    print(f"Number of matches: {row_reference['nr_matches'][0]:.0f}; Closest match: {row_reference['closest_match'][0]:.0f} s difference")
+    hy.print_matchup_metadata(reference, nr_matches, min_time_diff)
 
     # Store matched rows in lists
     data_phone.append(row)
