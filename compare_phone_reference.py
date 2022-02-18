@@ -101,16 +101,8 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
     reference_time = hc.iso_timestamp(table_reference[closest]["UTC"])
 
     # Calculate the median Lu/Lsky/Ed/R_rs within the matching observations, and uncertainty on this spectrum
-    row_reference = table.Table(table_reference[closest])
-    for key in hy.parameters:
-        # Average over the "close enough" rows
-        keys = [f"{key}_{wvl:.1f}" for wvl in wavelengths] + hc.extend_keys_to_RGB(key)
-        keys_err = [f"{key}_err_{wvl:.1f}" for wvl in wavelengths] + hc.extend_keys_to_RGB(key+"_err")
-
-        row_reference[keys][0] = [np.nanmedian(table_reference[k][close_enough]) for k in keys]
-        uncertainties = np.array([np.nanstd(table_reference[k][close_enough]) for k in keys])
-        row_uncertainties = table.Table(data=uncertainties, names=keys_err)
-        row_reference = table.hstack([row_reference, row_uncertainties])
+    default_index = np.where(close_enough == closest)[0][0]
+    row_reference = hy.average_hyperspectral_data(table_reference[close_enough], default_row=default_index, wavelengths=wavelengths)
 
     # If the uncertainties on the reference data are above a threshold, disregard this match-up
     # This may cause differences between RAW and JPEG matchup numbers for the same data set
@@ -133,8 +125,8 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
     saveto = f"results/{ref_small}_comparison/{camera.name}_{data_type}_{phone_time}.pdf".replace(":", "-")
 
     # Plot the spectrum for comparison
-    R_rs_reference = np.array([row_reference[f"R_rs_{wvl:.1f}"][0] for wvl in wavelengths])
-    R_rs_reference_uncertainty = np.array([row_reference[f"R_rs_err_{wvl:.1f}"][0] for wvl in wavelengths])
+    R_rs_reference = hy.convert_columns_to_array(row_reference, hy.extend_keys_to_wavelengths("R_rs", wavelengths))[0]
+    R_rs_reference_uncertainty = hy.convert_columns_to_array(row_reference, hy.extend_keys_to_wavelengths("R_rs_err", wavelengths))[0]
 
     R_rs_phone = list(row[hc.extend_keys_to_RGB("R_rs")])
     R_rs_phone_err = list(row[hc.extend_keys_to_RGB("R_rs_err")])

@@ -9,7 +9,7 @@ from astropy import table
 from scipy.linalg import block_diag
 from functools import partial
 
-from . import statistics as stats
+from . import statistics as stats, hydrocolor as hc
 
 # Add max_time_diff as a dictionary here, with keys corresponding to the different cases (ref-ref, ref-phone, NZ)
 
@@ -18,6 +18,7 @@ read = table.Table.read
 
 # Parameters measured by our hyperspectral sensors
 parameters = ["Ed", "Lsky", "Lu", "R_rs"]
+parameters_uncertainty = [param+"_err" for param in parameters]
 
 # Standard wavelength range to interpolate to.
 wavelengths_interpolation = np.arange(400, 701, 1)
@@ -110,3 +111,47 @@ def find_elements_within_range(data, reference_value, maximum_difference=60, key
 
     # Return the results
     return nr_matches, close_enough_indices, closest_index, minimum_difference
+
+
+def extend_keys_to_wavelengths(keys, wavelengths=wavelengths_interpolation):
+    """
+    For a given set of keys, e.g. ["Lu", "Lsky"], generate variants for each given wavelengths.
+    """
+    # If only one key was given, put it into a list
+    if isinstance(keys, str):
+        keys = [keys]
+
+    # Add suffixes
+    list_wvl = [key + "_{wvl:.1f}" for key in keys]
+    list_wavelengths_full = [[s.format(wvl=wvl) for wvl in wavelengths] for s in list_wvl]
+    list_wavelengths_flat = sum(list_wavelengths_full, start=[])
+
+    return list_wavelengths_flat
+
+
+def average_hyperspectral_data(data, *, parameters=parameters, wavelengths=wavelengths_interpolation, colour_keys=[*"RGBXYZxy", "sR", "sG", "sB", "hue", "FU"], default_row=0, func_average=np.nanmedian, func_uncertainty=np.nanstd):
+    """
+    Calculate the average (default: median) across multiple rows of a given data table.
+    The uncertainties are also estimated using np.nanstd by default.
+
+    The columns being averaged are any that match the pattern "{key}_{wvl:.1f}" for all keys in `parameters` and wavelengths in `wavelengths`, as well as any that match "{key} ({key_colour})" for all keys in `parameters` and `colour_keys`.
+    """
+    # Create a copy of the data table with a single placeholder row
+    data_averaged = table.Table(data[default_row])
+
+    # Get the keys that need to be averaged over
+    parameters_err = [param+"_err" for param in parameters]
+    keys = extend_keys_to_wavelengths(parameters, wavelengths=wavelengths) + hc.extend_keys_to_RGB(parameters, colour_keys)
+    keys_err = extend_keys_to_wavelengths(parameters_err, wavelengths=wavelengths) + hc.extend_keys_to_RGB(parameters_err, colour_keys)
+
+    # Calculate the averages - this needs to be done in a loop to allow in-place editing of the astropy table
+    for k in keys:
+        data_averaged[0][k] = func_average(data[k])
+
+    # Calculate the uncertainties and put them into a new table
+    uncertainties = np.array([func_uncertainty(data[k]) for k in keys])
+    table_uncertainties = table.Table(data=uncertainties, names=keys_err)
+
+    # Combine the averages and uncertainties and return the result
+    data_averaged = table.hstack([data_averaged, table_uncertainties])
+    return data_averaged

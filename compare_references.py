@@ -66,26 +66,14 @@ for timestamp, index_table1 in zip(table_data1_timestamps, table_data1_timestamp
     if nr_matches1 < 1 or nr_matches2 < 1:  # If no close enough matches are found, skip this observation
         continue
 
-    print(timestamp, nr_matches1, nr_matches2, min_time_diff1, min_time_diff2)
-    continue
-
     # Calculate the median Lu/Lsky/Ed/R_rs within the matching observations, and uncertainty on this spectrum
-    row_reference = table.Table(table_reference[closest])
-    for key in parameters:
-        # Average over the "close enough" rows
-        keys = [f"{key}_{wvl:.1f}" for wvl in wavelengths] + hc.extend_keys_to_RGB(key)
-        keys_err = [f"{key}_err_{wvl:.1f}" for wvl in wavelengths] + hc.extend_keys_to_RGB(key+"_err")
+    default_index1 = np.where(close_enough1 == closest1)[0][0]
+    default_index2 = np.where(close_enough2 == closest2)[0][0]
+    data1_averaged = hy.average_hyperspectral_data(table_data1[close_enough1], default_row=default_index1, colour_keys=[*"XYZxy", "sR", "sG", "sB", "hue", "FU"])
+    data2_averaged = hy.average_hyperspectral_data(table_data2[close_enough2], default_row=default_index2, colour_keys=[*"XYZxy", "sR", "sG", "sB", "hue", "FU"])
 
-        row_reference[keys][0] = [np.nanmedian(table_reference[k][close_enough]) for k in keys]
-        uncertainties = np.array([np.nanstd(table_reference[k][close_enough]) for k in keys])
-        row_uncertainties = table.Table(data=uncertainties, names=keys_err)
-        row_reference = table.hstack([row_reference, row_uncertainties])
-
-    # If the uncertainties on the reference data are above a threshold, disregard this match-up
-    # This may cause differences between RAW and JPEG matchup numbers for the same data set
-    threshold = 0.1  # relative
-    if any(row_reference[f"R_rs_err ({c})"]/row_reference[f"R_rs ({c})"] >= threshold for c in hc.colours):
-        continue
+    print(data1_averaged, "\n", data2_averaged)
+    continue
 
     # Add some metadata that may be used to identify the quality of the match
     metadata = table.Table(names=["nr_matches", "closest_match"], data=np.array([len(close_enough), time_differences[closest]]))

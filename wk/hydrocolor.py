@@ -426,10 +426,10 @@ def _generic_header(elements, prefix=""):
     return header
 
 
-def extend_keys_to_RGB(keys):
+def extend_keys_to_RGB(keys, extend_with_keys=colours):
     """
-    For a given set of keys, e.g. ["Lu", "Lsky"], generate variants
-    for each RGB band.
+    For a given set of keys, e.g. ["Lu", "Lsky"], generate variants for each RGB band.
+    If desired, different keys can be used than just RGB (e.g. XYZ).
     """
     # If only one key was given, put it into a list
     if isinstance(keys, str):
@@ -437,7 +437,7 @@ def extend_keys_to_RGB(keys):
 
     # Add suffixes
     list_RGB = [key + " ({c})" for key in keys]
-    list_RGB_full = [[s.format(c=c) for c in colours] for s in list_RGB]
+    list_RGB_full = [[s.format(c=c) for c in extend_with_keys] for s in list_RGB]
     list_RGB_flat = sum(list_RGB_full, start=[])
 
     return list_RGB_flat
