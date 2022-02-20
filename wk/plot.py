@@ -19,6 +19,7 @@ from spectacle.plot import RGB_OkabeIto, _rgbplot, _saveshow, cmaps
 rcParams["legend.loc"] = "lower right"
 rcParams["legend.framealpha"] = 1
 rcParams["legend.edgecolor"] = "k"
+rcParams["legend.handletextpad"] = 0.5
 
 # Commonly used unit strings
 ADUnmsr = "[ADU nm$^{-1}$ sr$^{-1}$]"
