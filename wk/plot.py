@@ -865,7 +865,7 @@ def correlation_plot_bandratios_combined(x, y, datalabel="R_rs", errlabel=None, 
     # Create marker style dictionaries for each colour combination
     markers = ["o", "v", "s"]
     marker_kwargs_shared = {"linestyle": ""}
-    marker_kwargs = [{"color": RGB_OkabeIto[top], "label": label, "marker": marker, **marker_kwargs_shared} for ((top, bottom), label, marker) in zip(hc.bandratio_indices, hc.bandratio_labels_latex, markers)]
+    marker_kwargs = [{"color": RGB_OkabeIto[top], "label": label, "marker": marker, **marker_kwargs_shared} for ((top, bottom), label, marker) in zip(hc.bandratio_indices, hc.bandratio_labels, markers)]
     # It should be possible to do half-half markers, but this does not currently seem to work
     # marker_kwargs_shared: , "fillstyle": "top"
     # marker_kwargs: , "markerfacecoloralt": RGB_OkabeIto[bottom]
