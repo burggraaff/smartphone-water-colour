@@ -800,17 +800,17 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
     _saveshow(saveto)
 
 
-def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{rs}$", xlabel="", ylabel="", saveto=None):
+def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity=keys_latex["R_rs"], xlabel="", ylabel="", saveto=None):
     """
     Make a correlation plot for each of the band ratios G/R, B/G, R/B.
     """
     # Get the data out of the input tables
-    datalabel_bandratio = [f"{datalabel} ({c})" for c in hc.bandratio_labels]
+    datalabel_bandratio = hc.extend_keys_to_RGB(datalabel, hc.bandratio_labels)
     xy_pairs = [(x[label], y[label]) for label in datalabel_bandratio]
 
     # Get the uncertainties out of the input tables if available
     if errlabel is not None:
-        errlabel_bandratio = [f"{errlabel} ({c})" for c in hc.bandratio_labels]
+        errlabel_bandratio = hc.extend_keys_to_RGB(errlabel, hc.bandratio_labels)
         xy_err_pairs = [(x[label], y[label]) for label in errlabel_bandratio]
     else:
         xy_err_pairs = [(None, None)] * 3
@@ -845,6 +845,68 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity="$R_{
 
     # Save the result
     _saveshow(saveto)
+
+
+def correlation_plot_bandratios_combined(x, y, datalabel="R_rs", errlabel=None, quantity=keys_latex["R_rs"], xlabel="", ylabel="", saveto=None):
+    """
+    Make a correlation plot for each of the band ratios, in a single panel.
+    """
+    # Get the data out of the input tables
+    datalabel_bandratio = hc.extend_keys_to_RGB(datalabel, hc.bandratio_labels)
+    xy_pairs = [(x[label], y[label]) for label in datalabel_bandratio]
+
+    # Get the uncertainties out of the input tables if available
+    if errlabel is not None:
+        errlabel_bandratio = hc.extend_keys_to_RGB(errlabel, hc.bandratio_labels)
+        xy_err_pairs = [(x[label], y[label]) for label in errlabel_bandratio]
+    else:
+        xy_err_pairs = [(None, None)] * 3
+
+    # Create marker style dictionaries for each colour combination
+    markers = ["o", "v", "s"]
+    marker_kwargs_shared = {"linestyle": ""}
+    marker_kwargs = [{"color": RGB_OkabeIto[top], "label": label, "marker": marker, **marker_kwargs_shared} for ((top, bottom), label, marker) in zip(hc.bandratio_indices, hc.bandratio_labels_latex, markers)]
+    # It should be possible to do half-half markers, but this does not currently seem to work
+    # marker_kwargs_shared: , "fillstyle": "top"
+    # marker_kwargs: , "markerfacecoloralt": RGB_OkabeIto[bottom]
+
+    # Plot the data
+    fig = plt.figure(figsize=(col1, col1))
+    ax = plt.gca()
+    for xy, xy_err, kwargs in zip(xy_pairs, xy_err_pairs, marker_kwargs):
+        ax.errorbar(*xy, xerr=xy_err[0], yerr=xy_err[1], **kwargs)
+
+    # Calculate statistics
+    x_combined = np.concatenate([x[label] for label in datalabel_bandratio])
+    y_combined = np.concatenate([y[label] for label in datalabel_bandratio])
+    if errlabel is not None:
+        x_err_combined = np.concatenate([x[label] for label in errlabel_bandratio])
+        y_err_combined = np.concatenate([y[label] for label in errlabel_bandratio])
+    else:
+        x_err_combined = y_err_combined = None
+    _plot_statistics(x_combined, y_combined, xerr=x_err_combined, yerr=y_err_combined, ax=ax)
+
+    # Linear regression
+    params, _, func_linear = stats.linear_regression(x_combined, y_combined, x_err_combined, y_err_combined)
+    regression_line, = _plot_linear_regression(func_linear, ax)
+    regression_label = "Best fit"# f"$y =$\n${params[1]:.3g} + {params[0]:.3g} x$"
+
+    # Axis settings
+    data_combined = [element for sublist in xy_pairs for element in sublist]
+    axmin, axmax = np.nanmin(data_combined)-0.05, np.nanmax(data_combined)+0.05
+    ax.set_xlim(axmin, axmax)
+    ax.set_ylim(axmin, axmax)
+    ax.set_xlabel(f"{xlabel} {quantity}")
+    ax.set_ylabel(f"{ylabel} {quantity}")
+    ax.set_aspect("equal")
+    ax.locator_params(nbins=4)
+    ax.legend(loc="lower right", edgecolor='k', framealpha=1)
+    _correlation_plot_gridlines(ax)
+    _plot_diagonal(ax)
+
+    # Save the result
+    _saveshow(saveto)
+
 
 
 def density_scatter(x, y, ax=None, sort=True, bins=20, **kwargs):

@@ -23,6 +23,7 @@ M_RGBG2_to_RGB = np.array([[1, 0  , 0, 0  ],
 
 # Labels for band ratios, in the correct order
 bandratio_pairs = [("G", "R"), ("B", "G"), ("R", "B")]
+bandratio_indices = [[colours.find(c) for c in bands] for bands in bandratio_pairs]
 bandratio_labels = [f"{bands[0]}/{bands[1]}" for bands in bandratio_pairs]
 bandratio_labels_latex = [r"$\frac{" + bands[0] + r"}{" + bands[1] + r"}$" for bands in bandratio_pairs]
 
