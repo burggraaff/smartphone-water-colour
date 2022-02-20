@@ -5,7 +5,7 @@ Command-line inputs:
     * path_data: Path to the combined data file.
 
 Example:
-    %run compare_replicates.pywater-colour-data/balaton_Samsung_Galaxy_S8_raw_replicates.csv
+    %run compare_replicates.py water-colour-data/balaton_Samsung_Galaxy_S8_raw_replicates.csv
 """
 
 import numpy as np

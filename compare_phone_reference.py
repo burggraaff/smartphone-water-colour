@@ -131,7 +131,7 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
     R_rs_phone = list(row[hc.extend_keys_to_RGB("R_rs")])
     R_rs_phone_err = list(row[hc.extend_keys_to_RGB("R_rs_err")])
 
-    plot.plot_R_rs_RGB(RGB_wavelengths, R_rs_phone, effective_bandwidths, R_rs_phone_err, reference=[wavelengths, R_rs_reference, R_rs_reference_uncertainty], title=f"{cameralabel}\n{phone_time}", saveto=saveto)
+    plot.plot_R_rs_RGB(RGB_wavelengths, R_rs_phone, effective_bandwidths, R_rs_phone_err, reference=[wavelengths, R_rs_reference, R_rs_reference_uncertainty], title=f"{cameralabel}\n{phone_time}", figsize=plot.smallpanel, saveto=saveto)
 
 # Make new tables from the match-up rows
 data_phone = table.vstack(data_phone)

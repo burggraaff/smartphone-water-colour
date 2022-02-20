@@ -50,6 +50,32 @@ def _textbox(ax, text, x=0.05, y=0.95, fontsize=10, **kwargs):
     ax.text(x, y, text, transform=ax.transAxes, verticalalignment="top", bbox=bbox_text, zorder=15, fontsize=fontsize, **kwargs)
 
 
+def new_or_existing_figure(func):
+    """
+    Decorator that handles the choice between creating a new figure or plotting in an existing one.
+    Checks if an Axes object was given - if yes, use that - if no, create a new one.
+    In the "no" case, save/show the resulting plot at the end.
+    """
+    def newfunc(*args, ax=None, saveto=None, title=None, figsize=(col1,col1), figure_kwargs={}, **kwargs):
+        # If no Axes object was given, make a new one
+        if ax is None:
+            newaxes = True
+            plt.figure(figsize=figsize)
+            ax = plt.gca()
+        else:
+            newaxes = False
+
+        # Plot everything as normal
+        func(ax, *args, **kwargs)
+
+        # If this is a new plot, add a title and save/show the result
+        if newaxes:
+            ax.set_title(title)
+            _saveshow(saveto, dpi=300)
+
+    return newfunc
+
+
 def _histogram_axis_settings(axs, column_labels):
     """
     Helper function.
@@ -108,8 +134,8 @@ def plot_three_images(images, axs=None, saveto=None):
 
 def _plot_triple(func):
     """
-    Decorator to do `func` three times. Used to repeat the functions below
-    for water, sky, and grey card images.
+    Decorator to do `func` three times.
+    Used to repeat the functions below for water, sky, and grey card images.
     """
     def newfunc(images, *args, saveto=None, **kwargs):
         # Determine saveto names
@@ -317,18 +343,11 @@ def _plot_settings_R_rs(ax, title=None):
     ax.grid(ls="--")
 
 
-def plot_reference_spectrum(wavelengths, spectrum, uncertainty=None, *, ax=None, title=None, saveto=None, facecolor="k", **kwargs):
+@new_or_existing_figure
+def plot_reference_spectrum(ax, wavelengths, spectrum, uncertainty=None, *, title=None, saveto=None, facecolor="k", **kwargs):
     """
     Plot a hyperspectral reference spectrum, with uncertainties if available.
     """
-    # If no Axes object was given, make a new one
-    if ax is None:
-        newaxes = True
-        plt.figure(figsize=smallpanel)
-        ax = plt.gca()
-    else:
-        newaxes = False
-
     # Plot the spectrum
     ax.plot(wavelengths, spectrum, c=facecolor, **kwargs)
 
@@ -336,24 +355,31 @@ def plot_reference_spectrum(wavelengths, spectrum, uncertainty=None, *, ax=None,
     if uncertainty is not None:
         ax.fill_between(wavelengths, spectrum-uncertainty, spectrum+uncertainty, facecolor=facecolor, alpha=0.5)
 
-    # If this is a new plot, add a title and save/show the result
-    if newaxes:
-        ax.set_title(title)
-        _saveshow(saveto)
+
+@new_or_existing_figure
+def plot_R_rs_multi(ax, spectrums, labels=None, title=None, saveto=None, **kwargs):
+    """
+    Plot multiple hyperspectral reference spectra in one panel.
+    """
+    # If no labels were given, make a decoy list
+    if labels is None:
+        labels = [None]*len(spectrums)
+
+    # Plot the spectra
+    linecolours = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    for spectrum, label, colour in zip(spectrums, labels, linecolours):
+        plot_reference_spectrum(*spectrum, ax=ax, label=label, facecolor=colour, **kwargs)
+
+    # Panel properties
+    _plot_settings_R_rs(ax, title=title)
+    ax.legend(loc="best")
 
 
-def plot_hyperspectral_dataset(data, parameter="R_rs", *, figsize=(col1,col1), ax=None, title=None, saveto=None, facecolor="k", alpha=0.05, **kwargs):
+@new_or_existing_figure
+def plot_hyperspectral_dataset(ax, data, parameter="R_rs", *, title=None, saveto=None, facecolor="k", alpha=0.05, **kwargs):
     """
     Plot an entire hyperspectral dataset into one panel, using transparency.
     """
-    # If no Axes object was given, make a new one
-    if ax is None:
-        newaxes = True
-        plt.figure(figsize=figsize)
-        ax = plt.gca()
-    else:
-        newaxes = False
-
     # Get the wavelengths and spectra
     column_names = hy.get_keys_for_parameter(data, parameter)
     wavelengths = hy.get_wavelengths_from_keys(column_names, parameter)
@@ -365,38 +391,9 @@ def plot_hyperspectral_dataset(data, parameter="R_rs", *, figsize=(col1,col1), a
     # Plot settings
     _plot_settings_R_rs(ax)
 
-    # If this is a new plot, add a title and save/show the result
-    if newaxes:
-        ax.set_title(title)
-        _saveshow(saveto, dpi=300)
 
-
-def plot_R_rs_multi(spectrums, labels=None, title=None, saveto=None, **kwargs):
-    """
-    Plot multiple hyperspectral reference spectra in one panel.
-    """
-    # If no labels were given, make a decoy list
-    if labels is None:
-        labels = [None]*len(spectrums)
-
-    # Create a new figure
-    plt.figure(figsize=smallpanel)
-    ax = plt.gca()
-
-    # Plot the spectra
-    linecolours = plt.rcParams['axes.prop_cycle'].by_key()['color']
-    for spectrum, label, colour in zip(spectrums, labels, linecolours):
-        plot_reference_spectrum(*spectrum, ax=ax, label=label, facecolor=colour, **kwargs)
-
-    # Panel properties
-    _plot_settings_R_rs(ax, title=title)
-    ax.legend(loc="best")
-
-    # Save/show the result
-    _saveshow(saveto)
-
-
-def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err=None, reference=None, ax=None, title=None, saveto=None):
+@new_or_existing_figure
+def plot_R_rs_RGB(ax, RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err=None, reference=None, title=None, saveto=None):
     """
     Plot RGB R_rs data, with an optional hyperspectral reference.
     `reference` must contain 2 or 3 elements: [wavelengths, R_rs, R_rs_uncertainty (optional)]
@@ -411,14 +408,6 @@ def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err=Non
     if R_rs_err is None:
         R_rs_err = [None]*3
 
-    # If no Axes object was given, make a new one
-    if ax is None:
-        newaxes = True
-        plt.figure(figsize=smallpanel)
-        ax = plt.gca()
-    else:
-        newaxes = False
-
     # Plot the RGB bands
     for j, c in enumerate(RGB_OkabeIto[:3]):
         ax.errorbar(RGB_wavelengths[j], R_rs[j], xerr=xerr[j], yerr=R_rs_err[j], c=c, fmt="o")
@@ -429,10 +418,6 @@ def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err=Non
 
     # Plot settings
     _plot_settings_R_rs(ax, title=title)
-
-    # Save the result
-    if newaxes:
-        _saveshow(saveto)
 
 
 def _correlation_plot_gridlines(ax=None):
@@ -498,19 +483,11 @@ def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, fontsize=9, **kwargs):
     _textbox(ax, text, fontsize=fontsize, **kwargs)
 
 
-
-def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax=None, equal_aspect=False, minzero=False, setmax=True, regression=False, saveto=None):
+@new_or_existing_figure
+def correlation_plot_simple(ax, x, y, xerr=None, yerr=None, xlabel="", ylabel="", equal_aspect=False, minzero=False, setmax=True, regression=False, saveto=None):
     """
     Simple correlation plot, no RGB stuff.
     """
-    # If no Axes object was given, make a new one
-    if ax is None:
-        newaxes = True
-        plt.figure(figsize=(col1,col1))
-        ax = plt.gca()
-    else:
-        newaxes = False
-
     # Plot the data
     ax.errorbar(x, y, xerr=xerr, yerr=yerr, color="k", fmt="o")
 
@@ -547,10 +524,6 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax
     # Labels for x and y axes
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-
-    # Save the result (if a new plot was made)
-    if newaxes:
-        _saveshow(saveto)
 
 
 def _axis_limit_RGB(data, key):
@@ -636,42 +609,22 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
         ax.set_ylim(0, 1.05*ymax)
 
 
-def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, ax=None, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None, **kwargs):
+@new_or_existing_figure
+def correlation_plot_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None, **kwargs):
     """
     Make a correlation plot between two tables `x` and `y`.
     Use the labels `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
     For example, if `xlabel` == `f"R_rs ({c})"` then the columns "R_rs (R)", "R_rs (G)", and "R_rs (B)" will be used.
     """
-    # Create figure if none was given
-    if ax is None:
-        newfig = True
-        plt.figure(figsize=(col1,col1), tight_layout=True)
-        ax = plt.gca()
-    else:
-        newfig = False
-
-    # Plot in the one panel
+    # Plot the data
     _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, regression=regression, **kwargs)
 
     # y=x line and grid lines
     _correlation_plot_gridlines(ax)
 
-    # Get statistics for title
-    r_all, r_RGB = stats.statistic_RGB(stats.correlation, x, y, xdatalabel, ydatalabel)
-    if regression == "rgb":
-        title = "   ".join(f"$r_{c}$ = {r_RGB[j]:.2g}" for j, c in enumerate(colours))
-    else:
-        title = f"$r$ = {r_all:.2g}"
-    ax.set_title(title)
-
     # Labels
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-
-    # Save the result (if a new plot was made)
-    if newfig:
-        _saveshow(saveto)
-
 
 
 def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", regression="none", difference_unit="", saveto=None):
@@ -776,15 +729,12 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
     _saveshow(saveto)
 
 
-def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="x", ylabel="y", xunit=ADUnmsr, yunit=ADUnmsr, regression="all", saveto=None):
+@new_or_existing_figure
+def correlation_plot_radiance_combined(ax, x, y, keys=["Lu", "Lsky", "Ld"], xlabel="x", ylabel="y", xunit=ADUnmsr, yunit=ADUnmsr, regression="all", saveto=None):
     """
     Make a single-panel plot comparing the combined radiances from x and y.
     Do a combined linear regression and plot the result.
     """
-    # Create the figure and panels
-    fig = plt.figure(figsize=(col1, col1))
-    ax = plt.gca()
-
     # Bit of a hack - plot each key into the panel separately
     for key in keys:
         key_c = key + " ({c})"
@@ -829,9 +779,6 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
         scatters.append(regression_line)
         labels.append(regression_label)
     ax.legend(scatters, labels, numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)})
-
-    # Save the result
-    _saveshow(saveto)
 
 
 def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity=keys_latex["R_rs"], xlabel="", ylabel="", saveto=None):
@@ -881,7 +828,8 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity=keys_
     _saveshow(saveto)
 
 
-def correlation_plot_bandratios_combined(x, y, datalabel="R_rs", errlabel=None, quantity=keys_latex["R_rs"], xlabel="", ylabel="", saveto=None):
+@new_or_existing_figure
+def correlation_plot_bandratios_combined(ax, x, y, datalabel="R_rs", errlabel=None, quantity=keys_latex["R_rs"], xlabel="", ylabel="", saveto=None):
     """
     Make a correlation plot for each of the band ratios, in a single panel.
     """
@@ -902,8 +850,6 @@ def correlation_plot_bandratios_combined(x, y, datalabel="R_rs", errlabel=None, 
     marker_kwargs = [{"color": RGB_OkabeIto[top], "label": label, "marker": marker, **marker_kwargs_shared} for ((top, bottom), label, marker) in zip(hc.bandratio_indices, hc.bandratio_labels, markers)]
 
     # Plot the data
-    fig = plt.figure(figsize=(col1, col1))
-    ax = plt.gca()
     for xy, xy_err, kwargs in zip(xy_pairs, xy_err_pairs, marker_kwargs):
         ax.errorbar(*xy, xerr=xy_err[0], yerr=xy_err[1], **kwargs)
 
@@ -934,9 +880,6 @@ def correlation_plot_bandratios_combined(x, y, datalabel="R_rs", errlabel=None, 
     ax.legend(*([x[i] for i in [3,1,2,0]] for x in ax.get_legend_handles_labels()))
     _correlation_plot_gridlines(ax)
     _plot_diagonal(ax)
-
-    # Save the result
-    _saveshow(saveto)
 
 
 def density_scatter(x, y, ax=None, sort=True, bins=20, **kwargs):
@@ -1034,23 +977,21 @@ def _confidence_ellipse(center, covariance, ax, covariance_scale=1, **kwargs):
     return ax.add_patch(ellipse)
 
 
-def plot_xy_on_gamut_covariance(xy, xy_covariance, covariance_scale=1, saveto=None):
+@new_or_existing_figure
+def plot_xy_on_gamut_covariance(ax, xy, xy_covariance, covariance_scale=1, saveto=None):
     """
     Plot xy coordinates on the gamut including their covariance ellipse.
     """
-    fig = plt.figure(figsize=(col1,col1))
     plot_flat_gamut(plot_planckian_locus=False, axes_labels=("", ""))
-    _confidence_ellipse(xy, xy_covariance, plt.gca(), covariance_scale=covariance_scale, edgecolor="k", fill=False, linestyle="--")
+    _confidence_ellipse(xy, xy_covariance, ax, covariance_scale=covariance_scale, edgecolor="k", fill=False, linestyle="--")
     plt.scatter(*xy, c="k", s=5)
     plt.xlabel("x")
     plt.ylabel("y")
     plt.axis("equal")
 
-    # Save the result
-    _saveshow(saveto)
 
-
-def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="", ylabel="", saveto=None):
+@new_or_existing_figure
+def correlation_plot_hue_angle_and_ForelUle(ax, x, y, xerr=None, yerr=None, xlabel="", ylabel="", saveto=None):
     """
     Make a correlation plot of hue angles (x and y).
     Draw the equivalent Forel-Ule indices on the grid for reference.
@@ -1060,9 +1001,6 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     ylabel_hue = f"{ylabel}\nHue angle $\\alpha$ [degrees]"
     xlabel_FU = f"{xlabel}\nForel-Ule index"
     ylabel_FU = f"{ylabel}\nForel-Ule index"
-
-    # Create figure
-    fig, ax = plt.subplots(figsize=(col1,col1))
 
     # Plot the data
     correlation_plot_simple(x, y, xerr=xerr, yerr=yerr, ax=ax, equal_aspect=True)
@@ -1120,7 +1058,3 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     FU_matches, FU_near_matches, mad_FU = compare_FU_matches_from_hue_angle(x, y)
     stats_text = f"$N$ = {len(x)}\n{stats.mad_symbol} = ${mad_hueangle:.1f} \\degree$\n{stats.mad_symbol} = {mad_FU:.0f} FU\n{FU_matches:.0f}% $\Delta$FU$= 0$\n{FU_near_matches:.0f}% $\Delta$FU$\leq 1$"
     _textbox(ax, stats_text)
-    ax.set_title("")
-
-    # Save the result
-    _saveshow(saveto)

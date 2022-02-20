@@ -97,7 +97,7 @@ for timestamp, index_table1 in zip(table_data1_timestamps, table_data1_timestamp
 
     # Convert ":" to - in the filename when saving
     saveto = f"results/{ref_small1}_{ref_small2}_comparison/{reference1}_X_{reference2}_{timestamp}.pdf".replace(":", "-")
-    plot.plot_R_rs_multi([spectrum1, spectrum2], labels=[reference1, reference2], title=timestamp, saveto=saveto)
+    plot.plot_R_rs_multi([spectrum1, spectrum2], labels=[reference1, reference2], title=timestamp, figsize=plot.smallpanel, saveto=saveto)
 
 # Make new tables from the match-up rows
 data1 = table.vstack(data1)
