@@ -109,9 +109,13 @@ parameters_sRGB = hc.extend_keys_to_RGB(hy.parameters+hy.parameters_uncertainty,
 data1.rename_columns(parameters_sRGB, parameters_RGB)
 data2.rename_columns(parameters_sRGB, parameters_RGB)
 
-# Add typical errors to R_rs (R, G, B) if only a single match was found
+# Add typical errors if only a single match was found
 data1 = hy.fill_in_median_uncertainties(data1)
 data2 = hy.fill_in_median_uncertainties(data2)
+
+# Add band ratios to reference data
+data1 = hy.add_bandratios_to_hyperspectral_data(data1)
+data2 = hy.add_bandratios_to_hyperspectral_data(data2)
 
 # Save the comparison table to file
 saveto_data = f"{saveto_base}_data.csv"
@@ -130,7 +134,7 @@ label_R_rs = plot.keys_latex["R_rs"]
 plot.correlation_plot_RGB_equal(data1, data2, "R_rs", errlabel="R_rs_err", xlabel=f"{reference1} {label_R_rs} {plot.persr}", ylabel=f"{reference2} {label_R_rs} {plot.persr}", regression="all", difference_unit=plot.persr, saveto=f"{saveto_base}_R_rs.pdf")
 
 # Correlation plot: Band ratios
-# plot.correlation_plot_bands(data1, data2, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_band_ratio.pdf")
+plot.correlation_plot_bands(data1, data2, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=reference1, ylabel=reference2, saveto=f"{saveto_base}_band_ratio.pdf")
 
 # Correlation plot: hue angle and Forel-Ule index
 plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=reference1, ylabel=reference2, saveto=f"{saveto_base}_hueangle_ForelUle.pdf")

@@ -137,15 +137,11 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
 data_phone = table.vstack(data_phone)
 data_reference = table.vstack(data_reference)
 
-# Add typical errors to R_rs (R, G, B) if only a single match was found
+# Add typical errors if only a single match was found
 data_reference = hy.fill_in_median_uncertainties(data_reference)
 
 # Add band ratios to reference data
-bandratios = table.Table(data=hc.calculate_bandratios(data_reference["R_rs (R)"], data_reference["R_rs (G)"], data_reference["R_rs (B)"]).T, names=[f"R_rs ({label})" for label in hc.bandratio_labels])
-
-bandratio_uncertainties = table.Table(data=[bandratios[col] * np.sqrt(data_reference[f"R_rs_err ({bands[0]})"]**2/data_reference[f"R_rs ({bands[0]})"]**2 + data_reference[f"R_rs_err ({bands[1]})"]**2/data_reference[f"R_rs ({bands[1]})"]**2) for col, bands in zip(bandratios.colnames, hc.bandratio_pairs)], names=[f"R_rs_err ({label})" for label in hc.bandratio_labels])
-
-data_reference = table.hstack([data_reference, bandratios, bandratio_uncertainties])
+data_reference = hy.add_bandratios_to_hyperspectral_data(data_reference)
 
 # Save the comparison table to file
 saveto_data = f"{saveto_base}_data.csv"

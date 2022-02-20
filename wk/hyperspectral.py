@@ -204,3 +204,25 @@ def fill_in_median_uncertainties(data):
         data[key][indices_single_match] = np.nanmedian(data[key][indices_multiple_matches])
 
     return data
+
+
+def add_bandratios_to_hyperspectral_data(data, parameter="R_rs"):
+    """
+    Calculate RGB band ratios and add them to a data table.
+    """
+    # Calculate the band ratios and put them in a table
+    bandratio_data = hc.calculate_bandratios(data[f"{parameter} (R)"], data[f"{parameter} (G)"], data[f"{parameter} (B)"]).T
+    bandratio_names = hc.extend_keys_to_RGB(parameter, hc.bandratio_labels)
+
+    bandratios = table.Table(data=bandratio_data, names=bandratio_names)
+
+    # Calculate the uncertainties in these band ratios and put them in a table
+    parameter_uncertainty = parameter + "_err"
+    bandratio_uncertainties_data = [bandratios[col] * np.sqrt(data[f"{parameter_uncertainty} ({bands[0]})"]**2/data[f"{parameter} ({bands[0]})"]**2 + data[f"{parameter_uncertainty} ({bands[1]})"]**2/data[f"{parameter} ({bands[1]})"]**2) for col, bands in zip(bandratios.colnames, hc.bandratio_pairs)]
+    bandratio_uncertainties_names = hc.extend_keys_to_RGB(parameter_uncertainty, hc.bandratio_labels)
+
+    bandratio_uncertainties = table.Table(data=bandratio_uncertainties_data, names=bandratio_uncertainties_names)
+
+    # Combine everything into one table
+    data_combined = table.hstack([data, bandratios, bandratio_uncertainties])
+    return data_combined
