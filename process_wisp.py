@@ -15,7 +15,7 @@ from astropy import table
 from sys import argv
 from pathlib import Path
 from datetime import datetime
-from wk import wacodi as wa
+from wk import hyperspectral as hy
 
 # Label that matches column header
 def label(text, wvl):
@@ -93,8 +93,8 @@ bad_row = np.where(data["timestamp"] == "2019-07-05T10:36:00")[0][0]
 data.remove_row(bad_row)
 print(f"Removed row {bad_row}.")
 
-# Add WACODI data - XYZ, xy, hue angle, Forel-Ule
-data = wa.add_colour_data_to_table_multiple_keys(data)
+# Add colour data (XYZ, xy, hue angle, FU, sRGB)
+data = hy.add_colour_data_to_hyperspectral_data_multiple_keys(data)
 
 # Write to file
 filename_result = filename.with_name(filename.stem + "_table.csv")

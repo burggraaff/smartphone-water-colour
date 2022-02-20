@@ -16,7 +16,7 @@ from sys import argv
 from pathlib import Path
 from datetime import datetime
 
-from wk import wacodi as wa
+from wk import hyperspectral as hy
 
 # Get filenames
 folder = Path(argv[1])
@@ -92,7 +92,7 @@ length_after_removal = len(data)
 print(f"Removed {length_original-length_after_removal} data points ({length_after_removal} remaining) taken after {switch_time}.")
 
 # Add WACODI data - XYZ, xy, hue angle, Forel-Ule
-data = wa.add_colour_data_to_table_multiple_keys(data)
+data = hy.add_colour_data_to_hyperspectral_data_multiple_keys(data)
 
 # Write data to file
 filename_result = folder/"So-Rad_Balaton2019.csv"

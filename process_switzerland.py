@@ -61,11 +61,11 @@ data = table.vstack(data_tables)
 print(f"Read all ({len(data_tables)}) data files")
 
 # Add dummy Ed, Lu, Lsky columns
-data = hc.add_dummy_columns(data)
+data = hy.add_dummy_columns(data)
 print("Added dummy radiance columns")
 
-# Add WACODI data - XYZ, xy, hue angle, Forel-Ule
-data = wa.add_colour_data_to_table_multiple_keys(data)
+# Add colour data (XYZ, xy, hue angle, FU, sRGB)
+data = hy.add_colour_data_to_hyperspectral_data_multiple_keys(data)
 
 # Write data to file
 data.write(filename_result, format="ascii.fast_csv")

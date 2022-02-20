@@ -126,58 +126,6 @@ def convert_hue_angle_to_ForelUle_uncertainty(hue_angle_uncertainty, hue_angle):
     return minmax_FU
 
 
-def add_colour_data_to_table(data, key="R_rs"):
-    """
-    Add colour data (XYZ, xy, hue angle, FU, sRGB) to a data table.
-    """
-    # Spectral convolution to XYZ
-    cols = [col for col in data.keys() if key in col]  # Find the relevant keys
-
-    # Check that columns were actually found
-    assert len(cols) > 0, f"No columns were found for key '{key}'."
-    wavelengths = np.array([float(col.split(key)[1][1:]) for col in cols])  # Data wavelengths
-    data_array = np.array(data[cols]).view(np.float64).reshape((-1, len(wavelengths)))  # Cast the relevant data to a numpy array
-
-    # Convolve to XYZ
-    data_XYZ = np.array([convolve_multi(cie_wavelengths, band, wavelengths, data_array) for band in cie_xyz]).T
-
-    # Calculate xy from XYZ
-    data_xy = convert_XYZ_to_xy(data_XYZ)
-
-    # Calculate the hue angle and associated FU index
-    hue_angles = convert_xy_to_hue_angle(data_xy)
-    FU_indices = convert_hue_angle_to_ForelUle(hue_angles)
-
-    # Convert to sRGB
-    data_sRGB = convert_XYZ_to_sRGB(data_XYZ, axis=-1)
-
-    # Put WACODI data in a table
-    data_WACODI = [*data_XYZ.T, *data_xy.T, *data_sRGB.T, hue_angles, FU_indices]
-    header_WACODI = [f"{key} ({label})" for label in [*"XYZxy", *hc.bands_sRGB, "hue", "FU"]]
-    table_WACODI = table.Table(data=data_WACODI, names=header_WACODI)
-
-    # Merge convolved data table with original data table
-    data = table.hstack([data, table_WACODI])
-
-    return data
-
-
-def add_colour_data_to_table_multiple_keys(data, keys=["R_rs", "Lu", "Lsky", "Ld", "Ed"]):
-    """
-    Add colour data (XYZ, xy, hue angle, FU, sRGB) to a data table.
-    Applies `add_colour_data_to_table` for each of the given keys.
-    Skips keys that were not found.
-    """
-    # Loop over keys
-    for key in keys:
-        try:
-            data = add_colour_data_to_table(data, key)
-        except AssertionError:
-            print(f"Key '{key}' was not found; continuing.")
-
-    return data
-
-
 def compare_FU_matches_from_hue_angle(x, y):
     """
     Count the percentage of matching FU colours in x and y.
