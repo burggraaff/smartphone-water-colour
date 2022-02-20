@@ -1,7 +1,7 @@
 """
 Module with common plotting functions
 """
-from matplotlib import pyplot as plt, transforms, patheffects as pe
+from matplotlib import pyplot as plt, transforms, patheffects as pe, rcParams
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Ellipse
@@ -15,6 +15,10 @@ from .wacodi import FU_hueangles, compare_FU_matches_from_hue_angle
 
 from spectacle.plot import RGB_OkabeIto, _rgbplot, _saveshow, cmaps
 
+# Legend settings
+rcParams["legend.loc"] = "lower right"
+rcParams["legend.framealpha"] = 1
+rcParams["legend.edgecolor"] = "k"
 
 # Commonly used unit strings
 ADUnmsr = "[ADU nm$^{-1}$ sr$^{-1}$]"
@@ -775,7 +779,7 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
         # Fit y to x as normal and plot this
         params, _, func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)
         regression_line, = _plot_linear_regression(func_linear, ax)
-        regression_label = "Best fit"# f"$y =$\n${params[1]:.3g} + {params[0]:.3g} x$"
+        regression_label = "Best\nfit"# f"$y =$\n${params[1]:.3g} + {params[0]:.3g} x$"
 
     # If RGB regression, do each band separately
     elif regression == "rgb":
@@ -794,7 +798,7 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
     if regression == "all":
         scatters.append(regression_line)
         labels.append(regression_label)
-    ax.legend(scatters, labels, numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)}, loc="lower right", edgecolor='k', framealpha=1)
+    ax.legend(scatters, labels, numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)})
 
     # Save the result
     _saveshow(saveto)
@@ -887,9 +891,9 @@ def correlation_plot_bandratios_combined(x, y, datalabel="R_rs", errlabel=None, 
     _plot_statistics(x_combined, y_combined, xerr=x_err_combined, yerr=y_err_combined, ax=ax)
 
     # Linear regression
+    regression_label = "Best\nfit"# f"$y =$\n${params[1]:.3g} + {params[0]:.3g} x$"
     params, _, func_linear = stats.linear_regression(x_combined, y_combined, x_err_combined, y_err_combined)
-    regression_line, = _plot_linear_regression(func_linear, ax)
-    regression_label = "Best fit"# f"$y =$\n${params[1]:.3g} + {params[0]:.3g} x$"
+    regression_line, = _plot_linear_regression(func_linear, ax, label=regression_label)
 
     # Axis settings
     data_combined = [element for sublist in xy_pairs for element in sublist]
@@ -900,13 +904,12 @@ def correlation_plot_bandratios_combined(x, y, datalabel="R_rs", errlabel=None, 
     ax.set_ylabel(f"{ylabel} {quantity}")
     ax.set_aspect("equal")
     ax.locator_params(nbins=4)
-    ax.legend(loc="lower right", edgecolor='k', framealpha=1)
+    ax.legend(*([x[i] for i in [3,1,2,0]] for x in ax.get_legend_handles_labels()))
     _correlation_plot_gridlines(ax)
     _plot_diagonal(ax)
 
     # Save the result
     _saveshow(saveto)
-
 
 
 def density_scatter(x, y, ax=None, sort=True, bins=20, **kwargs):
