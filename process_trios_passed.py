@@ -16,7 +16,7 @@ from sys import argv
 from pathlib import Path
 from datetime import datetime
 
-from wk import hyperspectral as hy
+from wk import hyperspectral as hy, plot
 
 # Get filenames
 filename = Path(argv[1])
@@ -53,25 +53,7 @@ data = hy.add_colour_data_to_hyperspectral_data_multiple_keys(data)
 data.write(saveto, format="ascii.fast_csv")
 print("Output file:", saveto.absolute())
 
-# Plot sample of data
-def plot_sample(data_plot, sample_quantity, ylabel="", saveto=None):
-    sample_cols = hy.extend_keys_to_wavelengths(sample_quantity, wavelengths)
-    data_sub = data_plot[sample_cols]
-    data_sub = np.array([data_sub[col].data for col in data_sub.colnames])  # Iteration over data_sub.columns does not work
-
-    plt.figure(figsize=(6,3), tight_layout=True)
-    plt.plot(wavelengths, data_sub, c="k", alpha=0.1)
-    plt.xlabel("Wavelength [nm]")
-    plt.ylabel(ylabel)
-    plt.xlim(320, 955)
-    plt.ylim(ymin=0)
-    plt.grid(ls="--")
-    plt.title(f"Example {sample_quantity} spectra ({data_sub.shape[1]}/{len(data_plot)})")
-    if saveto:
-        plt.savefig(saveto, bbox_inches="tight")
-    plt.show()
-    plt.close()
-
 # Plot R_rs
-filename_R_rs = f"results/{filename.stem}.pdf"
-plot_sample(data, "R_rs", ylabel="$R_{rs}$ [sr$^{-1}$]", saveto=filename_R_rs)
+saveto_R_rs = f"results/{filename.stem}.pdf"
+plot.plot_hyperspectral_dataset(data, title=f"TriOS RAMSES spectra ($N$ = {len(data)})", saveto=saveto_R_rs)
+print(f"Saved plot to {saveto_R_rs}")

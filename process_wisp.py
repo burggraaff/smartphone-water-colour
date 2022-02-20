@@ -15,7 +15,7 @@ from astropy import table
 from sys import argv
 from pathlib import Path
 from datetime import datetime
-from wk import hyperspectral as hy
+from wk import hyperspectral as hy, plot
 
 def _split_line(line):
     # Strip white space, remove quotation marks, split on commas
@@ -96,3 +96,8 @@ data = hy.add_colour_data_to_hyperspectral_data_multiple_keys(data)
 filename_result = filename.with_name(filename.stem + "_table.csv")
 data.write(filename_result, format="ascii.fast_csv")
 print("Output file:", filename_result.absolute())
+
+# Plot R_rs
+saveto_R_rs = f"results/{filename.stem}.pdf"
+plot.plot_hyperspectral_dataset(data, title=f"WISP-3 spectra ($N$ = {len(data)})", saveto=saveto_R_rs)
+print(f"Saved plot to {saveto_R_rs}")

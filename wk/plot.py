@@ -10,7 +10,7 @@ from matplotlib.legend_handler import HandlerTuple
 import numpy as np
 from colorio._tools import plot_flat_gamut
 
-from . import statistics as stats, colours, hydrocolor as hc
+from . import statistics as stats, colours, hydrocolor as hc, hyperspectral as hy
 from .wacodi import FU_hueangles, compare_FU_matches_from_hue_angle
 
 from spectacle.plot import RGB_OkabeIto, _rgbplot, _saveshow, cmaps
@@ -300,6 +300,23 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto=None, normalisation=2
         print(f"Saved statistics plot to `{saveto}`")
 
 
+def _plot_settings_R_rs(ax, title=None):
+    """
+    Apply some default settings to an R_rs plot.
+    """
+    # Labels
+    ax.set_xlabel("Wavelength [nm]")
+    ax.set_ylabel(f"{keys_latex['R_rs']} {persr}")
+    ax.set_title(title)
+
+    # Axis limits and ticks
+    ax.set_yticks(np.arange(0, 0.1, 0.01))
+    ax.set_ylim(0, 0.07)
+    ax.set_xticks(np.arange(300, 1000, 100))
+    ax.set_xlim(350, 850)
+    ax.grid(ls="--")
+
+
 def plot_reference_spectrum(wavelengths, spectrum, uncertainty=None, *, ax=None, title=None, saveto=None, facecolor="k", **kwargs):
     """
     Plot a hyperspectral reference spectrum, with uncertainties if available.
@@ -325,21 +342,33 @@ def plot_reference_spectrum(wavelengths, spectrum, uncertainty=None, *, ax=None,
         _saveshow(saveto)
 
 
-def _plot_settings_R_rs(ax, title=None):
+def plot_hyperspectral_dataset(data, parameter="R_rs", *, figsize=(col1,col1), ax=None, title=None, saveto=None, facecolor="k", alpha=0.05, **kwargs):
     """
-    Apply some default settings to an R_rs plot.
+    Plot an entire hyperspectral dataset into one panel, using transparency.
     """
-    # Labels
-    ax.set_xlabel("Wavelength [nm]")
-    ax.set_ylabel(f"{keys_latex['R_rs']} {persr}")
-    ax.set_title(title)
+    # If no Axes object was given, make a new one
+    if ax is None:
+        newaxes = True
+        plt.figure(figsize=figsize)
+        ax = plt.gca()
+    else:
+        newaxes = False
 
-    # Axis limits and ticks
-    ax.set_yticks(np.arange(0, 0.1, 0.01))
-    ax.set_ylim(0, 0.07)
-    ax.set_xticks(np.arange(300, 1000, 100))
-    ax.set_xlim(350, 850)
-    ax.grid(ls="--")
+    # Get the wavelengths and spectra
+    column_names = hy.get_keys_for_parameter(data, parameter)
+    wavelengths = hy.get_wavelengths_from_keys(column_names, parameter)
+    spectra = hy.convert_columns_to_array(data, column_names)
+
+    # Plot the spectra
+    ax.plot(wavelengths, spectra.T, c=facecolor, alpha=alpha, rasterized=True, **kwargs)
+
+    # Plot settings
+    _plot_settings_R_rs(ax)
+
+    # If this is a new plot, add a title and save/show the result
+    if newaxes:
+        ax.set_title(title)
+        _saveshow(saveto, dpi=300)
 
 
 def plot_R_rs_multi(spectrums, labels=None, title=None, saveto=None, **kwargs):
@@ -355,8 +384,8 @@ def plot_R_rs_multi(spectrums, labels=None, title=None, saveto=None, **kwargs):
     ax = plt.gca()
 
     # Plot the spectra
-    colours = plt.rcParams['axes.prop_cycle'].by_key()['color']
-    for spectrum, label, colour in zip(spectrums, labels, colours):
+    linecolours = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    for spectrum, label, colour in zip(spectrums, labels, linecolours):
         plot_reference_spectrum(*spectrum, ax=ax, label=label, facecolor=colour, **kwargs)
 
     # Panel properties

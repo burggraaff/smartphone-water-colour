@@ -16,7 +16,7 @@ from sys import argv
 from pathlib import Path
 from datetime import datetime
 
-from wk import hyperspectral as hy
+from wk import hyperspectral as hy, plot
 
 # Get filenames
 folder = Path(argv[1])
@@ -95,7 +95,6 @@ filename_result = folder/"So-Rad_Balaton2019.csv"
 data.write(filename_result, format="ascii.fast_csv")
 print("Output file:", filename_result.absolute())
 
-
 # Plot histograms at multiple wavelengths
 def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702.8, 801.8, 900.8], bins=np.linspace(-0.01, 0.05, 15)):
     fig, axs = plt.subplots(ncols=len(wavelengths_hist), sharex=True, sharey=True, figsize=(10, 2))
@@ -109,39 +108,12 @@ def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702
     plt.show()
     plt.close()
 
-# Plot sample of data
-def plot_sample(data_plot, sample_quantity, ylabel="", saveto=None):
-    sample_cols = hy.extend_keys_to_wavelengths(sample_quantity, wavelengths)
-    data_sub = data_plot[sample_cols]
-    data_sub = np.array([data_sub[col].data for col in data_sub.colnames])  # Iteration over data_sub.columns does not work
-
-    plt.figure(figsize=(6,3), tight_layout=True)
-    plt.plot(wavelengths, data_sub, c="k", alpha=0.1)
-    plt.xlabel("Wavelength [nm]")
-    plt.ylabel(ylabel)
-    plt.xlim(320, 955)
-    plt.ylim(ymin=0)
-    plt.grid(ls="--")
-    plt.title(f"Example {sample_quantity} spectra ({data_sub.shape[1]}/{len(data_plot)})")
-    if saveto:
-        plt.savefig(saveto, bbox_inches="tight")
-    plt.show()
-    plt.close()
-
-# Plot Ed, Lt, Ls
-plot_sample(data, "Ed", ylabel="$E_d$ [W nm$^{-1}$ m$^{-2}$]", saveto=filename_Ed.with_suffix(".pdf"))
-plot_sample(data, "Lu", ylabel="$L_u$ [W nm$^{-1}$ m$^{-2}$ sr$^{-1}$]", saveto=filename_Lt.with_suffix(".pdf"))
-plot_sample(data, "Lsky", ylabel="$L_{sky}$ [W nm$^{-1}$ m$^{-2}$ sr$^{-1}$]", saveto=filename_Ls.with_suffix(".pdf"))
-
-# Plot R_rs
-# print("Before offset subtraction:")
-# plot_histograms(data)
-# plot_sample(data, "R_rs", ylabel="$R_{rs}$ [sr$^{-1}$]")
-
-# R_rs_columns = [label("R_rs", wvl) for wvl in wavelengths]
-# for col in R_rs_columns:
-#     data[col] -= data["offset"]
-
-# print("After offset subtraction:")
+# Plot the resulting data
+filename_figure = lambda filename_data: f"results/SoRad-{filename_data.stem}.pdf"
 plot_histograms(data)
-plot_sample(data, "R_rs", ylabel="$R_{rs}$ [sr$^{-1}$]", saveto=filename_R_rs.with_suffix(".pdf"))
+
+# plot.plot_hyperspectral_dataset(data, title=f"SoRad spectra ($N$ = {len(data)})", saveto=filename_figure(filename_Ed))
+# plot.plot_hyperspectral_dataset(data, title=f"SoRad spectra ($N$ = {len(data)})", saveto=filename_figure(filename_Ls))
+# plot.plot_hyperspectral_dataset(data, title=f"SoRad spectra ($N$ = {len(data)})", saveto=filename_figure(filename_Lt))
+plot.plot_hyperspectral_dataset(data, title=f"SoRad spectra ($N$ = {len(data)})", saveto=filename_figure(filename_R_rs))
+print(f"Saved plot to {filename_R_rs}")

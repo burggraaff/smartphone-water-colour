@@ -16,7 +16,7 @@ from sys import argv
 from pathlib import Path
 from datetime import datetime
 
-from wk import hyperspectral as hy, hydrocolor as hc
+from wk import hyperspectral as hy, hydrocolor as hc, plot
 
 # Get filenames
 folder = Path(argv[1])
@@ -70,3 +70,8 @@ data = hy.add_colour_data_to_hyperspectral_data_multiple_keys(data)
 # Write data to file
 data.write(filename_result, format="ascii.fast_csv")
 print("Output file:", filename_result.absolute())
+
+# Plot R_rs
+saveto_R_rs = "results/TriOS-Switzerland.pdf"
+plot.plot_hyperspectral_dataset(data, title=f"TriOS RAMSES spectra ($N$ = {len(data)})", saveto=saveto_R_rs)
+print(f"Saved plot to {saveto_R_rs}")

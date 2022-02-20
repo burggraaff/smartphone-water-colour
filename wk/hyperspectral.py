@@ -58,6 +58,16 @@ def get_wavelengths_from_keys(cols, key):
     return np.array([float(col.split(key)[1][1:]) for col in cols])
 
 
+def get_wavelengths_from_table(data, parameter, **kwargs):
+    """
+    For a given data table, get the corresponding wavelengths.
+    This just combines get_keys_for_parameter and get_wavelengths_from_keys.
+    """
+    cols = get_keys_for_parameter(data, parameter, **kwargs)
+    wavelengths = get_wavelengths_from_keys(cols, parameter)
+    return wavelengths
+
+
 def convert_columns_to_array(data, column_names, dtype=np.float64):
     """
     Extract data from a given list of column_names in a data table, and cast them to a pure numpy array.
