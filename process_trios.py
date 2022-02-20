@@ -23,11 +23,6 @@ filename = Path(argv[1])
 print("Input file:", filename.absolute())
 filename_result = filename.parent / (filename.stem + "_TriOS_table.csv")
 
-
-# Label that matches column header
-def label(text, wvl):
-    return f"{text}_{wvl:.1f}"
-
 # Read data
 data = table.Table.read(filename)
 print("Finished reading data")
@@ -61,7 +56,7 @@ print("Output file:", filename_result.absolute())
 
 # Plot sample of data
 def plot_sample(data_plot, sample_quantity, ylabel="", saveto=None):
-    sample_cols = [label(sample_quantity, wvl) for wvl in wavelengths]
+    sample_cols = hy.extend_keys_to_wavelengths(sample_quantity, wavelengths)
     data_sub = data_plot[sample_cols]
     data_sub = np.array([data_sub[col].data for col in data_sub.colnames])  # Iteration over data_sub.columns does not work
 

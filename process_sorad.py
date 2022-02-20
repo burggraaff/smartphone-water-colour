@@ -31,10 +31,6 @@ filename_qc = folder/"QCmask_2019-07-03.csv"
 
 wavelengths = np.arange(320, 955, 3.3)
 
-# Label that matches column header
-def label(text, wvl):
-    return f"{text}_{wvl:.1f}"
-
 # Function to read data
 def read_data(filename, rename=None, normalise=True):
     """
@@ -42,7 +38,7 @@ def read_data(filename, rename=None, normalise=True):
     If `rename` is given, rename columns to that, e.g. from `Ls` to `Lsky`
     """
     datatype = rename if rename else filename.stem.split("_")[0]  # Ed, R_rs, etc.
-    data_columns = [label(datatype, wvl) for wvl in wavelengths]
+    data_columns = hy.extend_keys_to_wavelengths(datatype, wavelengths)
     data = np.loadtxt(filename, delimiter=",")
     if normalise:
         data /= 1000.  # Conversion from mW to W
@@ -104,18 +100,18 @@ print("Output file:", filename_result.absolute())
 def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702.8, 801.8, 900.8], bins=np.linspace(-0.01, 0.05, 15)):
     fig, axs = plt.subplots(ncols=len(wavelengths_hist), sharex=True, sharey=True, figsize=(10, 2))
     for wvl, ax in zip(wavelengths_hist, axs):
-        wvl_label = label("R_rs", wvl)
+        wvl_label = f"R_rs_{wvl:.1f}"
         data_wvl = data_plot[wvl_label]
         mean, std = np.nanmean(data_wvl), np.nanstd(data_wvl)
         ax.hist(data_wvl, bins=bins)
-        ax.set_title(label("R_rs", wvl))
+        ax.set_title(wvl_label)
         print(f"Wavelength: {wvl:.1f} nm  ;  Mean: {mean:.3f} +- {std:.3f}")
     plt.show()
     plt.close()
 
 # Plot sample of data
 def plot_sample(data_plot, sample_quantity, ylabel="", saveto=None):
-    sample_cols = [label(sample_quantity, wvl) for wvl in wavelengths]
+    sample_cols = hy.extend_keys_to_wavelengths(sample_quantity, wavelengths)
     data_sub = data_plot[sample_cols]
     data_sub = np.array([data_sub[col].data for col in data_sub.colnames])  # Iteration over data_sub.columns does not work
 

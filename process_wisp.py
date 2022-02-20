@@ -17,10 +17,6 @@ from pathlib import Path
 from datetime import datetime
 from wk import hyperspectral as hy
 
-# Label that matches column header
-def label(text, wvl):
-    return f"{text}_{wvl:.1f}"
-
 def _split_line(line):
     # Strip white space, remove quotation marks, split on commas
     line_split = line.strip().replace('\"', '').split(",")
@@ -66,10 +62,10 @@ def load_wisp_data(wisp_filename, rho=0.028):
     Rrs = (Lu - rho*Lsky) / Ed
 
     header_meta = ["timestamp", "UTC", "latitude", "longitude"]
-    header_Lsky = [label("Lsky", wvl) for wvl in wavelengths]
-    header_Lu = [label("Lu", wvl) for wvl in wavelengths]
-    header_Ed = [label("Ed", wvl) for wvl in wavelengths]
-    header_Rrs = [label("R_rs", wvl) for wvl in wavelengths]
+    header_Lsky = hy.extend_keys_to_wavelengths("Lsky", wavelengths)
+    header_Lu = hy.extend_keys_to_wavelengths("Lu", wavelengths)
+    header_Ed = hy.extend_keys_to_wavelengths("Ed", wavelengths)
+    header_Rrs = hy.extend_keys_to_wavelengths("R_rs", wavelengths)
 
     data_table = table.Table(data=[timestamps, UTC, latitudes, longitudes, *Lsky, *Lu, *Ed, *Rrs], names=[*header_meta, *header_Lsky, *header_Lu, *header_Ed, *header_Rrs])
 

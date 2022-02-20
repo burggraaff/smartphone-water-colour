@@ -16,7 +16,7 @@ from sys import argv
 from pathlib import Path
 from datetime import datetime
 
-from wk import wacodi as wa, hydrocolor as hc
+from wk import hyperspectral as hy, hydrocolor as hc
 
 # Get filenames
 folder = Path(argv[1])
@@ -44,7 +44,7 @@ for folder in data_folders:
 
     # Convert the data to the right format
     wavelengths = data[:,0]
-    wavelength_header = [f"R_rs_{wvl:.1f}" for wvl in wavelengths]
+    wavelength_header = hy.extend_keys_to_wavelengths("R_rs", wavelengths)
     data = data.T[only_radiometry]
 
     # Transpose the data and convert everything to astropy tables
