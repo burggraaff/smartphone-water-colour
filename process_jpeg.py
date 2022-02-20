@@ -68,8 +68,6 @@ for data_path in hc.generate_folders(folders, pattern):
         images_jpeg = hc.load_raw_images_as_jpeg(image_paths)
         print("Making JPEG data from RAW")
 
-    raise Exception
-
     # Filenames to save results to
     saveto_stats = data_path/f"statistics_jpeg{sub}.pdf"
     saveto_correlation = data_path/f"correlation_jpeg{sub}.pdf"
