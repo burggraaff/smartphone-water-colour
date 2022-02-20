@@ -16,7 +16,7 @@ from sys import argv
 from pathlib import Path
 from datetime import datetime
 
-from wk import wacodi as wa
+from wk import wacodi as wa, hydrocolor as hc, hyperspectral as hy
 
 # Get filenames
 filename = Path(argv[1])
@@ -48,17 +48,15 @@ data.rename_columns(R_rs_columns, R_rs_columns_new)
 data.remove_columns([key for key in data.keys() if "Device" in key or "_std" in key])
 
 # Add dummy Ed, Lu, Lsky columns
-wavelengths = np.array([float(key[5:]) for key in R_rs_columns_new])
-dummy_columns = [[table.Column(data=-np.ones_like(data[R_rs_key]), name=R_rs_key.replace("R_rs", param)) for R_rs_key in R_rs_columns_new] for param in ["Ed", "Lu", "Lsky"]]
-dummy_columns = table.Table([x for y in dummy_columns for x in y])
-data = table.hstack([data, dummy_columns])
+data = hc.add_dummy_columns(data)
 print("Added dummy radiance columns")
 
 # Add WACODI data - XYZ, xy, hue angle, Forel-Ule
-data = wa.add_colour_data_to_table(data)
+data = wa.add_colour_data_to_table_multiple_keys(data)
 
 # Write data to file
 data.write(saveto, format="ascii.fast_csv")
+print("Output file:", saveto.absolute())
 
 # Plot sample of data
 def plot_sample(data_plot, sample_quantity, ylabel="", saveto=None):
