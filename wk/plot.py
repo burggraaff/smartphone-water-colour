@@ -118,7 +118,10 @@ def plot_three_images(images, axs=None, saveto=None):
 
     # Plot the images in the respective panels
     for ax, img in zip(axs, images):
-        ax.imshow(img.astype(np.uint8))
+        try:
+            ax.imshow(img.astype(np.uint8))
+        except TypeError:  # If the image data are in the wrong order, e.g. (c, x, y) instead of (x, y, c)
+            ax.imshow(np.moveaxis(img.astype(np.uint8), 0, -1))
         ax.tick_params(bottom=False, labelbottom=False, left=False, labelleft=False)
 
     # If this is a stand-alone figure, add labels
