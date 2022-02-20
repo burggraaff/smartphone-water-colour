@@ -110,10 +110,11 @@ def plot_histograms(data_plot, wavelengths_hist=[353.0, 402.5, 501.5, 600.5, 702
 
 # Plot the resulting data
 filename_figure = lambda filename_data: f"results/SoRad-{filename_data.stem}.pdf"
+saveto_R_rs = filename_figure(filename_R_rs)
 plot_histograms(data)
 
 # plot.plot_hyperspectral_dataset(data, title=f"SoRad spectra ($N$ = {len(data)})", saveto=filename_figure(filename_Ed))
 # plot.plot_hyperspectral_dataset(data, title=f"SoRad spectra ($N$ = {len(data)})", saveto=filename_figure(filename_Ls))
 # plot.plot_hyperspectral_dataset(data, title=f"SoRad spectra ($N$ = {len(data)})", saveto=filename_figure(filename_Lt))
-plot.plot_hyperspectral_dataset(data, title=f"SoRad spectra ($N$ = {len(data)})", saveto=filename_figure(filename_R_rs))
+plot.plot_hyperspectral_dataset(data, title=f"SoRad spectra ($N$ = {len(data)})", saveto=saveto_R_rs)
 print(f"Saved plot to {filename_R_rs}")
