@@ -126,7 +126,7 @@ print(f"Saved comparison table to `{saveto_data}`.")
 
 # Correlation plot: Radiances and irradiance
 plot.correlation_plot_radiance(data1, data2, keys=["Lu", "Lsky"], xlabel=reference1, ylabel=reference2, saveto=f"{saveto_base}_radiance.pdf")
-plot.correlation_plot_radiance_combined(data1, data2, keys=["Lu", "Lsky"], xlabel=f"{reference1}\n$L$ {plot.Wnmsr}", ylabel=f"{reference2} $L$ {plot.Wnmsr}", saveto=f"{saveto_base}_radiance_simple.pdf")
+plot.correlation_plot_radiance_combined(data1, data2, keys=["Lu", "Lsky"], xlabel=f"{reference1}\n$L$ {plot.Wnmsr}", ylabel=f"{reference2} $L$ {plot.Wnmsr}", compare_directly=True, saveto=f"{saveto_base}_radiance_simple.pdf")
 plot.correlation_plot_RGB(data1, data2, "Ed ({c})", "Ed ({c})", xerrlabel="Ed_err ({c})", yerrlabel="Ed_err ({c})", xlabel=f"{reference1} {plot.keys_latex['Ed']} {plot.Wnm}", ylabel=f"{reference2} {plot.keys_latex['Ed']} {plot.Wnm}", regression="rgb", saveto=f"{saveto_base}_Ed.pdf")
 
 # Correlation plot: Remote sensing reflectance

@@ -733,7 +733,7 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
 
 
 @new_or_existing_figure
-def correlation_plot_radiance_combined(ax, x, y, keys=["Lu", "Lsky", "Ld"], xlabel="x", ylabel="y", xunit=ADUnmsr, yunit=ADUnmsr, regression="all", saveto=None):
+def correlation_plot_radiance_combined(ax, x, y, keys=["Lu", "Lsky", "Ld"], xlabel="x", ylabel="y", xunit=ADUnmsr, yunit=ADUnmsr, regression="all", compare_directly=False, saveto=None):
     """
     Make a single-panel plot comparing the combined radiances from x and y.
     Do a combined linear regression and plot the result.
@@ -754,10 +754,14 @@ def correlation_plot_radiance_combined(ax, x, y, keys=["Lu", "Lsky", "Ld"], xlab
         xdata, ydata = stats.ravel_table(x_radiance, "L ({c})"), stats.ravel_table(y_radiance, "L ({c})")
         xerr, yerr = stats.ravel_table(x_radiance, "L_err ({c})"), stats.ravel_table(y_radiance, "L_err ({c})")
 
-        # Fit x to y so the MAD is in x units - this is useful when comparing a reference (x) to a smartphone (y)
-        *_, func_y_to_x = stats.linear_regression(ydata, xdata, yerr, xerr)
-        x_fitted = func_y_to_x(ydata)
-        _plot_statistics(xdata, x_fitted, ax)
+        # Directly compare x and y - for when comparing two references (x, y)
+        if compare_directly:
+            _plot_statistics(xdata, ydata, ax, xerr=xerr, yerr=yerr)
+        # Fit x to y so the MAD is in x units - for when comparing a reference (x) to a smartphone (y)
+        else:
+            *_, func_y_to_x = stats.linear_regression(ydata, xdata, yerr, xerr)
+            x_fitted = func_y_to_x(ydata)
+            _plot_statistics(xdata, x_fitted, ax)
 
         # Fit y to x as normal and plot this
         params, _, func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)
@@ -773,6 +777,8 @@ def correlation_plot_radiance_combined(ax, x, y, keys=["Lu", "Lsky", "Ld"], xlab
     ax.set_xlim(_axis_limit_RGB(x_radiance, "L ({c})"))
     ax.set_ylim(_axis_limit_RGB(y_radiance, "L ({c})"))
     ax.set_title(None)  # Remove default titles
+    if compare_directly:  # Plot the y=x diagonal if x and y are to be compared directly
+        _plot_diagonal(ax)
 
     # Generate a legend where each symbol has an entry, with coloured markers
     labels = [keys_latex[key] for key in keys]
