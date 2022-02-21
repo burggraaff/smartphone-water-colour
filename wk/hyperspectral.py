@@ -48,14 +48,14 @@ def get_keys_for_parameter(data, parameter, keys_exclude=[*"XYZxyRGB", *hc.bands
     For a given parameter `parameter`, e.g. 'R_rs', get all keys in a table `data` that include that parameter, but exclude all of the `keys_exclude`.
     This is used for example to get hyperspectral R_rs from a reference data table without also getting convolved data.
     """
-    return [col for col in data.keys() if parameter in col and not any(f"({label})" in col for label in keys_exclude)]
+    return [col for col in data.keys() if parameter in col and not any(f"({label}" in col for label in keys_exclude)]
 
 
-def get_wavelengths_from_keys(cols, key):
+def get_wavelengths_from_keys(cols, key, delimiter="_"):
     """
     For a given list of column names `cols`, get the corresponding wavelengths by removing a constant `key` from them.
     """
-    return np.array([float(col.split(key)[1][1:]) for col in cols])
+    return np.unique([float(col.split(delimiter)[-1]) for col in cols if key in col])
 
 
 def get_wavelengths_from_table(data, parameter, **kwargs):
