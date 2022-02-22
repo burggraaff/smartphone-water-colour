@@ -384,7 +384,7 @@ def plot_hyperspectral_dataset(ax, data, parameter="R_rs", *, title=None, saveto
     Plot an entire hyperspectral dataset into one panel, using transparency.
     """
     # Get the wavelengths and spectra
-    column_names = hy.get_keys_for_parameter(data, parameter)
+    column_names = hy.get_keys_for_parameter(data, parameter, exclude_err=True)
     wavelengths = hy.get_wavelengths_from_keys(column_names, parameter)
     spectra = hy.convert_columns_to_array(data, column_names)
 
@@ -1067,3 +1067,31 @@ def correlation_plot_hue_angle_and_ForelUle(ax, x, y, xerr=None, yerr=None, xlab
     FU_matches, FU_near_matches, mad_FU = compare_FU_matches_from_hue_angle(x, y)
     stats_text = f"$N$ = {len(x)}\n{stats.mad_symbol} = ${mad_hueangle:.1f} \\degree$\n{stats.mad_symbol} = {mad_FU:.0f} FU\n{FU_matches:.0f}% $\Delta$FU$= 0$\n{FU_near_matches:.0f}% $\Delta$FU$\leq 1$"
     _textbox(ax, stats_text)
+
+
+def compare_hyperspectral_datasets(datasets, parameter="R_rs", labels=None, saveto=None):
+    """
+    Make a plot comparing two hyperspectral data sets.
+    Plot all spectra with the given parameter (R_rs by default) in adjacent panels, one panel per data set.
+    """
+    # If no labels were given, create an empty list
+    if labels is None:
+        labels = [None] * len(datasets)
+
+    # Create a new figure
+    fig, axs = plt.subplots(ncols=len(datasets), figsize=(col1, col1/2), sharex=True, sharey=True)
+
+    # Plot the spectra
+    for data, label, ax in zip(datasets, labels, axs):
+        plot_hyperspectral_dataset(data, parameter=parameter, ax=ax)
+        ax.set_title(f"{label} ({len(data)})")
+
+    # Adjust the axis labels
+    axs[0].set_xticks(axs[0].get_xticks()[1::2])
+    axs[0].set_yticks(axs[0].get_yticks()[::2])
+    for ax in axs[1:]:
+        ax.set_ylabel(None)
+        axs[1].tick_params(axis="y", left=False, labelleft=False)
+
+    # Save/show the result
+    _saveshow(saveto, dpi=300)

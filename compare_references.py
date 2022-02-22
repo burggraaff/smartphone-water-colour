@@ -41,6 +41,9 @@ table_data1 = hy.read(path_data1)
 table_data2 = hy.read(path_data2)
 print("Finished reading data")
 
+# Compare the R_rs spectra
+plot.compare_hyperspectral_datasets([table_data1, table_data2], labels=[reference1, reference2], saveto=f"{saveto_base}_spectra.pdf")
+
 # Interpolate both data sets to 400-700 nm in 1 nm steps.
 # Ignore covariance for now.
 table_data1 = hy.interpolate_hyperspectral_table(table_data1)

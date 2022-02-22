@@ -43,12 +43,17 @@ def get_reference_name(path_reference):
     return reference, ref_small
 
 
-def get_keys_for_parameter(data, parameter, keys_exclude=[*"XYZxyRGB", *hc.bands_sRGB, "hue", "FU"]):
+def get_keys_for_parameter(data, parameter, keys_exclude=[*"XYZxyRGB", *hc.bands_sRGB, "hue", "FU"], exclude_err=False):
     """
     For a given parameter `parameter`, e.g. 'R_rs', get all keys in a table `data` that include that parameter, but exclude all of the `keys_exclude`.
+    Optionally, also exclude any key that has "_err" in it (uncertainty columns).
     This is used for example to get hyperspectral R_rs from a reference data table without also getting convolved data.
     """
-    return [col for col in data.keys() if parameter in col and not any(f"({label}" in col for label in keys_exclude)]
+    columns = [col for col in data.keys() if parameter in col and not any(f"({label}" in col for label in keys_exclude)]
+    if exclude_err:
+        columns = [col for col in columns if "_err" not in col]
+
+    return columns
 
 
 def get_wavelengths_from_keys(cols, key, delimiter="_"):
