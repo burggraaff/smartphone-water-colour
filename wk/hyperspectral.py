@@ -223,8 +223,7 @@ def fill_in_median_uncertainties(data):
 
 def add_dummy_columns(data, key_source="R_rs", keys_goal=["Ed", "Lu", "Lsky"], value=-1.):
     """
-    Add dummy columns for missing quantities, for example Ed and Lu
-    in a data set that only contained R_rs.
+    Add dummy columns for missing quantities, for example Ed and Lu in a data set that only contains R_rs.
     The dummy columns will contain a given value, by default -1.
     """
     # Find the original column names

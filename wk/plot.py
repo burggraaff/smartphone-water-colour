@@ -108,7 +108,8 @@ def _histogram_RGB(data_RGB, ax, **kwargs):
 def plot_three_images(images, axs=None, saveto=None):
     """
     Plot the three images (water, sky, grey card) nicely.
-    If `axs` are provided, plot them in those. Otherwise, create a new figure.
+    If `axs` are provided, plot them in those.
+    Otherwise, create a new figure.
     """
     # Create a new figure if necessary
     if axs is None:
@@ -295,7 +296,7 @@ def histogram_raw(water_data, sky_data, card_data, saveto=None, camera=None):
 
 def histogram_jpeg(water_data, sky_data, card_data, saveto=None, normalisation=255):
     """
-    Draw histograms of RAW water/sky/grey card data at various steps of processing.
+    Draw histograms of JPEG water/sky/grey card data at various steps of processing.
     """
     # Create the figure
     fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(9,4), gridspec_kw={"hspace": 0.04, "wspace": 0.04}, sharex="col", sharey="col")
@@ -489,7 +490,7 @@ def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, fontsize=9, **kwargs):
 @new_or_existing_figure
 def correlation_plot_simple(ax, x, y, xerr=None, yerr=None, xlabel="", ylabel="", equal_aspect=False, minzero=False, setmax=True, regression=False, saveto=None):
     """
-    Simple correlation plot, no RGB stuff.
+    Simple correlation plot between iterables `x` and `y`.
     """
     # Plot the data
     ax.errorbar(x, y, xerr=xerr, yerr=yerr, color="k", fmt="o")
@@ -792,7 +793,7 @@ def correlation_plot_radiance_combined(ax, x, y, keys=["Lu", "Lsky", "Ld"], xlab
 
 def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity=keys_latex["R_rs"], xlabel="", ylabel="", saveto=None):
     """
-    Make a correlation plot for each of the band ratios G/R, B/G, R/B.
+    Make a correlation plot for each of the RGB band ratios.
     """
     # Get the data out of the input tables
     datalabel_bandratio = hc.extend_keys_to_RGB(datalabel, hc.bandratio_labels)
@@ -892,9 +893,11 @@ def correlation_plot_bandratios_combined(ax, x, y, datalabel="R_rs", errlabel=No
 
 
 def density_scatter(x, y, ax=None, sort=True, bins=20, **kwargs):
-    # https://stackoverflow.com/a/53865762
     """
-    Scatter plot colored by 2d histogram
+    Plot points in a scatter plot, with colours corresponding to the density of points.
+    This is useful for plotting large data sets with many overlapping points.
+
+    Original: https://stackoverflow.com/a/53865762
     """
     if ax is None :
         fig , ax = plt.subplots()
@@ -970,7 +973,7 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
 def _confidence_ellipse(center, covariance, ax, covariance_scale=1, **kwargs):
     """
     Plot a confidence ellipse from a given (2x2) covariance matrix.
-    https://matplotlib.org/devdocs/gallery/statistics/confidence_ellipse.html
+    Original: https://matplotlib.org/devdocs/gallery/statistics/confidence_ellipse.html
     """
     correlation = stats.correlation_from_covariance(covariance)[0,1]
     ell_radius_x = np.sqrt(1 + correlation)

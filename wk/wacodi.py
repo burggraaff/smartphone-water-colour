@@ -30,7 +30,7 @@ convert_XYZ_to_sRGB = partial(convert_between_colourspaces, conversion_matrix=M_
 
 def convert_XYZ_to_xy(XYZ_data, axis_XYZ=-1):
     """
-    Convert data from XYZ to xy (chromaticity)
+    Convert data from XYZ to xy (chromaticity).
     """
     # Convert to an array first
     XYZ_data = np.array(XYZ_data)
@@ -61,7 +61,7 @@ def convert_XYZ_to_xy_covariance(XYZ_covariance, XYZ_data):
 
 def convert_xy_to_hue_angle(xy_data, axis_xy=-1, white=np.array([1/3, 1/3])):
     """
-    Convert data from xy (chromaticity) to hue angle (in degrees)
+    Convert data from xy (chromaticity) to hue angle (in degrees).
     """
     # Convert to an array first
     xy_data = np.array(xy_data)
@@ -113,8 +113,7 @@ def convert_hue_angle_to_ForelUle(hue_angle):
 
 def convert_hue_angle_to_ForelUle_uncertainty(hue_angle_uncertainty, hue_angle):
     """
-    Use a look-up table to convert a hue angle and its uncertainty into a range
-    of Forel-Ule indices.
+    Use a look-up table to convert a hue angle and its uncertainty into a range of Forel-Ule indices.
     """
     # Calculate the hue angles corresponding to +-1 sigma
     minmax_hueangle = hue_angle - hue_angle_uncertainty, hue_angle + hue_angle_uncertainty
@@ -126,11 +125,10 @@ def convert_hue_angle_to_ForelUle_uncertainty(hue_angle_uncertainty, hue_angle):
     return minmax_FU
 
 
-def compare_FU_matches_from_hue_angle(x, y):
+def compare_FU_matches_from_hue_angle(x, y, threshold=1):
     """
     Count the percentage of matching FU colours in x and y.
-    Return the percentage that are the same (e.g. 1,1)
-    the percentage within 1 (e.g. 1, 2), and the MAD.
+    Return the percentage that are the same (e.g. 1,1) the percentage within a threshold (default 1; e.g. 1, 2), and the MAD.
     """
     assert len(x) == len(y), f"x and y have different lengths: {len(x)} and {len(y)}."
 
@@ -139,7 +137,7 @@ def compare_FU_matches_from_hue_angle(x, y):
 
     # Count the number of (near-)matching FU colours
     matches = np.where(x_FU == y_FU)[0]
-    near_matches = np.where(np.abs(x_FU - y_FU) <= 1)[0]
+    near_matches = np.where(np.abs(x_FU - y_FU) <= threshold)[0]
     mad = MAD(x_FU, y_FU)
 
     # Convert counts to percentages

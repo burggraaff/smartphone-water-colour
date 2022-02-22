@@ -44,8 +44,7 @@ def get_phone_name(path_phone):
 def add_Rref_to_covariance(covariance, R_ref_uncertainty=R_ref_uncertainty):
     """
     Add a column and row for R_ref to a covariance matrix.
-    The input Rref_uncertainty is assumed fully uncorrelated
-    to the other elements.
+    The input Rref_uncertainty is assumed fully uncorrelated to the other elements.
     """
     covariance_with_Rref = block_diag(covariance, [R_ref_uncertainty**2])
 
@@ -54,8 +53,7 @@ def add_Rref_to_covariance(covariance, R_ref_uncertainty=R_ref_uncertainty):
 
 def convert_Ld_to_Ed(Ld, R_ref=R_ref):
     """
-    Convert downwelling radiance from a grey card (Ld) to downwelling
-    irradiance (Ed) using the reference reflectance (R_ref).
+    Convert downwelling radiance from a grey card (Ld) to downwelling irradiance (Ed) using the reference reflectance (R_ref).
     """
     Ed = Ld * np.pi / R_ref
     return Ed
@@ -63,9 +61,7 @@ def convert_Ld_to_Ed(Ld, R_ref=R_ref):
 
 def convert_Ld_to_Ed_covariance(Ld_covariance, Ed, R_ref=R_ref, R_ref_uncertainty=R_ref_uncertainty):
     """
-    Convert the covariance in downwelling radiance (Ld) and the
-    reference reflectance (R_ref) to a covariance in downwelling
-    irradiance (Ed).
+    Convert the covariance in downwelling radiance (Ld) and the reference reflectance (R_ref) to a covariance in downwelling irradiance (Ed).
     """
     nr_bands = len(Ed)  # Number of bands - 3 for RGB, 4 for RGBG2
     total_covariance = add_Rref_to_covariance(Ld_covariance, R_ref_uncertainty)
@@ -77,8 +73,7 @@ def convert_Ld_to_Ed_covariance(Ld_covariance, Ed, R_ref=R_ref, R_ref_uncertaint
 
 def split_combined_radiances(radiances):
     """
-    For a combined radiance array, e.g. [Lu(R), Lu(G), Lu(B), Ls(R), ..., Ld(G), Ld(B)],
-    split it into three separate arrays: [Lu(R), Lu(G), Lu(B)], [Lsky(R), ...], ...
+    For a combined radiance array, e.g. [Lu(R), Lu(G), Lu(B), Ls(R), ..., Ld(G), Ld(B)], split it into three separate arrays: [Lu(R), Lu(G), Lu(B)], [Lsky(R), ...], ...
     """
     n = len(radiances)//3
     Lu, Lsky, Ld = radiances[:n], radiances[n:2*n], radiances[2*n:]
@@ -87,10 +82,8 @@ def split_combined_radiances(radiances):
 
 def R_RS(L_u, L_s, L_d, rho=0.028, R_ref=R_ref):
     """
-    Calculate the remote sensing reflectance (R_rs) from upwelling radiance L_u,
-    sky radiance L_s, downwelling radiance L_d.
-    Additional parameters are surface reflectivity rho (default 0.028), grey card
-    reflectance R_ref.
+    Calculate the remote sensing reflectance (R_rs) from upwelling radiance L_u, sky radiance L_s, downwelling radiance L_d.
+    Additional parameters are surface reflectivity rho (default 0.028), grey card reflectance R_ref.
     L_u, L_s, L_d can be NumPy arrays.
     """
     return (L_u - rho * L_s) / ((np.pi / R_ref) * L_d)
@@ -98,9 +91,8 @@ def R_RS(L_u, L_s, L_d, rho=0.028, R_ref=R_ref):
 
 def R_rs_covariance(L_Rref_covariance, R_rs, L_d, rho=0.028, R_ref=R_ref):
     """
-    Propagate the covariance in radiance and R_ref into a covariance matrix
-    for R_rs. Automatically determine the number of bands and return an
-    appropriately sized matrix.
+    Propagate the covariance in radiance and R_ref into a covariance matrix for R_rs.
+    Automatically determine the number of bands and return an appropriately sized matrix.
     """
     # Determine the number of bands and create an appropriate identity matrix
     nr_bands = len(R_rs)
@@ -141,8 +133,7 @@ def data_type_RGB(filename):
 
 def generate_folders(folders, pattern):
     """
-    Given a list of folders and a pattern, look for subfolders in `folders`
-    that match the given pattern.
+    Given a list of folders and a pattern, look for subfolders in `folders` that match the given pattern.
     Example:
         for folder in generate_folders("water-colour-data/Balaton", "iPhone_SE")
     """
@@ -274,8 +265,7 @@ def effective_bandwidth(calibration_folder):
 
 def get_radiances(data, parameters=["Lu", "Lsky", "Ld"]):
     """
-    From a given data set containing radiances, return a table that has combined
-    all relevant entries.
+    From a given data set containing radiances, return a table combining all relevant entries.
     """
     # Use ravel_table to get the elements out. That function is normally used to
     # ravel an RGB table for one parameter, e.g. combine Lu (R), Lu (G), Lu (B).
@@ -378,17 +368,14 @@ def UTC_timestamp(water_exif, data_path=""):
 
 def _convert_symmetric_matrix_to_list(sym):
     """
-    Convert a symmetric matrix `sym` to a list that contains its
-    upper-triangular (including diagonal) elements.
+    Convert a symmetric matrix `sym` to a list that contains its upper-triangular (including diagonal) elements.
     """
     return sym[np.triu_indices_from(sym)]
 
 
 def _convert_list_to_symmetric_matrix(symlist):
     """
-    Convert a list containing elemens of a symmetric matrix
-    (e.g. generated using _convert_symmetric_matrix_to_list) back
-    into a matrix.
+    Convert a list containing elemens of a symmetric matrix (e.g. generated using _convert_symmetric_matrix_to_list) back into a matrix.
     """
     # Number of independent elements in symmetric matrix of size nxn is
     # L = n*(n+1)/2
@@ -464,8 +451,7 @@ def write_results(saveto, timestamp, radiances, radiances_covariance, Ed, Ed_cov
 
 def _convert_matrix_to_uncertainties_column(covariance_matrices, labels):
     """
-    Take a column containing covariance matrices and generate a number of columns
-    containing the uncertainties on its diagonal.
+    Take a column containing covariance matrices and generate a number of columns containing the uncertainties on its diagonal.
     """
     assert len(labels) == len(covariance_matrices[0]), f"Number of labels (len{labels}) does not match matrix dimensionality ({len(covariance_matrices[0])})."
     diagonals = np.array([np.diag(matrix) for matrix in covariance_matrices])

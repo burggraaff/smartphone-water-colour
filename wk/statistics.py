@@ -18,7 +18,8 @@ sspb_symbol = r"$\mathcal{B}$"
 
 def weighted_median(x, w=None):
     """
-    Weighted median. If no weights are supplied, normal median.
+    Weighted median.
+    If no weights are supplied, normal median.
     """
     if w is None:
         return np.nanmedian(x)
@@ -28,8 +29,8 @@ def weighted_median(x, w=None):
 
 def correlation(x, y, w=None):
     """
-    Calculate the Pearson r correlation coefficient between data sets
-    x and y. Optional parameter w for weights.
+    Calculate the Pearson r correlation coefficient between data sets x and y.
+    Optional parameter w for weights.
     """
     return correlation_from_covariance(np.cov(x, y, aweights=w))[0, 1]
 
@@ -54,8 +55,7 @@ def MAD(x, y, w=None):
 
 def MAPD(x, y):
     """
-    Symmetric median absolute percentage deviation (sometimes sMAPE) between
-    data sets x and y.
+    Symmetric median absolute percentage deviation (sometimes sMAPE) between data sets x and y.
     Normalised relative to (x+y)/2 rather than just x or y.
     Expressed in %, so already multiplied by 100.
     """
@@ -83,22 +83,20 @@ def SSPB(x, y):
     return SSPB
 
 
-def ravel_table(data, key, loop_keys="RGB"):
+def ravel_table(data, key, loop_keys=colours):
     """
-    Apply np.ravel to a number of columns, e.g. to combine Rrs R, Rrs G, Rrs B
-    into one array for all Rrs.
+    Apply np.ravel to a number of columns, e.g. to combine R_rs R, R_rs G, R_rs B into one array for all R_rs.
     data is the input table.
-    key is the fixed key, e.g. "Rrs".
-    loop_keys is an interable list of keys to loop over, e.g. "RGB"
+    key is the fixed key, e.g. "R_rs".
+    loop_keys is an iterable containing the keys to loop over, default "RGB".
     """
     return np.ravel([data[key.format(c=c)] for c in loop_keys])
 
 
 def statistic_RGB(func, data1, data2, xdatalabel, ydatalabel):
     """
-    Calculate a statistic (e.g. MAD, MAPD, RMSE) in a given parameter `param`,
-    e.g. Rrs, between two Astropy data tables. Assumes the same key structure
-    in each table, namely `{param} {c}` where c is R, G, or B.
+    Calculate a statistic (e.g. MAD, MAPD, RMSE) in a given parameter `param`, e.g. Rrs, between two Astropy data tables.
+    Assumes the same key structure in each table, namely `{param} ({c})` where c is R, G, or B.
 
     Returns the statistic overall and per band.
     """
@@ -112,9 +110,8 @@ def statistic_RGB(func, data1, data2, xdatalabel, ydatalabel):
 
 def residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None):
     """
-    Calculate the column-wise RGB residuals between two tables for given labels
-    `xdatalabel` and `ydatalabel` (e.g. "Rrs {c}"). If errors are included,
-    propagate them (sum of squares).
+    Calculate the column-wise RGB residuals between two tables for given labels `xdatalabel` and `ydatalabel` (e.g. "R_rs ({c})").
+    If uncertainties are included, propagate them (sum of squares).
     Returns a new table with differences.
     """
     # Use a copy of x to store the residuals in
@@ -156,8 +153,8 @@ def linear_regression(x, y, xerr=0, yerr=0):
 
 def full_statistics_for_title(x, y, xerr=None, yerr=None):
     """
-    Calculate the Pearson correlation r, median absolute deviation (MAD),
-    zeta, and SSPB between x and y, and format them nicely.
+    Calculate the Pearson correlation r, median absolute deviation (MAD), zeta, and SSPB between x and y, and format them nicely.
+    Returns the calculated values (in a list) and a formatted string.
     """
     if xerr is not None and yerr is not None:
         weights = 1/(xerr**2 + yerr**2)
