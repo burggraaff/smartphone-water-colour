@@ -190,7 +190,8 @@ def load_jpeg_images(filenames):
 def load_raw_images_as_jpeg(filenames, user_flip=0, use_camera_wb=True, **kwargs):
     """
     Load RAW images located at `filenames` (iterable) and convert them to JPEG with standard settings.
-    Additional **kwargs are passed to `load_raw_image_postprocessed`.
+    Additional **kwargs are passed to `load_raw_image_postprocessed` from SPECTACLE.
+    Post-processing parameters are documented in rawpy.Params.
     The images are stacked into one array, with the colour (RGB) axis moved to the front, like load_raw_images.
     """
     jpg_images = np.array([io.load_raw_image_postprocessed(filename, user_flip=user_flip, use_camera_wb=use_camera_wb, **kwargs) for filename in filenames])
