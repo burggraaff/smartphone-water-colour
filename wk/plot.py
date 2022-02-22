@@ -106,13 +106,12 @@ def _histogram_RGB(data_RGB, ax, **kwargs):
 def plot_three_images(images, axs=None, saveto=None):
     """
     Plot the three images (water, sky, grey card) nicely.
-    If `axs` are provided, plot them in those. Otherwise, create
-    a new figure.
+    If `axs` are provided, plot them in those. Otherwise, create a new figure.
     """
     # Create a new figure if necessary
     if axs is None:
         newaxes = True
-        fig, axs = plt.subplots(ncols=3, figsize=(col1, 4), gridspec_kw={"hspace": 0.01, "wspace": 0.1}, sharex=True, sharey=True)
+        fig, axs = plt.subplots(ncols=3, figsize=(col1, col1), gridspec_kw={"hspace": 0.01, "wspace": 0.1}, sharex=True, sharey=True)
     else:
         newaxes = False
 
@@ -214,7 +213,7 @@ def plot_image_small_RGBG2(images_RGBG2, camera, vmin=0, vmax=None, equal_aspect
 
 
 @_plot_triple
-def histogram_small(image_RGBG2, vmin=0, vmax=None, nrbins=101, saveto=None):
+def histogram_small(image_RGBG2, vmin=0, vmax=None, nrbins=51, saveto=None):
     """
     Plot a small black-and-RGB histogram of an image.
     """
@@ -237,7 +236,6 @@ def histogram_small(image_RGBG2, vmin=0, vmax=None, nrbins=101, saveto=None):
     diff = bins[1] - bins[0]
     ax.set_xlim(vmin, vmax+diff)
     ax.tick_params(left=False, labelleft=False)
-    ax.grid(ls="--", c="0.5")
 
     # Show
     _saveshow(saveto)
