@@ -123,18 +123,20 @@ def R_rs_covariance(L_Rref_covariance, R_rs, L_d, rho=0.028, R_ref=R_ref):
 
 def data_type_RGB(filename):
     """
-    Find out if a given filename has RAW, JPEG, or linearised JPEG data.
+    Find out what type of smartphone camera data (RAW, JPEG) are present at a given filename.
     """
     name = filename.stem
-    if "raw" in name:
+    if "_raw" in name:
         return "RAW"
-    elif "jpeg" in name:
-        if "linear" in name:
+    elif "_jpeg" in name:
+        if "_jpeg_linear" in name:
             return "JPEG (Linear)"
+        elif "_jpeg_fromraw" in name:
+            return "JPEG (from RAW)"
         else:
             return "JPEG"
     else:
-        raise ValueError(f"File `{filename}` does not match known patterns ('raw', 'jpeg', 'jpeg_linear').")
+        raise ValueError(f"File `{filename}` does not match known patterns ('_raw', '_jpeg', '_jpeg_linear', '_jpeg_fromraw').")
 
 
 def generate_folders(folders, pattern):
