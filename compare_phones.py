@@ -1,9 +1,12 @@
 """
-Compare RGB RAW data between smartphones.
+Compare data, including radiance, reflectance, and colour, from different smartphones.
 
 Command-line inputs:
     * path_phone1: Path to data file for first phone
     * path_phone2: Path to data file for second phone
+
+Example:
+    %run compare_phones.py water-colour-data/balaton_iPhone_SE_raw_18pct.csv water-colour-data/balaton_Samsung_Galaxy_S8_raw_18pct.csv
 """
 
 import numpy as np

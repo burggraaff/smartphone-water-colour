@@ -1,12 +1,12 @@
 """
-Empirically determine the grey card reflectance from comparison measurements.
+Empirically determine the grey card reflectance from hyperspectral comparison measurements.
 
 Command-line inputs:
     * Data file with header
     * Any number of folders with SPECTACLE data for smartphone bands
 
 Example:
-    %run calculate_Rref_from_Ed_data.py water-colour-data/greycard_data_Maine.csv C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/
+    %run calculate_Rref_from_Ed_data.py water-colour-data/greycard_data_Maine.csv C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ C:/Users/Burggraaff/SPECTACLE_data/Samsung_Galaxy_S8/
 """
 import numpy as np
 from sys import argv
@@ -30,7 +30,7 @@ plt.plot(data["wavelength"], data["Ed"], label="Cosine collector", c='k')
 plt.plot(data["wavelength"], data["Es_white"], label="White card")
 plt.plot(data["wavelength"], data["Es_grey"], label="Grey card")
 plt.xlabel("Wavelength [nm]")
-plt.ylabel("Irradiance [W ...]")
+plt.ylabel(f"Irradiance {plot.Wnm}")
 plt.xlim(data["wavelength"].min(), data["wavelength"].max())
 plt.ylim(ymin=0)
 plt.title("Irradiance")

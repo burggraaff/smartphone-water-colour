@@ -3,11 +3,9 @@ Process TriOS data from the Switzerland campaign.
 
 Command line inputs:
     * Folder containing the TriOS data files.
-        Example: "water-colour-data\Switzerland_Oli4\Reference"
 
-Outputs:
-    * File containing Ed, Ls, Lt, R_rs
-        Example: "water-colour-data\data_switzerland_table.csv"
+Example:
+    %run process_switzerland.py water-colour-data/Switzerland_Oli4/Reference/
 """
 import numpy as np
 from matplotlib import pyplot as plt

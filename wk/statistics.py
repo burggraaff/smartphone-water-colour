@@ -1,5 +1,6 @@
 """
-Module with some statistics used in the analysis
+Functions and variables used for statistical analysis.
+Many of these will be moved to SPECTACLE in the near future.
 """
 import numpy as np
 from scipy import odr

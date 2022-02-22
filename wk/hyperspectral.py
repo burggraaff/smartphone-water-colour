@@ -1,5 +1,5 @@
 """
-Module with functions etc for processing hyperspectral reference data.
+Functions and variables used for processing hyperspectral reference data.
 """
 from spectacle import io, calibrate, spectral
 from spectacle.io import load_exif

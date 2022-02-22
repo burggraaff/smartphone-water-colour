@@ -1,10 +1,9 @@
 """
-Investigate the angular response of the grey card's reflectance.
+Process RAW images of a greycard on a rotating stage to determine its reflectance.
 
 Requires the following SPECTACLE calibrations:
-    - Metadata
-    - Bias
-    - Flat-field
+    * Metadata
+    * Bias
 
 Command-line inputs:
     * SPECTACLE calibration folder

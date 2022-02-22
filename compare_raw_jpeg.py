@@ -1,9 +1,14 @@
 """
-Compare RGB data from the same smartphone, for example RAW vs JPEG.
+Compare data, including radiance, reflectance, and colour, from different data formats on the same smartphone.
+Examples are RAW vs. JPEG, JPEG vs linearised JPEG, etc.
 
 Command-line inputs:
     * path_data1: path to first table with data summary (e.g. RAW)
     * path_data2: path to second table with data summary (e.g. JPEG)
+
+Example:
+    %run compare_raw_jpeg.py water-colour-data/balaton_iPhone_SE_raw_18pct.csv water-colour-data/balaton_iPhone_SE_jpeg_18pct.csv
+    %run compare_raw_jpeg.py water-colour-data/balaton_iPhone_SE_jpeg_18pct.csv water-colour-data/balaton_iPhone_SE_jpeg_linear_18pct.csv
 """
 
 from sys import argv

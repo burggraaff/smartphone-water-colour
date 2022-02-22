@@ -1,22 +1,19 @@
 """
-Process three images (water, sky, grey card), calibrated using SPECTACLE, to
-calculate the remote sensing reflectance in the RGB channels, following the
-HydroColor protocol.
-
+Process three RAW images (water, sky, grey card) to calculate the remote sensing reflectance R_rs.
 This script analyses replicate images to determine the stability of smartphone observations.
 
 Requires the following SPECTACLE calibrations:
-    - Metadata
-    - Bias
-    - Flat-field
-    - Spectral response
+    * Metadata
+    * Bias
+    * Flat-field
+    * Spectral response
 
 Command-line inputs:
     * SPECTACLE calibration folder
     * Any number of folders containing data
 
 Example:
-    %run process_replicates.py C:/Users/Burggraaff/SPECTACLE_data/Samsung_Galaxy_S8/ water-colour-data/Balaton_20190703/*
+    %run process_replicates.py C:/Users/Burggraaff/SPECTACLE_data/Samsung_Galaxy_S8/ water-colour-data/Balaton*
 """
 
 import numpy as np

@@ -1,21 +1,21 @@
 """
-Process three images (water, sky, grey card), in JPEG format, to
-calculate the remote sensing reflectance in the RGB channels, following the
-HydroColor protocol.
-
-Optional: Linearise using standard sRGB settings.
+Process three JPEG images (water, sky, grey card) to calculate the remote sensing reflectance R_rs.
 
 Requires the following SPECTACLE calibrations:
-    - Metadata
-    - Spectral response
+    * Metadata
+    * Spectral response
 
 Command-line inputs:
-    * Linearise (True/1) or not (False/0)
+    * Mode: "normal" (as-is), "linear" (linearisation), "raw" (load RAW data and postprocess these to JPEG)
     * SPECTACLE calibration folder
     * Any number of folders containing data
 
 Example:
-    %run process_jpeg.py False C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton_20190703/*
+    %run process_jpeg.py normal C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton*
+    %run process_jpeg.py linear C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton*
+    %run process_jpeg.py raw C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton*
+    %run process_jpeg.py raw C:/Users/Burggraaff/SPECTACLE_data/Samsung_Galaxy_S8/ water-colour-data/Balaton*
+    %run process_jpeg.py normal C:/Users/Burggraaff/SPECTACLE_data/iPhone_6S/ water-colour-data/Balaton*
 """
 
 import numpy as np

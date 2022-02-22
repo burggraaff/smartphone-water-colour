@@ -5,17 +5,18 @@ For each set of RAW images, the difference in radiance L and signal-to-noise rat
 Statistics on the typical effects across all box sizes are compiled at the end.
 
 Requires the following SPECTACLE calibrations:
-    - Metadata
-    - Bias
-    - Flat-field
-    - Spectral response
+    * Metadata
+    * Bias
+    * Flat-field
+    * Spectral response
 
 Command-line inputs:
     * SPECTACLE calibration folder
     * Any number of folders containing data
 
 Example:
-    %run boxsize.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton_20190703/*
+    %run boxsize.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton*
+    %run boxsize.py C:/Users/Burggraaff/SPECTACLE_data/Samsung_Galaxy_S8/ water-colour-data/Balaton*
 """
 
 import numpy as np

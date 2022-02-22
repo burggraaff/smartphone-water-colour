@@ -3,11 +3,9 @@ Process data from the WISP-3.
 
 Command line inputs:
     * Path to the WISP-3 data file.
-        Example: "water-colour-data\wisp_Balaton_20190703_20190705.csv"
 
-Outputs:
-    * File containing Ed, Ls, Lt, Rrs in columns
-        Example: "water-colour-data\wisp_Balaton_20190703_20190705_columns.csv"
+Example:
+    %run process_wisp.py water-colour-data/wisp_Balaton_20190703_20190705.csv
 """
 
 import numpy as np

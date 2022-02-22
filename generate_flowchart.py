@@ -1,13 +1,12 @@
 """
-Process three images (water, sky, grey card), calibrated using SPECTACLE, to
-calculate the remote sensing reflectance in the RGB channels, following the
-HydroColor protocol.
+Process three RAW images (water, sky, grey card) to calculate the remote sensing reflectance R_rs.
+This script generates images and text files describing the intermediate results, which can be shown in a flow-chart.
 
 Requires the following SPECTACLE calibrations:
-    - Metadata
-    - Bias
-    - Flat-field
-    - Spectral response
+    * Metadata
+    * Bias
+    * Flat-field
+    * Spectral response
 
 Command-line inputs:
     * SPECTACLE calibration folder

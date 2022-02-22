@@ -1,5 +1,6 @@
 """
-Module with common plotting functions
+Functions and variables used for plotting data and results.
+Some of these will be moved to SPECTACLE in the near future.
 """
 from matplotlib import pyplot as plt, transforms, patheffects as pe, rcParams
 from mpl_toolkits.axes_grid1 import make_axes_locatable

@@ -1,5 +1,5 @@
 """
-Module with functions etc for HydroColor
+Functions and variables used for processing smartphone images into radiance and reflectance values.
 """
 from spectacle import io, calibrate, spectral
 from spectacle.io import load_exif

@@ -3,11 +3,9 @@ Process data from the PML So-Rad-mounted TriOS.
 
 Command line inputs:
     * Folder containing the So-Rad data file.
-        Example: %run process_sorad.py "water-colour-data\Balaton_20190703\SoRad"
 
-Outputs:
-    * File containing Ed, Ls, Lt, R_rs
-        Example: "water-colour-data\Balaton_20190703\SoRad\So-Rad_Balaton2019.csv"
+Example:
+    %run process_sorad.py water-colour-data/Balaton_20190703/SoRad/
 """
 import numpy as np
 from matplotlib import pyplot as plt

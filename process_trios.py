@@ -2,12 +2,11 @@
 Process data from the Stirling TriOS.
 
 Command line inputs:
-    * Folder containing the TriOS data file.
-        Example: "water-colour-data\Data_Monocle2019_L5All.csv"
+    * Path to the TriOS data file.
 
-Outputs:
-    * File containing Ed, Ls, Lt, R_rs
-        Example: "water-colour-data\Data_Monocle2019_L5All_table.csv"
+Example:
+    %run process_trios.py water-colour-data/Data_Monocle2019_L5All.csv
+    %run process_trios.py water-colour-data/NZ/Trios_rrs/Trios_all_nz_south_L5All.csv
 """
 import numpy as np
 from matplotlib import pyplot as plt

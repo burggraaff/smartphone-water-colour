@@ -1,5 +1,5 @@
 """
-Module with functions etc for WACODI
+Functions and variables used for processing colour data.
 """
 from functools import partial
 

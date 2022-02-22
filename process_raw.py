@@ -1,20 +1,20 @@
 """
-Process three images (water, sky, grey card), calibrated using SPECTACLE, to
-calculate the remote sensing reflectance in the RGB channels, following the
-HydroColor protocol.
+Process three RAW images (water, sky, grey card) to calculate the remote sensing reflectance R_rs.
 
 Requires the following SPECTACLE calibrations:
-    - Metadata
-    - Bias
-    - Flat-field
-    - Spectral response
+    * Metadata
+    * Bias
+    * Flat-field
+    * Spectral response
 
 Command-line inputs:
     * SPECTACLE calibration folder
     * Any number of folders containing data
 
 Example:
-    %run process_raw.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton_20190703/*
+    %run process_raw.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton*
+    %run process_raw.py C:/Users/Burggraaff/SPECTACLE_data/Samsung_Galaxy_S8/ water-colour-data/Balaton*
+    %run process_raw.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_6S/ water-colour-data/Balaton* water-colour-data/NZ/* water-colour-data/Switzerland-Oli4/*
 """
 
 import numpy as np

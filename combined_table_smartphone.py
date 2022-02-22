@@ -1,9 +1,19 @@
 """
-Combine RGB results into a single table.
+Combine multiple separate data table files, matching a filename pattern, into a single file.
 
 Command-line inputs:
     * pattern: Path pattern to look for, e.g. "iPhone_SE_raw.csv"
     * folders: Any number of paths to folders containing data
+
+Example:
+    %run combined_table_smartphone.py "iPhone_SE_raw.csv" water-colour-data/Balaton*
+    %run combined_table_smartphone.py "iPhone_SE_jpeg.csv" water-colour-data/Balaton*
+    %run combined_table_smartphone.py "iPhone_SE_jpeg_linear.csv" water-colour-data/Balaton*
+    %run combined_table_smartphone.py "iPhone_SE_jpeg_fromraw.csv" water-colour-data/Balaton*
+    %run combined_table_smartphone.py "Samsung_Galaxy_S8_raw.csv" water-colour-data/Balaton*
+    %run combined_table_smartphone.py "Samsung_Galaxy_S8_jpeg_fromraw.csv" water-colour-data/Balaton*
+    %run combined_table_smartphone.py "iPhone_6S_raw.csv" water-colour-data/Balaton* water-colour-data/NZ/* water-colour-data/Switzerland-Oli4/*
+    %run combined_table_smartphone.py "iPhone_6S_jpeg.csv" water-colour-data/Balaton* water-colour-data/NZ/* water-colour-data/Switzerland-Oli4/*
 """
 
 from sys import argv
