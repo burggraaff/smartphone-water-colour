@@ -7,6 +7,7 @@ Command-line inputs:
 
 Example:
     %run compare_phones.py water-colour-data/balaton_iPhone_SE_raw_18pct.csv water-colour-data/balaton_Samsung_Galaxy_S8_raw_18pct.csv
+    %run compare_phones.py water-colour-data/balaton_iPhone_SE_jpeg_fromraw_18pct-camerawb.csv water-colour-data/balaton_Samsung_Galaxy_S8_jpeg_fromraw_18pct-camerawb.csv
 """
 
 import numpy as np
