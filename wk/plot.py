@@ -919,7 +919,7 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
     # Calculate the correlation matrix
     correlation_matrix = stats.correlation_from_covariance(covariance_matrix)
 
-    fig = plt.figure(figsize=(col1, 4.5), dpi=600, constrained_layout=True)
+    fig = plt.figure(figsize=(col1, col1), constrained_layout=True)
     gs = GridSpec(nrows=2, ncols=2, figure=fig)
     ax_imshow = fig.add_subplot(gs[0, :])
     axs_scatter = [fig.add_subplot(gs[1, j]) for j in (0, 1)]
@@ -950,10 +950,10 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
         # Plot parameters
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
-        _textbox(ax, "$r =" + f"{stats.correlation(x,y):.2g}" + "$")
+        _textbox(ax, f"$r = {stats.correlation(x,y):.2g}$")
 
         ax.set_aspect("equal")
-        ax.grid(ls="--", c="0.5", alpha=0.5)
+        ax.grid(ls="--", c="k", alpha=0.5)
 
     # Move the y-axis label to the right on the second scatter plot
     axs[-1].yaxis.tick_right()
@@ -962,7 +962,7 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
     fig.align_ylabels(axs[1:])
 
     # Save the result
-    _saveshow(saveto)
+    _saveshow(saveto, dpi=600)
 
 
 def _confidence_ellipse(center, covariance, ax, covariance_scale=1, **kwargs):
