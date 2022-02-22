@@ -20,6 +20,7 @@ rcParams["legend.loc"] = "lower right"
 rcParams["legend.framealpha"] = 1
 rcParams["legend.edgecolor"] = "k"
 rcParams["legend.handletextpad"] = 0.5
+rcParams["grid.linestyle"] = "--"
 
 # Commonly used unit strings
 ADUnmsr = "[ADU nm$^{-1}$ sr$^{-1}$]"
@@ -86,7 +87,7 @@ def _histogram_axis_settings(axs, column_labels):
     for ax in axs[:2].ravel():  # No ticks on the bottom for the top 2 rows
         ax.tick_params(bottom=False, labelbottom=False)
     for ax in axs[:,1:].ravel():  # Grid
-        ax.grid(True, ls="--", alpha=0.7)
+        ax.grid(alpha=0.7)
     for ax, label in zip(axs[:,0], ["Water", "Sky", "Grey card"]):  # Labels on the y-axes
         ax.set_ylabel(label)
     for ax, title in zip(axs[0], column_labels):  # Titles for the columns
@@ -341,7 +342,7 @@ def _plot_settings_R_rs(ax, title=None):
     ax.set_ylim(0, 0.07)
     ax.set_xticks(np.arange(300, 1000, 100))
     ax.set_xlim(350, 850)
-    ax.grid(ls="--")
+    ax.grid()
 
 
 @new_or_existing_figure
@@ -429,7 +430,7 @@ def _correlation_plot_gridlines(ax=None):
     if ax is None:
         ax = plt.gca()
 
-    ax.grid(True, ls="--")
+    ax.grid()
 
 
 def _plot_diagonal(ax=None, **kwargs):
@@ -953,7 +954,7 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
         _textbox(ax, f"$r = {stats.correlation(x,y):.2g}$")
 
         ax.set_aspect("equal")
-        ax.grid(ls="--", c="k", alpha=0.5)
+        ax.grid(alpha=0.5)
 
     # Move the y-axis label to the right on the second scatter plot
     axs[-1].yaxis.tick_right()
