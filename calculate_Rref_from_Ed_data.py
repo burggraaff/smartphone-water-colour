@@ -8,14 +8,14 @@ Command-line inputs:
 Example:
     %run calculate_Rref_from_Ed_data.py water-colour-data/greycard_data_Maine.csv C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ C:/Users/Burggraaff/SPECTACLE_data/Samsung_Galaxy_S8/
 """
-import numpy as np
 from sys import argv
-from matplotlib import pyplot as plt
-import matplotlib as mpl
-mpl.rcParams["lines.linewidth"] = 3
-from spectacle import io, spectral, load_camera
+from matplotlib import pyplot as plt, rcParams
+from spectacle import io
 from astropy import table
-from wk import hydrocolor as hc, plot, statistics as stats
+from wk import plot
+
+# Default plot settings
+rcParams["lines.linewidth"] = 3
 
 # Get the data folder from the command line
 path_data, *paths_smartphones = io.path_from_input(argv)

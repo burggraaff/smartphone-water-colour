@@ -2,14 +2,9 @@
 Functions and variables used for processing colour data.
 """
 from functools import partial
-
 import numpy as np
-from astropy import table
-
-from spectacle.spectral import convolve_multi, cie_wavelengths, cie_xyz, convert_to_XYZ, array_slice, convert_between_colourspaces
-
+from spectacle.spectral import convert_between_colourspaces
 from .statistics import MAD
-from . import hydrocolor as hc
 
 M_sRGB_to_XYZ = np.array([[0.4124564, 0.3575761, 0.1804375],
                           [0.2126729, 0.7151522, 0.0721750],
@@ -73,7 +68,7 @@ def convert_xy_to_hue_angle(xy_data, axis_xy=-1, white=np.array([1/3, 1/3])):
     xy_data -= white
 
     # Move the xy axis to the front and calculate the hue angle
-    hue_angle = np.rad2deg(np.arctan2(xy_data[...,1], xy_data[...,0]) % (2*np.pi))
+    hue_angle = np.rad2deg(np.arctan2(xy_data[..., 1], xy_data[..., 0]) % (2*np.pi))
 
     # Move the xy axis back to where it came from, if multiple were given
     try:  # Check if iterable

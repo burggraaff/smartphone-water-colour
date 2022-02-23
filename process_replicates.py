@@ -15,13 +15,10 @@ Command-line inputs:
 Example:
     %run process_replicates.py C:/Users/Burggraaff/SPECTACLE_data/Samsung_Galaxy_S8/ water-colour-data/Balaton*
 """
-
-import numpy as np
-
 from sys import argv
+import numpy as np
 from spectacle import io, load_camera
-
-from wk import hydrocolor as hc, wacodi as wa, plot, statistics as stats
+from wk import hydrocolor as hc, wacodi as wa
 
 # Number of replicates per image. If fewer are found in a folder, skip it
 nr_replicates = 10
@@ -34,8 +31,7 @@ pattern = calibration_folder.stem
 camera = load_camera(calibration_folder)
 print(f"Loaded Camera object:\n{camera}")
 
-# ISO speed and exposure time are assumed equal between all three images and
-# thus can be ignored
+# ISO speed and exposure time are assumed equal between all three images and thus can be ignored
 
 # Load effective spectral bandwidths
 camera.load_spectral_bands()
@@ -103,7 +99,7 @@ for data_path in hc.generate_folders(folders, pattern):
 
     # Convert to remote sensing reflectances - use every combination of Lu, Lsky, Ld
     water, sky, card = mean_per_stack_RGB
-    R_rs = hc.R_RS(water[:,np.newaxis,np.newaxis], sky[np.newaxis,:,np.newaxis], card)
+    R_rs = hc.R_RS(water[:, np.newaxis, np.newaxis], sky[np.newaxis, :, np.newaxis], card)
     R_rs = R_rs.reshape(-1, 3)
     print("Calculated remote sensing reflectances")
 

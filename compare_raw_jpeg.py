@@ -13,7 +13,6 @@ Example:
     %run compare_raw_jpeg.py water-colour-data/balaton_iPhone_SE_jpeg_18pct.csv water-colour-data/balaton_iPhone_SE_jpeg_fromraw_18pct-camerawb.csv
     %run compare_raw_jpeg.py water-colour-data/balaton_Samsung_Galaxy_S8_raw_18pct.csv water-colour-data/balaton_Samsung_Galaxy_S8_jpeg_fromraw_18pct-camerawb.csv
 """
-
 from sys import argv
 from spectacle import io
 from wk import hydrocolor as hc, plot

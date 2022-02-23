@@ -8,13 +8,11 @@ Example:
     %run process_trios.py water-colour-data/Data_Monocle2019_L5All.csv
     %run process_trios.py water-colour-data/NZ/Trios_rrs/Trios_all_nz_south_L5All.csv
 """
-import numpy as np
-from matplotlib import pyplot as plt
-from astropy import table
 from sys import argv
 from pathlib import Path
 from datetime import datetime
-
+import numpy as np
+from astropy import table
 from wk import hyperspectral as hy, plot
 
 # Get filenames

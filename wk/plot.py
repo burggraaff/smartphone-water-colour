@@ -3,18 +3,16 @@ Functions and variables used for plotting data and results.
 Some of these will be moved to SPECTACLE in the near future.
 """
 from matplotlib import pyplot as plt, transforms, patheffects as pe, rcParams
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Ellipse
 from matplotlib.legend_handler import HandlerTuple
-
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from scipy.interpolate import interpn
 import numpy as np
 from colorio._tools import plot_flat_gamut
-
+from spectacle.plot import RGB_OkabeIto, _saveshow, cmaps
 from . import statistics as stats, colours, hydrocolor as hc, hyperspectral as hy
 from .wacodi import FU_hueangles, compare_FU_matches_from_hue_angle
-
-from spectacle.plot import RGB_OkabeIto, _rgbplot, _saveshow, cmaps
 
 # Legend settings
 rcParams["legend.loc"] = "lower right"
@@ -58,11 +56,11 @@ def new_or_existing_figure(func):
     Checks if an Axes object was given - if yes, use that - if no, create a new one.
     In the "no" case, save/show the resulting plot at the end.
     """
-    def newfunc(*args, ax=None, saveto=None, title=None, figsize=(col1,col1), figure_kwargs={}, **kwargs):
+    def newfunc(*args, ax=None, saveto=None, title=None, figsize=(col1, col1), figure_kwargs={}, **kwargs):
         # If no Axes object was given, make a new one
         if ax is None:
             newaxes = True
-            plt.figure(figsize=figsize)
+            plt.figure(figsize=figsize, **figure_kwargs)
             ax = plt.gca()
         else:
             newaxes = False
@@ -87,9 +85,9 @@ def _histogram_axis_settings(axs, column_labels):
         ax.tick_params(left=False, labelleft=False)
     for ax in axs[:2].ravel():  # No ticks on the bottom for the top 2 rows
         ax.tick_params(bottom=False, labelbottom=False)
-    for ax in axs[:,1:].ravel():  # Grid
+    for ax in axs[:, 1:].ravel():  # Grid
         ax.grid(alpha=0.7)
-    for ax, label in zip(axs[:,0], ["Water", "Sky", "Grey card"]):  # Labels on the y-axes
+    for ax, label in zip(axs[:, 0], ["Water", "Sky", "Grey card"]):  # Labels on the y-axes
         ax.set_ylabel(label)
     for ax, title in zip(axs[0], column_labels):  # Titles for the columns
         ax.set_title(title)
@@ -249,14 +247,14 @@ def histogram_raw(water_data, sky_data, card_data, saveto=None, camera=None):
     Draw histograms of RAW water/sky/grey card data at various steps of processing.
     """
     # Create the figure
-    fig, axs = plt.subplots(nrows=3, ncols=5, figsize=(11,4), gridspec_kw={"hspace": 0.04, "wspace": 0.04}, sharex="col", sharey="col")
+    fig, axs = plt.subplots(nrows=3, ncols=5, figsize=(11, 4), gridspec_kw={"hspace": 0.04, "wspace": 0.04}, sharex="col", sharey="col")
 
     # Plot the original images in the left-most column
     images = [water_data[0], sky_data[0], card_data[0]]
-    plot_three_images(images, axs=axs[:,0])
+    plot_three_images(images, axs=axs[:, 0])
 
     # Loop over the columns representing processing steps
-    for ax_col, water, sky, card in zip(axs[:,1:].T, water_data[1:], sky_data[1:], card_data[1:]):
+    for ax_col, water, sky, card in zip(axs[:, 1:].T, water_data[1:], sky_data[1:], card_data[1:]):
         # Determine histogram bins that suit all data in this column
         data_combined = np.ravel([water, sky, card])
         xmin, xmax = stats.symmetric_percentiles(data_combined, percent=0.001)
@@ -299,11 +297,11 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto=None, normalisation=2
     Draw histograms of JPEG water/sky/grey card data at various steps of processing.
     """
     # Create the figure
-    fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(9,4), gridspec_kw={"hspace": 0.04, "wspace": 0.04}, sharex="col", sharey="col")
+    fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(9, 4), gridspec_kw={"hspace": 0.04, "wspace": 0.04}, sharex="col", sharey="col")
 
     # Plot the original images in the left-most column
     images = [np.moveaxis(data[0], 0, -1) for data in (water_data, sky_data, card_data)]  # Move the colour channel back to the end for the plot
-    plot_three_images(images, axs=axs[:,0])
+    plot_three_images(images, axs=axs[:, 0])
 
     # Loop over the columns representing processing steps
     for ax_col, water, sky, card in zip(axs.T[1:], water_data, sky_data, card_data):
@@ -644,7 +642,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     residuals = stats.residual_table(x, y, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel)
 
     # Create figure to hold plot
-    fig, axs = plt.subplots(figsize=(col1,5), nrows=2, sharex=True, gridspec_kw={"height_ratios": [3,1]})
+    fig, axs = plt.subplots(figsize=(col1, 5), nrows=2, sharex=True, gridspec_kw={"height_ratios": [3, 1]})
 
     # Plot in both panels
     _correlation_plot_errorbars_RGB(axs[0], x, y, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel, equal_aspect=True, regression=regression)
@@ -672,7 +670,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     _saveshow(saveto)
 
 
-def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", xunit=ADUnmsr, yunit=ADUnmsr, regression="all", saveto=None):
+def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", regression="all", saveto=None):
     """
     Make a multi-panel plot comparing radiances.
     Each panel represents one of the keys, for example upwelling, sky, and downwelling radiance.
@@ -734,7 +732,7 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
 
 
 @new_or_existing_figure
-def correlation_plot_radiance_combined(ax, x, y, keys=["Lu", "Lsky", "Ld"], xlabel="x", ylabel="y", xunit=ADUnmsr, yunit=ADUnmsr, regression="all", compare_directly=False, saveto=None):
+def correlation_plot_radiance_combined(ax, x, y, keys=["Lu", "Lsky", "Ld"], xlabel="x", ylabel="y", regression="all", compare_directly=False, saveto=None):
     """
     Make a single-panel plot comparing the combined radiances from x and y.
     Do a combined linear regression and plot the result.
@@ -887,7 +885,7 @@ def correlation_plot_bandratios_combined(ax, x, y, datalabel="R_rs", errlabel=No
     ax.set_ylabel(f"{ylabel} {quantity}")
     ax.set_aspect("equal")
     ax.locator_params(nbins=4)
-    ax.legend(*([x[i] for i in [3,1,2,0]] for x in ax.get_legend_handles_labels()))
+    ax.legend(*([x[i] for i in [3, 1, 2, 0]] for x in ax.get_legend_handles_labels()))
     _correlation_plot_gridlines(ax)
     _plot_diagonal(ax)
 
@@ -899,16 +897,16 @@ def density_scatter(x, y, ax=None, sort=True, bins=20, **kwargs):
 
     Original: https://stackoverflow.com/a/53865762
     """
-    if ax is None :
-        fig , ax = plt.subplots()
-    data , x_e, y_e = np.histogram2d( x, y, bins = bins, density = True )
-    z = stats.interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) , data , np.vstack([x,y]).T , method = "splinef2d", bounds_error = False)
+    if ax is None:
+        fig, ax = plt.subplots()
+    data, x_e, y_e = np.histogram2d(x, y, bins=bins, density=True)
+    z = interpn((0.5*(x_e[1:] + x_e[:-1]), 0.5*(y_e[1:]+y_e[:-1])), data, np.vstack([x, y]).T, method="splinef2d", bounds_error=False)
 
     #To be sure to plot all data
     z[np.where(np.isnan(z))] = 0.0
 
     # Sort the points by density, so that the densest points are plotted last
-    if sort :
+    if sort:
         idx = z.argsort()
         x, y, z = x[idx], y[idx], z[idx]
 
@@ -932,11 +930,11 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
 
     divider = make_axes_locatable(axs[0])
     cax = divider.append_axes('right', size='5%', pad=0.05)
-    im = axs[0].imshow(correlation_matrix, extent=(0,1,0,1), cmap=plt.cm.get_cmap("cividis", 5), vmin=0, vmax=1, origin="lower")
-    fig.colorbar(im, cax=cax, orientation='vertical', ticks=np.arange(0,1.1,0.2), label="Pearson $r$")
+    im = axs[0].imshow(correlation_matrix, extent=(0, 1, 0, 1), cmap=plt.cm.get_cmap("cividis", 5), vmin=0, vmax=1, origin="lower")
+    fig.colorbar(im, cax=cax, orientation='vertical', ticks=np.arange(0, 1.1, 0.2), label="Pearson $r$")
 
     # Put the different radiances on the matrix plot ticks
-    majorticks = np.linspace(0,1,4)
+    majorticks = np.linspace(0, 1, 4)
     minorticks = majorticks[:-1] + 1/6
     for axis in [axs[0].xaxis, axs[0].yaxis]:
         axis.set_ticks(majorticks)
@@ -975,13 +973,13 @@ def _confidence_ellipse(center, covariance, ax, covariance_scale=1, **kwargs):
     Plot a confidence ellipse from a given (2x2) covariance matrix.
     Original: https://matplotlib.org/devdocs/gallery/statistics/confidence_ellipse.html
     """
-    correlation = stats.correlation_from_covariance(covariance)[0,1]
+    correlation = stats.correlation_from_covariance(covariance)[0, 1]
     ell_radius_x = np.sqrt(1 + correlation)
     ell_radius_y = np.sqrt(1 - correlation)
     ellipse = Ellipse((0, 0), width=ell_radius_x*2, height=ell_radius_y*2, **kwargs)
 
-    scale_x = np.sqrt(covariance[0,0])*covariance_scale
-    scale_y = np.sqrt(covariance[1,1])*covariance_scale
+    scale_x = np.sqrt(covariance[0, 0])*covariance_scale
+    scale_y = np.sqrt(covariance[1, 1])*covariance_scale
 
     transf = transforms.Affine2D().rotate_deg(45).scale(scale_x, scale_y).translate(*center)
     ellipse.set_transform(transf + ax.transData)
@@ -1025,7 +1023,7 @@ def correlation_plot_hue_angle_and_ForelUle(ax, x, y, xerr=None, yerr=None, xlab
     # Plot lines correspnding to the FU colour limits, and
     # colour the squares along the x=y line.
     line_kwargs = {"c": "k", "lw": 0.5}
-    for fu,angle in enumerate(FU_hueangles):
+    for fu, angle in enumerate(FU_hueangles):
         ax.axvline(angle, **line_kwargs)
         ax.axhline(angle, **line_kwargs)
         square = FU_hueangles[fu:fu+2]
@@ -1046,7 +1044,7 @@ def correlation_plot_hue_angle_and_ForelUle(ax, x, y, xerr=None, yerr=None, xlab
 
     # Labels for FU colours: every odd colour, in the middle of the range
     FU_middles = np.array([(a + b)/2 for a, b in zip(FU_hueangles, FU_hueangles[1:])])[::2]
-    FU_labels = np.arange(1,21)[::2]
+    FU_labels = np.arange(1, 21)[::2]
 
     # Add a new x axis at the top with FU colours
     ax2 = ax.twinx()

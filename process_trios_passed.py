@@ -7,13 +7,10 @@ Command line inputs:
 Example:
     %run process_trios_passed.py water-colour-data/NZ/Trios_rrs/Trios_all_nz_south_L5statsPassed.csv
 """
-import numpy as np
-from matplotlib import pyplot as plt
-from astropy import table
 from sys import argv
 from pathlib import Path
 from datetime import datetime
-
+from astropy import table
 from wk import hyperspectral as hy, plot
 
 # Get filenames
@@ -26,7 +23,7 @@ data = table.Table.read(filename)
 print("Finished reading data")
 
 # Add UTC timestamps
-data_datetime = [datetime.fromisoformat(DT) for DT in data["DateTime"]]
+data_datetime = [datetime.fromisoformat(dt) for dt in data["DateTime"]]
 data_timestamps = [dt.timestamp() for dt in data_datetime]
 data.add_column(table.Column(data=data_timestamps, name="UTC"))
 data.sort("UTC")

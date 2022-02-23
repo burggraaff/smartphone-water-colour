@@ -14,11 +14,9 @@ Command-line inputs:
 Example:
     %run compare_references.py water-colour-data/wisp_Balaton_20190703_20190705_table.csv water-colour-data/So-Rad_Balaton2019.csv
 """
-
-import numpy as np
 from sys import argv
-from matplotlib import pyplot as plt
-from spectacle import io, spectral
+import numpy as np
+from spectacle import io
 from astropy import table
 from wk import hydrocolor as hc, hyperspectral as hy, plot
 

@@ -17,9 +17,9 @@ Example:
 """
 
 from sys import argv
+from os import walk
 from spectacle import io
 from astropy import table
-from os import walk
 
 # Get the data folder from the command line
 pattern, *folders = io.path_from_input(argv)

@@ -7,13 +7,11 @@ Command line inputs:
 Example:
     %run process_switzerland.py water-colour-data/Switzerland_Oli4/Reference/
 """
-import numpy as np
-from matplotlib import pyplot as plt
-from astropy import table
 from sys import argv
 from pathlib import Path
 from datetime import datetime
-
+import numpy as np
+from astropy import table
 from wk import hyperspectral as hy, hydrocolor as hc, plot
 
 # Get filenames
@@ -41,7 +39,7 @@ for folder in data_folders:
     UTC = [datetime.fromisoformat(t).timestamp() for t in timestamps]
 
     # Convert the data to the right format
-    wavelengths = data[:,0]
+    wavelengths = data[:, 0]
     wavelength_header = hy.extend_keys_to_wavelengths("R_rs", wavelengths)
     data = data.T[only_radiometry]
 
@@ -50,8 +48,8 @@ for folder in data_folders:
     UTC = table.Column(name="UTC", data=UTC)
     radiometry = table.Table(names=wavelength_header, data=data)
 
-    # Combine everythign into one table and append that to the list
-    radiometry.add_columns([timestamps, UTC], indexes=[0,0])
+    # Combine everything into one table and append that to the list
+    radiometry.add_columns([timestamps, UTC], indexes=[0, 0])
     data_tables.append(radiometry)
 
 # Combine the individual data tables

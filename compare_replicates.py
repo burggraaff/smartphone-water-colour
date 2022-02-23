@@ -7,13 +7,12 @@ Command-line inputs:
 Example:
     %run compare_replicates.py water-colour-data/balaton_Samsung_Galaxy_S8_raw_replicates.csv
 """
-
-import numpy as np
 from sys import argv
+import numpy as np
 from spectacle import io, symmetric_percentiles
 from astropy import table
-from wk import hydrocolor as hc, plot, hyperspectral as hy
 from matplotlib import pyplot as plt
+from wk import hydrocolor as hc, plot, hyperspectral as hy
 
 # Get the data folder from the command line
 path_data = io.path_from_input(argv)
@@ -45,7 +44,7 @@ ymax_FU = ymax/FU_scale_factor  # Scale the ymax by a factor for FU
 
 # Plot parameters
 # We want the boxes for the same parameter to be close together
-positions = np.ravel(np.array([0, 0.6, 1.2]) + 2.5*np.arange(5)[:,np.newaxis])
+positions = np.ravel(np.array([0, 0.6, 1.2]) + 2.5*np.arange(5)[:, np.newaxis])
 positions = np.append(positions, positions[-1]+np.array([0.8, 1.6]))  # Positions for hue angle/FU
 labels = sum([["$R$", "$G$\n"+plot.keys_latex[key], "$B$"] for key in keys], start=[]) + bandratio_labels_latex + [r"$\alpha$", "FU"]
 labels[-4] += "\n" + plot.keys_latex["R_rs"]
@@ -64,7 +63,7 @@ for patch, colour in zip(bplot["boxes"], colours):
 # Plot settings
 plt.yticks(np.arange(0, ymax+5, 5))
 plt.ylim(0, ymax)
-plt.ylabel("Uncertainty [%, $^\circ$]")
+plt.ylabel(r"Uncertainty [%, $^\circ$]")
 plt.tick_params(axis="x", bottom=False)
 plt.grid(axis="y", ls="--")
 plt.title("Variations between replicate images")

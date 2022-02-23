@@ -15,12 +15,10 @@ Command-line inputs:
 Example:
     %run generate_flowchart.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton_20190703/Ferry/utc07-45/
 """
-
-import numpy as np
 from sys import argv
+import numpy as np
 from spectacle import io, load_camera
-
-from wk import hydrocolor as hc, wacodi as wa, plot, statistics as stats
+from wk import hydrocolor as hc, plot, statistics as stats
 
 # Get the data folder from the command line
 calibration_folder, folder = io.path_from_input(argv)
@@ -30,8 +28,7 @@ pattern = calibration_folder.stem
 camera = load_camera(calibration_folder)
 print(f"Loaded Camera object:\n{camera}")
 
-# ISO speed and exposure time are assumed equal between all three images and
-# thus can be ignored
+# ISO speed and exposure time are assumed equal between all three images and thus can be ignored
 
 # Load effective spectral bandwidths
 camera.load_spectral_bands()

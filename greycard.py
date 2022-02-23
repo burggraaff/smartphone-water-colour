@@ -12,15 +12,10 @@ Command-line inputs:
 Example:
     %run greycard.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Greycard/
 """
-
-import numpy as np
-
 from sys import argv
-from spectacle import io, load_camera
-from spectacle.plot import _rgbplot
+import numpy as np
 from matplotlib import pyplot as plt
-
-from wk import hydrocolor as hc, wacodi as wa, plot, statistics as stats
+from spectacle import io, load_camera
 
 # Get the data folder from the command line
 calibration_folder, data_folder = io.path_from_input(argv)
@@ -40,16 +35,16 @@ means_bias_corrected = camera.correct_bias(means, selection=central_slice)
 print("Applied SPECTACLE corrections")
 
 # Average per image
-normalisation = means_bias_corrected[angles==40]
+normalisation = means_bias_corrected[angles == 40]
 means_normalised = means_bias_corrected / normalisation
 
-mean_values = means_normalised.mean(axis=(1,2))
-uncertainties = means_normalised.std(axis=(1,2))
+mean_values = means_normalised.mean(axis=(1, 2))
+uncertainties = means_normalised.std(axis=(1, 2))
 
 # Plot the result
 plt.errorbar(angles, mean_values, yerr=uncertainties, fmt="o", c="k")
 
-plt.xlabel("Grey card angle [$^\circ$]")
+plt.xlabel(r"Grey card angle [$^\circ$]")
 plt.ylabel("Mean value [ADU]")
 
 plt.xlim(30, 50)

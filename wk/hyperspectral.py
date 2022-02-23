@@ -1,17 +1,10 @@
 """
 Functions and variables used for processing hyperspectral reference data.
 """
-from spectacle import io, calibrate, spectral
-from spectacle.io import load_exif
 import numpy as np
-from datetime import datetime, timedelta
 from astropy import table
-from scipy.linalg import block_diag
-from functools import partial
-
-from . import statistics as stats, hydrocolor as hc, wacodi as wa, colours
-
-# Add max_time_diff as a dictionary here, with keys corresponding to the different cases (ref-ref, ref-phone, NZ)
+from spectacle import spectral
+from . import hydrocolor as hc, wacodi as wa
 
 # Function for reading astropy tables - short-hand
 read = table.Table.read
@@ -86,9 +79,6 @@ def interpolate_hyperspectral_table(data, parameters=parameters, wavelengths=wav
     For a table containing hyperspectral data, extract the data corresponding to each `parameter` and interpolate these to a new wavelength range.
     Then creates a new table that contains the interpolated hyperspectral data, but not the original hyperspectral data.
     """
-    # Get the number of spectra in each parameter
-    nr_spectra = len(data)
-
     # Extract the data for each parameter
     columns = [get_keys_for_parameter(data, param) for param in parameters]
     columns_flat = sum(columns, start=[])

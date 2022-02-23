@@ -14,20 +14,20 @@ Example:
     %run compare_phone_reference.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_6S/ water-colour-data/NZ_iPhone_6S_raw_18pct.csv water-colour-data/Trios_all_nz_south_L5statsPassed_TriOS_table.csv
     %run compare_phone_reference.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_6S/ water-colour-data/balaton_iPhone_6S_raw_18pct.csv water-colour-data/Data_Monocle2019_L5All_TriOS_table.csv
 """
-
-import numpy as np
 from sys import argv
-from matplotlib import pyplot as plt
-from spectacle import io, spectral, load_camera
+import numpy as np
 from astropy import table
+from spectacle import io, spectral, load_camera
 from wk import hydrocolor as hc, hyperspectral as hy, plot
-
-# Time limit for inclusion
-max_time_diff = 60*10  # 10 minutes for everything except NZ data
-# max_time_diff = 60*60  # 60 minutes for NZ data
 
 # Get the data folder from the command line
 path_calibration, path_phone, path_reference = io.path_from_input(argv)
+
+# Time limit for inclusion
+if "_nz_" in path_reference.stem:
+    maximum_time_difference = 60*60  # 60 minutes for NZ data due to the campaign setup
+else:
+    maximum_time_difference = 60*10  # 10 minutes for everything except NZ data
 
 # Find out if we're doing JPEG or RAW
 data_type = hc.data_type_RGB(path_phone)
@@ -98,7 +98,7 @@ if reference == "WISP-3":
 data_phone, data_reference = [], []  # Lists to contain matching table entries
 for row in table_phone:  # Loop over the smartphone table to look for matches
     # Find matches within a threshold
-    nr_matches, close_enough, closest, min_time_diff = hy.find_elements_within_range(table_reference, row["UTC"], maximum_difference=max_time_diff)
+    nr_matches, close_enough, closest, min_time_diff = hy.find_elements_within_range(table_reference, row["UTC"], maximum_difference=maximum_time_difference)
     if nr_matches < 1:  # If no close enough matches are found, skip this observation
         continue
 

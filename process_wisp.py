@@ -7,12 +7,11 @@ Command line inputs:
 Example:
     %run process_wisp.py water-colour-data/wisp_Balaton_20190703_20190705.csv
 """
-
-import numpy as np
-from astropy import table
 from sys import argv
 from pathlib import Path
 from datetime import datetime
+import numpy as np
+from astropy import table
 from wk import hyperspectral as hy, plot
 
 def _split_line(line):
@@ -23,9 +22,9 @@ def _split_line(line):
 def _convert_wisp_block(block):
     block_split = [_split_line(line) for line in block]
     block_arr = np.array(block_split, dtype=np.float64)
-    wavelengths = block_arr[:,0]
-    data = block_arr[:,1:]
-    return wavelengths, data
+    wavelengths = block_arr[:, 0]
+    radiance = block_arr[:, 1:]
+    return wavelengths, radiance
 
 # Convert WISP timestamps to datetime objects
 def _convert_wisp_timestamp(timestamp):

@@ -1,17 +1,15 @@
 """
 Functions and variables used for processing smartphone images into radiance and reflectance values.
 """
-from spectacle import io, calibrate, spectral
-from spectacle.io import load_exif
-import numpy as np
 from datetime import datetime, timedelta
+from functools import partial
+from os import walk
+import numpy as np
 from astropy import table
 from scipy.linalg import block_diag
-from os import walk
-from functools import partial
-
-from . import colours
-from . import statistics as stats
+from spectacle import io, calibrate, spectral
+from spectacle.io import load_exif
+from . import colours, statistics as stats
 
 # sRGB band names
 bands_sRGB = [f"s{band}" for band in colours]
@@ -65,7 +63,7 @@ def convert_Ld_to_Ed_covariance(Ld_covariance, Ed, R_ref=R_ref, R_ref_uncertaint
     """
     nr_bands = len(Ed)  # Number of bands - 3 for RGB, 4 for RGBG2
     total_covariance = add_Rref_to_covariance(Ld_covariance, R_ref_uncertainty)
-    J = np.block([np.eye(nr_bands)*np.pi/R_ref, (-Ed/R_ref)[:,np.newaxis]])  # Jacobian matrix
+    J = np.block([np.eye(nr_bands)*np.pi/R_ref, (-Ed/R_ref)[:, np.newaxis]])  # Jacobian matrix
     Ed_covariance = J @ total_covariance @ J.T
 
     return Ed_covariance
@@ -102,7 +100,7 @@ def R_rs_covariance(L_Rref_covariance, R_rs, L_d, rho=0.028, R_ref=R_ref):
     J1 = 1/np.pi * R_ref * I * (1/L_d)
     J2 = -1/np.pi * R_ref * rho * I * (1/L_d)
     J3 = -1 * I * (R_rs / L_d)
-    JR = R_rs[:,np.newaxis] / R_ref
+    JR = R_rs[:, np.newaxis] / R_ref
 
     # Combine the parts of the Jacobian
     J = np.block([J1, J2, J3, JR])
@@ -258,7 +256,7 @@ def effective_bandwidth(calibration_folder):
     wavelengths = spectral_response[0]
     RGB_responses = spectral_response[1:4]
 
-    RGB_responses_normalised = RGB_responses / RGB_responses.max(axis=1)[:,np.newaxis]
+    RGB_responses_normalised = RGB_responses / RGB_responses.max(axis=1)[:, np.newaxis]
     effective_bandwidths = np.trapz(RGB_responses_normalised, x=wavelengths, axis=1)
 
     return effective_bandwidths
@@ -457,7 +455,7 @@ def _convert_matrix_to_uncertainties_column(covariance_matrices, labels):
     assert len(labels) == len(covariance_matrices[0]), f"Number of labels (len{labels}) does not match matrix dimensionality ({len(covariance_matrices[0])})."
     diagonals = np.array([np.diag(matrix) for matrix in covariance_matrices])
     uncertainties = np.sqrt(diagonals)
-    columns = [table.Column(name=label, data=uncertainties[:,j]) for j, label in enumerate(labels)]
+    columns = [table.Column(name=label, data=uncertainties[:, j]) for j, label in enumerate(labels)]
     return columns
 
 

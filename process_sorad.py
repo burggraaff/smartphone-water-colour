@@ -7,13 +7,12 @@ Command line inputs:
 Example:
     %run process_sorad.py water-colour-data/Balaton_20190703/SoRad/
 """
-import numpy as np
-from matplotlib import pyplot as plt
-from astropy import table
 from sys import argv
 from pathlib import Path
 from datetime import datetime
-
+import numpy as np
+from matplotlib import pyplot as plt
+from astropy import table
 from wk import hyperspectral as hy, plot
 
 # Get filenames

@@ -4,12 +4,8 @@ Many of these will be moved to SPECTACLE in the near future.
 """
 import numpy as np
 from scipy import odr
-from scipy.stats import sem as standard_error
 from robustats import weighted_median as weighted_median_original
-from spectacle.analyse import symmetric_percentiles
-from spectacle.general import RMS, weighted_mean, uncertainty_from_covariance, correlation_from_covariance
-from scipy.interpolate import interpn
-
+from spectacle.general import symmetric_percentiles, weighted_mean, uncertainty_from_covariance, correlation_from_covariance
 from . import colours
 
 mad_symbol = r"$\mathcal{M}$"

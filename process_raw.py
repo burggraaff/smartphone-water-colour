@@ -16,13 +16,9 @@ Example:
     %run process_raw.py C:/Users/Burggraaff/SPECTACLE_data/Samsung_Galaxy_S8/ water-colour-data/Balaton*
     %run process_raw.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_6S/ water-colour-data/Balaton* water-colour-data/NZ/* water-colour-data/Switzerland-Oli4/*
 """
-
-import numpy as np
-np.set_printoptions(precision=2)
-
 from sys import argv
+import numpy as np
 from spectacle import io, load_camera
-
 from wk import hydrocolor as hc, wacodi as wa, plot, statistics as stats
 
 # Get the data folder from the command line

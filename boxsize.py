@@ -18,16 +18,12 @@ Example:
     %run boxsize.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton*
     %run boxsize.py C:/Users/Burggraaff/SPECTACLE_data/Samsung_Galaxy_S8/ water-colour-data/Balaton*
 """
-
-import numpy as np
-np.set_printoptions(precision=2)
-
 from sys import argv
+import numpy as np
 from spectacle import io, load_camera
 from spectacle.plot import _rgbplot
 from matplotlib import pyplot as plt
-
-from wk import hydrocolor as hc, wacodi as wa, plot, statistics as stats
+from wk import hydrocolor as hc, plot
 
 # Get the data folder from the command line
 calibration_folder, *folders = io.path_from_input(argv)
@@ -111,7 +107,7 @@ for data_path in hc.generate_folders(folders, pattern):
     all_snr_per_image = np.moveaxis(all_snr, 0, -1)  # New shape: [images, RGBG channels, box sizes]
 
     # Normalise the means
-    all_differences_per_image = 100*(1 - all_mean_per_image[...,index_default,np.newaxis]/all_mean_per_image)
+    all_differences_per_image = 100*(1 - all_mean_per_image[..., index_default, np.newaxis]/all_mean_per_image)
 
     # Plot the result
     # Plot Mean in one column, SNR in next
@@ -122,10 +118,10 @@ for data_path in hc.generate_folders(folders, pattern):
         _rgbplot(boxsizes, snrs, func=ax_row[1].plot, lw=3)
         for ax in ax_row:
             plot._textbox(ax, label)
-    for ax in axs[:,0]:
+    for ax in axs[:, 0]:
         ax.set_ylabel("Difference [%]")
         ax.set_ylim(-5, 5)
-    for ax in axs[:,1]:
+    for ax in axs[:, 1]:
         ax.set_ylabel("SNR")
         ax.yaxis.set_label_position("right")
         ax.yaxis.tick_right()
