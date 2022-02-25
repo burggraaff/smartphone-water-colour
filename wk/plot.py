@@ -342,7 +342,7 @@ def _plot_settings_R_rs(ax, title=None):
     ax.set_ylim(0, 0.07)
     ax.set_xticks(np.arange(300, 1000, 100))
     ax.set_xlim(350, 850)
-    ax.grid()
+    ax.grid(True)
 
 
 @new_or_existing_figure
@@ -422,17 +422,6 @@ def plot_R_rs_RGB(ax, RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err
     _plot_settings_R_rs(ax, title=title)
 
 
-def _correlation_plot_gridlines(ax=None):
-    """
-    Add grid lines to a plot.
-    """
-    # Get the active Axes object if none was given
-    if ax is None:
-        ax = plt.gca()
-
-    ax.grid()
-
-
 def _plot_diagonal(ax=None, **kwargs):
     """
     Add the y=x line to a plot.
@@ -509,7 +498,7 @@ def correlation_plot_simple(ax, x, y, xerr=None, yerr=None, xlabel="", ylabel=""
         ax.set_ylim(ymax=ymax)
 
     # Grid lines and y=x diagonal
-    _correlation_plot_gridlines(ax)
+    ax.grid(True)
     _plot_diagonal(ax)
 
     # If wanted, perform a linear regression and plot the result
@@ -622,7 +611,7 @@ def correlation_plot_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrl
     _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=xerrlabel, yerrlabel=yerrlabel, regression=regression, **kwargs)
 
     # y=x line and grid lines
-    _correlation_plot_gridlines(ax)
+    ax.grid(True)
 
     # Labels
     ax.set_xlabel(xlabel)
@@ -650,7 +639,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
 
     # Plot the x=y line (top) and horizontal (bottom)
     for ax in axs:
-        _correlation_plot_gridlines(ax)
+        ax.grid(True)
     _plot_diagonal(axs[0])
     axs[1].axhline(0, c='k')
 
@@ -886,7 +875,7 @@ def correlation_plot_bandratios_combined(ax, x, y, datalabel="R_rs", errlabel=No
     ax.set_aspect("equal")
     ax.locator_params(nbins=4)
     ax.legend(*([x[i] for i in [3, 1, 2, 0]] for x in ax.get_legend_handles_labels()))
-    _correlation_plot_gridlines(ax)
+    ax.grid(True)
     _plot_diagonal(ax)
 
 
