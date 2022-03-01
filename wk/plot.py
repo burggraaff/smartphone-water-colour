@@ -2,6 +2,7 @@
 Functions and variables used for plotting data and results.
 Some of these will be moved to SPECTACLE in the near future.
 """
+import functools
 from matplotlib import pyplot as plt, transforms, patheffects as pe, rcParams
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Ellipse
@@ -56,6 +57,7 @@ def new_or_existing_figure(func):
     Checks if an Axes object was given - if yes, use that - if no, create a new one.
     In the "no" case, save/show the resulting plot at the end.
     """
+    @functools.wraps(func)
     def newfunc(*args, ax=None, saveto=None, title=None, figsize=(col1, col1), figure_kwargs={}, **kwargs):
         # If no Axes object was given, make a new one
         if ax is None:
@@ -66,7 +68,7 @@ def new_or_existing_figure(func):
             newaxes = False
 
         # Plot everything as normal
-        func(ax, *args, **kwargs)
+        func(*args, ax=ax, **kwargs)
 
         # If this is a new plot, add a title and save/show the result
         if newaxes:
@@ -346,7 +348,7 @@ def _plot_settings_R_rs(ax, title=None):
 
 
 @new_or_existing_figure
-def plot_reference_spectrum(ax, wavelengths, spectrum, uncertainty=None, *, title=None, saveto=None, facecolor="k", **kwargs):
+def plot_reference_spectrum(wavelengths, spectrum, uncertainty=None, *, facecolor="k", title=None, ax=None, saveto=None, **kwargs):
     """
     Plot a hyperspectral reference spectrum, with uncertainties if available.
     """
@@ -359,7 +361,7 @@ def plot_reference_spectrum(ax, wavelengths, spectrum, uncertainty=None, *, titl
 
 
 @new_or_existing_figure
-def plot_R_rs_multi(ax, spectrums, labels=None, title=None, saveto=None, **kwargs):
+def plot_R_rs_multi(spectrums, labels=None, title=None, ax=None, saveto=None, **kwargs):
     """
     Plot multiple hyperspectral reference spectra in one panel.
     """
@@ -378,7 +380,7 @@ def plot_R_rs_multi(ax, spectrums, labels=None, title=None, saveto=None, **kwarg
 
 
 @new_or_existing_figure
-def plot_hyperspectral_dataset(ax, data, parameter="R_rs", *, title=None, saveto=None, facecolor="k", alpha=0.05, **kwargs):
+def plot_hyperspectral_dataset(data, parameter="R_rs", *, title=None, facecolor="k", alpha=0.05, ax=None, saveto=None, **kwargs):
     """
     Plot an entire hyperspectral dataset into one panel, using transparency.
     """
@@ -395,7 +397,7 @@ def plot_hyperspectral_dataset(ax, data, parameter="R_rs", *, title=None, saveto
 
 
 @new_or_existing_figure
-def plot_R_rs_RGB(ax, RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err=None, reference=None, title=None, saveto=None):
+def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err=None, reference=None, title=None, ax=None, saveto=None):
     """
     Plot RGB R_rs data, with an optional hyperspectral reference.
     `reference` must contain 2 or 3 elements: [wavelengths, R_rs, R_rs_uncertainty (optional)]
@@ -475,7 +477,7 @@ def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, fontsize=9, **kwargs):
 
 
 @new_or_existing_figure
-def correlation_plot_simple(ax, x, y, xerr=None, yerr=None, xlabel="", ylabel="", equal_aspect=False, minzero=False, setmax=True, regression=False, saveto=None):
+def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", equal_aspect=False, minzero=False, setmax=True, regression=False, ax=None, saveto=None):
     """
     Simple correlation plot between iterables `x` and `y`.
     """
@@ -601,7 +603,7 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
 
 
 @new_or_existing_figure
-def correlation_plot_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", saveto=None, **kwargs):
+def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, xlabel="x", ylabel="y", regression="none", ax=None, saveto=None, **kwargs):
     """
     Make a correlation plot between two tables `x` and `y`.
     Use the labels `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
@@ -721,7 +723,7 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
 
 
 @new_or_existing_figure
-def correlation_plot_radiance_combined(ax, x, y, keys=["Lu", "Lsky", "Ld"], xlabel="x", ylabel="y", regression="all", compare_directly=False, saveto=None):
+def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="x", ylabel="y", regression="all", compare_directly=False, ax=None, saveto=None):
     """
     Make a single-panel plot comparing the combined radiances from x and y.
     Do a combined linear regression and plot the result.
@@ -826,7 +828,7 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity=keys_
 
 
 @new_or_existing_figure
-def correlation_plot_bandratios_combined(ax, x, y, datalabel="R_rs", errlabel=None, quantity=keys_latex["R_rs"], xlabel="", ylabel="", saveto=None):
+def correlation_plot_bandratios_combined(x, y, datalabel="R_rs", errlabel=None, quantity=keys_latex["R_rs"], xlabel="", ylabel="", ax=None, saveto=None):
     """
     Make a correlation plot for each of the band ratios, in a single panel.
     """
@@ -977,7 +979,7 @@ def _confidence_ellipse(center, covariance, ax, covariance_scale=1, **kwargs):
 
 
 @new_or_existing_figure
-def plot_xy_on_gamut_covariance(ax, xy, xy_covariance, covariance_scale=1, saveto=None):
+def plot_xy_on_gamut_covariance(xy, xy_covariance, covariance_scale=1, ax=None, saveto=None):
     """
     Plot xy coordinates on the gamut including their covariance ellipse.
     """
@@ -990,7 +992,7 @@ def plot_xy_on_gamut_covariance(ax, xy, xy_covariance, covariance_scale=1, savet
 
 
 @new_or_existing_figure
-def correlation_plot_hue_angle_and_ForelUle(ax, x, y, xerr=None, yerr=None, xlabel="", ylabel="", saveto=None):
+def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax=None, saveto=None):
     """
     Make a correlation plot of hue angles (x and y).
     Draw the equivalent Forel-Ule indices on the grid for reference.
