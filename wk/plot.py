@@ -11,7 +11,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.interpolate import interpn
 import numpy as np
 from colorio._tools import plot_flat_gamut
-from spectacle.plot import RGB_OkabeIto, _saveshow, cmaps
+from spectacle.plot import RGB_OkabeIto, save_or_show, cmaps
 from . import statistics as stats, colours, hydrocolor as hc, hyperspectral as hy
 from .wacodi import FU_hueangles, compare_FU_matches_from_hue_angle
 
@@ -76,7 +76,7 @@ def new_or_existing_figure(func):
         # If this is a new plot, add a title and save/show the result
         if newaxes:
             ax.set_title(title)
-            _saveshow(saveto, dpi=300)
+            save_or_show(saveto, dpi=300)
 
     return newfunc
 
@@ -137,7 +137,7 @@ def plot_three_images(images, axs=None, saveto=None):
 
     # If desired, save the result
     if newaxes:
-        _saveshow(saveto)
+        save_or_show(saveto)
 
 
 def _plot_triple(func):
@@ -180,7 +180,7 @@ def plot_image_small(image, vmin=0, vmax=None, saveto=None):
     ax.tick_params(bottom=False, labelbottom=False, left=False, labelleft=False)
 
     # Show
-    _saveshow(saveto)
+    save_or_show(saveto)
 
 
 @_plot_triple
@@ -215,7 +215,7 @@ def plot_image_small_RGBG2(images_RGBG2, camera, vmin=0, vmax=None, equal_aspect
 
     # Show
     fig.subplots_adjust(wspace=0, hspace=0)
-    _saveshow(saveto)
+    save_or_show(saveto)
 
 
 @_plot_triple
@@ -244,7 +244,7 @@ def histogram_small(image_RGBG2, vmin=0, vmax=None, nrbins=51, saveto=None):
     ax.tick_params(left=False, labelleft=False)
 
     # Show
-    _saveshow(saveto)
+    save_or_show(saveto)
 
 
 def histogram_raw(water_data, sky_data, card_data, saveto=None, camera=None):
@@ -292,7 +292,7 @@ def histogram_raw(water_data, sky_data, card_data, saveto=None, camera=None):
     _histogram_axis_settings(axs, ["Image", "Raw", "Bias-corrected", "Flat-fielded", "Central slice"])
 
     # Save the result
-    _saveshow(saveto)
+    save_or_show(saveto)
     if saveto is not None:
         print(f"Saved statistics plot to `{saveto}`")
 
@@ -328,7 +328,7 @@ def histogram_jpeg(water_data, sky_data, card_data, saveto=None, normalisation=2
     _histogram_axis_settings(axs, ["Image", "JPEG (full)", "Central slice"])
 
     # Save the result
-    _saveshow(saveto)
+    save_or_show(saveto)
     if saveto is not None:
         print(f"Saved statistics plot to `{saveto}`")
 
@@ -675,7 +675,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
 
     # Save the result
     fig.subplots_adjust(hspace=0.1)
-    _saveshow(saveto)
+    save_or_show(saveto)
 
 
 # Shortcuts for RGB and band ratio R_rs plots
@@ -742,7 +742,7 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
     axs[0].set_title(title)
 
     # Save the result
-    _saveshow(saveto)
+    save_or_show(saveto)
 
 
 @new_or_existing_figure
@@ -850,7 +850,7 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity=keys_
     axs[0].set_title(title)
 
     # Save the result
-    _saveshow(saveto)
+    save_or_show(saveto)
 
 
 def density_scatter(x, y, ax=None, sort=True, bins=20, **kwargs):
@@ -928,7 +928,7 @@ def plot_correlation_matrix_radiance(covariance_matrix, x1, y1, x2, y2, x1label=
     fig.align_ylabels(axs[1:])
 
     # Save the result
-    _saveshow(saveto, dpi=600)
+    save_or_show(saveto, dpi=600)
 
 
 def _confidence_ellipse(center, covariance, ax, covariance_scale=1, **kwargs):
@@ -1058,4 +1058,4 @@ def compare_hyperspectral_datasets(datasets, parameter="R_rs", labels=None, save
         axs[1].tick_params(axis="y", left=False, labelleft=False)
 
     # Save/show the result
-    _saveshow(saveto, dpi=300)
+    save_or_show(saveto, dpi=300)
