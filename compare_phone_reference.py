@@ -162,11 +162,11 @@ plot.correlation_plot_RGB(data_reference, data_phone, "Ed ({c})", "Ed ({c})", xe
 
 # Correlation plot: Remote sensing reflectance
 label_R_rs = plot.keys_latex["R_rs"]
-plot.correlation_plot_RGB_equal(data_reference, data_phone, "R_rs", errlabel="R_rs_err", xlabel=f"{reference} {label_R_rs} {plot.persr}", ylabel=f"{cameralabel}\n{label_R_rs} {plot.persr}", regression="all", difference_unit=plot.persr, saveto=f"{saveto_base}_R_rs.pdf")
+plot.correlation_plot_R_rs(data_reference, data_phone, xlabel=f"{reference} {label_R_rs} {plot.persr}", ylabel=f"{cameralabel}\n{label_R_rs} {plot.persr}", saveto=f"{saveto_base}_R_rs.pdf")
 
 # Correlation plot: Band ratios
 plot.correlation_plot_bands(data_reference, data_phone, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_band_ratio.pdf")
-plot.correlation_plot_bandratios_combined(data_reference, data_phone, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_band_ratio_combined.pdf")
+plot.correlation_plot_bandratios_combined(data_reference, data_phone, xlabel=f"{reference} {label_R_rs} band ratio", ylabel=f"{cameralabel} {label_R_rs} band ratio", saveto=f"{saveto_base}_band_ratio_combined.pdf")
 
 # Correlation plot: hue angle and Forel-Ule index
 plot.correlation_plot_hue_angle_and_ForelUle(data_reference["R_rs (hue)"], data_phone["R_rs (hue)"], xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_hueangle_ForelUle.pdf")

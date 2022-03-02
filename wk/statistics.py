@@ -89,24 +89,25 @@ def ravel_table(data, key, loop_keys=colours):
     return np.ravel([data[key.format(c=c)] for c in loop_keys])
 
 
-def statistic_RGB(func, data1, data2, xdatalabel, ydatalabel):
+def statistic_RGB(func, data1, data2, xdatalabel, ydatalabel, loop_keys=colours):
     """
     Calculate a statistic (e.g. MAD, MAPD, RMSE) in a given parameter `param`, e.g. Rrs, between two Astropy data tables.
     Assumes the same key structure in each table, namely `{param} ({c})` where c is R, G, or B.
 
     Returns the statistic overall and per band.
     """
-    stat_RGB = np.array([func(data1[xdatalabel.format(c=c)], data2[ydatalabel.format(c=c)]) for c in colours])
-    data1_combined = ravel_table(data1, xdatalabel, colours)
-    data2_combined = ravel_table(data2, ydatalabel, colours)
+    stat_RGB = np.array([func(data1[xdatalabel.format(c=c)], data2[ydatalabel.format(c=c)]) for c in loop_keys])
+    data1_combined = ravel_table(data1, xdatalabel, loop_keys)
+    data2_combined = ravel_table(data2, ydatalabel, loop_keys)
     stat_all = func(data1_combined, data2_combined)
 
     return stat_all, stat_RGB
 
 
-def residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None):
+def residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, loop_keys=colours):
     """
     Calculate the column-wise RGB residuals between two tables for given labels `xdatalabel` and `ydatalabel` (e.g. "R_rs ({c})").
+    {c} is filled in with every value of `loop_keys` - by default this is `colours` (RGB) but it can also be something else, e.g. the band ratios.
     If uncertainties are included, propagate them (sum of squares).
     Returns a new table with differences.
     """
@@ -118,7 +119,7 @@ def residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None)
     result.remove_columns(keys_not_overlapping)
 
     # Loop over the keys and update them to include x-y instead of just x
-    for c in colours:
+    for c in loop_keys:
         result[xdatalabel.format(c=c)] = y[ydatalabel.format(c=c)] - x[xdatalabel.format(c=c)]
         if xerrlabel and yerrlabel:
             result[xerrlabel.format(c=c)] = np.sqrt(x[xerrlabel.format(c=c)]**2 + y[yerrlabel.format(c=c)]**2)

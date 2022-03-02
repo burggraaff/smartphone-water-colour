@@ -35,10 +35,13 @@ keys_latex = {"Lu": "$L_u$", "Lsky": "$L_{sky}$", "Ld": "$L_d$", "Ed": "$E_d$", 
 # Dictionary mapping keys to marker symbols
 markers = {"Lu": "o", "Lsky": "v", "Ld": "s"}
 
+# Colours for band ratios
+bandratio_plotcolours = [RGB_OkabeIto[i[0]] for i in hc.bandratio_indices]
+
 # bbox for text
 bbox_text = {"boxstyle": "round", "facecolor": "white"}
 
-# Frontiers column widths - OSA are very similar
+# Frontiers column widths - Applied Optics's are very similar
 col1 = 85/25.4
 col2 = 180/25.4
 smallpanel = (2, 1.5)
@@ -519,13 +522,14 @@ def correlation_plot_simple(x, y, xerr=None, yerr=None, xlabel="", ylabel="", eq
     ax.set_ylabel(ylabel)
 
 
-def _axis_limit_RGB(data, key):
+def _axis_limit_RGB(data, key, loop_keys=colours):
     """
     Get axis limits for RGB data, based on the maximum value in those data.
     `data` is a table, `key` is an RGB-aware key like "L ({c})" for radiance.
     """
-    xmin = 0
-    xmax = 1.05*np.nanmax(stats.ravel_table(data, key))
+    data_all = stats.ravel_table(data, key, loop_keys=loop_keys)
+    xmin = 0.95*np.nanmin(data_all)
+    xmax = 1.05*np.nanmax(data_all)
     return (xmin, xmax)
 
 
@@ -537,7 +541,7 @@ def force_equal_ticks(ax):
     ax.set_xticks(ax.get_yticks())
 
 
-def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, setmax=True, equal_aspect=False, regression="none", marker="o", **kwargs):
+def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None, loop_keys=colours, plot_colours=RGB_OkabeIto, setmax=True, equal_aspect=False, regression="none", markers="ooo", **kwargs):
     """
     Plot data into a correlation plot.
     Helper function.
@@ -550,7 +554,7 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
     regression = regression.lower()
 
     # Loop over the colour bands and plot the relevant data points
-    for c, pc in zip(colours, RGB_OkabeIto):
+    for c, pc, marker in zip(loop_keys, plot_colours, markers):
         try:
             xdata = x[xdatalabel.format(c=c)]
             ydata = y[ydatalabel.format(c=c)]
@@ -568,7 +572,7 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
             yerr = y[yerrlabel.format(c=c)]
         except (KeyError, AttributeError):
             yerr = None
-        ax.errorbar(xdata, ydata, xerr=xerr, yerr=yerr, color=pc, marker=marker, linestyle="", **kwargs)
+        ax.errorbar(xdata, ydata, xerr=xerr, yerr=yerr, color=pc, marker=marker, linestyle="", label=c, **kwargs)
 
         # If wanted, perform a linear regression
         if regression == "rgb":
@@ -576,30 +580,31 @@ def _correlation_plot_errorbars_RGB(ax, x, y, xdatalabel, ydatalabel, xerrlabel=
 
     # If wanted, perform a linear regression and plot the result
     if regression == "all":
-        xdata, ydata = stats.ravel_table(x, xdatalabel), stats.ravel_table(y, ydatalabel)
+        xdata, ydata = stats.ravel_table(x, xdatalabel, loop_keys=loop_keys), stats.ravel_table(y, ydatalabel, loop_keys=loop_keys)
         try:
-            xerr = stats.ravel_table(x, xerrlabel)
+            xerr = stats.ravel_table(x, xerrlabel, loop_keys=loop_keys)
         except (KeyError, AttributeError):
             xerr = None
         try:
-            yerr = stats.ravel_table(y, yerrlabel)
+            yerr = stats.ravel_table(y, yerrlabel, loop_keys=loop_keys)
         except (KeyError, AttributeError):
             yerr = None
 
         func = stats.linear_regression(xdata, ydata, xerr, yerr)[2]
-        _plot_linear_regression(func, ax)
+        _plot_linear_regression(func, ax, label="Best fit")
 
     elif regression == "rgb":
         _plot_linear_regression_RGB(regression_functions, ax)
 
     if setmax:
-        xmax = _axis_limit_RGB(x, xdatalabel)[1]
-        ymax = _axis_limit_RGB(y, ydatalabel)[1]
+        xmin, xmax = _axis_limit_RGB(x, xdatalabel, loop_keys=loop_keys)
+        ymin, ymax = _axis_limit_RGB(y, ydatalabel, loop_keys=loop_keys)
         if equal_aspect:
+            xmin = ymin = min(xmin, ymin)
             xmax = ymax = max(xmax, ymax)
             ax.set_aspect("equal")
-        ax.set_xlim(0, 1.05*xmax)
-        ax.set_ylim(0, 1.05*ymax)
+        ax.set_xlim(xmin, xmax)
+        ax.set_ylim(ymin, ymax)
 
 
 @new_or_existing_figure
@@ -620,24 +625,25 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
     ax.set_ylabel(ylabel)
 
 
-def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", regression="none", difference_unit="", saveto=None):
+def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", regression="none", difference_unit="", legend=False, loop_keys=colours, through_origin=True, saveto=None, **kwargs):
     """
     Make a correlation plot between two tables `x` and `y`.
     Use the labels `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
+    `loop_keys` can be used to iterate over something other than RGB, for example band ratio labels.
     For example, if `xlabel` == `f"R_rs ({c})"` then the columns "R_rs (R)", "R_rs (G)", and "R_rs (B)" will be used.
     """
     # Convert the data and error labels to RGB-aware ones
     datalabel, errlabel = [label + " ({c})" for label in (datalabel, errlabel)]
 
     # Calculate residuals
-    residuals = stats.residual_table(x, y, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel)
+    residuals = stats.residual_table(x, y, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel, loop_keys=loop_keys)
 
     # Create figure to hold plot
     fig, axs = plt.subplots(figsize=(col1, 5), nrows=2, sharex=True, gridspec_kw={"height_ratios": [3, 1]})
 
     # Plot in both panels
-    _correlation_plot_errorbars_RGB(axs[0], x, y, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel, equal_aspect=True, regression=regression)
-    _correlation_plot_errorbars_RGB(axs[1], x, residuals, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel, setmax=False)
+    _correlation_plot_errorbars_RGB(axs[0], x, y, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel, equal_aspect=True, regression=regression, loop_keys=loop_keys, **kwargs)
+    _correlation_plot_errorbars_RGB(axs[1], x, residuals, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel, setmax=False, loop_keys=loop_keys, **kwargs)
 
     # Plot the x=y line (top) and horizontal (bottom)
     for ax in axs:
@@ -645,20 +651,35 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     _plot_diagonal(axs[0])
     axs[1].axhline(0, c='k')
 
+    # If desired, change the lower limit on the x and y axes to go through the origin
+    if through_origin:
+        axs[0].set_xlim(xmin=0)
+        axs[0].set_ylim(ymin=0)
+
     # Add statistics in a text box
-    x_all, y_all = stats.ravel_table(x, datalabel), stats.ravel_table(y, datalabel)
-    x_err_all, y_err_all = stats.ravel_table(x, errlabel), stats.ravel_table(y, errlabel)
+    x_all, y_all = stats.ravel_table(x, datalabel, loop_keys=loop_keys), stats.ravel_table(y, datalabel, loop_keys=loop_keys)
+    x_err_all, y_err_all = stats.ravel_table(x, errlabel, loop_keys=loop_keys), stats.ravel_table(y, errlabel, loop_keys=loop_keys)
     _plot_statistics(x_all, y_all, axs[0], xerr=x_err_all, yerr=y_err_all)
+
+    # Add a legend if desired
+    if legend:
+        axs[0].legend()
 
     # Labels
     axs[1].set_xlabel(xlabel)
     axs[1].set_ylabel(f"Difference {difference_unit}")
     axs[0].set_ylabel(ylabel)
+    force_equal_ticks(axs[0])
     fig.align_ylabels(axs)
 
     # Save the result
     fig.subplots_adjust(hspace=0.1)
     _saveshow(saveto)
+
+
+# Shortcuts for RGB and band ratio R_rs plots
+correlation_plot_R_rs = functools.partial(correlation_plot_RGB_equal, datalabel="R_rs", errlabel="R_rs_err", regression="all", difference_unit=persr, legend=False, through_origin=True)
+correlation_plot_bandratios_combined = functools.partial(correlation_plot_RGB_equal, datalabel="R_rs", errlabel="R_rs_err", regression="all", difference_unit="", legend=True, loop_keys=hc.bandratio_labels, plot_colours=bandratio_plotcolours, through_origin=False, markers="ovs")
 
 
 def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", regression="all", saveto=None):
@@ -732,7 +753,7 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
     for key in keys:
         key_c = key + " ({c})"
         key_c_err = key + "_err ({c})"
-        correlation_plot_RGB(x, y, key_c, key_c, ax=ax, xerrlabel=key_c_err, yerrlabel=key_c_err, xlabel=xlabel, ylabel=ylabel, marker=markers[key])
+        correlation_plot_RGB(x, y, key_c, key_c, ax=ax, xerrlabel=key_c_err, yerrlabel=key_c_err, xlabel=xlabel, ylabel=ylabel, markers=markers[key]*3)
 
     # Generate a combined radiance table
     x_radiance, y_radiance = hc.get_radiances(x, keys), hc.get_radiances(y, keys)
@@ -764,8 +785,8 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
         _plot_linear_regression_RGB(funcs_linear, ax)
 
     # Plot settings
-    ax.set_xlim(_axis_limit_RGB(x_radiance, "L ({c})"))
-    ax.set_ylim(_axis_limit_RGB(y_radiance, "L ({c})"))
+    ax.set_xlim(0, _axis_limit_RGB(x_radiance, "L ({c})")[1])
+    ax.set_ylim(0, _axis_limit_RGB(y_radiance, "L ({c})")[1])
     ax.set_title(None)  # Remove default titles
     if compare_directly:  # Plot the y=x diagonal if x and y are to be compared directly
         _plot_diagonal(ax)
@@ -825,60 +846,6 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity=keys_
 
     # Save the result
     _saveshow(saveto)
-
-
-@new_or_existing_figure
-def correlation_plot_bandratios_combined(x, y, datalabel="R_rs", errlabel=None, quantity=keys_latex["R_rs"], xlabel="", ylabel="", ax=None, saveto=None):
-    """
-    Make a correlation plot for each of the band ratios, in a single panel.
-    """
-    # Get the data out of the input tables
-    datalabel_bandratio = hc.extend_keys_to_RGB(datalabel, hc.bandratio_labels)
-    xy_pairs = [(x[label], y[label]) for label in datalabel_bandratio]
-
-    # Get the uncertainties out of the input tables if available
-    if errlabel is not None:
-        errlabel_bandratio = hc.extend_keys_to_RGB(errlabel, hc.bandratio_labels)
-        xy_err_pairs = [(x[label], y[label]) for label in errlabel_bandratio]
-    else:
-        xy_err_pairs = [(None, None)] * 3
-
-    # Create marker style dictionaries for each colour combination
-    markers = ["o", "v", "s"]
-    marker_kwargs_shared = {"linestyle": ""}
-    marker_kwargs = [{"color": RGB_OkabeIto[top], "label": label, "marker": marker, **marker_kwargs_shared} for ((top, bottom), label, marker) in zip(hc.bandratio_indices, hc.bandratio_labels, markers)]
-
-    # Plot the data
-    for xy, xy_err, kwargs in zip(xy_pairs, xy_err_pairs, marker_kwargs):
-        ax.errorbar(*xy, xerr=xy_err[0], yerr=xy_err[1], **kwargs)
-
-    # Calculate statistics
-    x_combined = np.concatenate([x[label] for label in datalabel_bandratio])
-    y_combined = np.concatenate([y[label] for label in datalabel_bandratio])
-    if errlabel is not None:
-        x_err_combined = np.concatenate([x[label] for label in errlabel_bandratio])
-        y_err_combined = np.concatenate([y[label] for label in errlabel_bandratio])
-    else:
-        x_err_combined = y_err_combined = None
-    _plot_statistics(x_combined, y_combined, xerr=x_err_combined, yerr=y_err_combined, ax=ax)
-
-    # Linear regression
-    regression_label = "Best\nfit"# f"$y =$\n${params[1]:.3g} + {params[0]:.3g} x$"
-    params, _, func_linear = stats.linear_regression(x_combined, y_combined, x_err_combined, y_err_combined)
-    regression_line, = _plot_linear_regression(func_linear, ax, label=regression_label)
-
-    # Axis settings
-    data_combined = [element for sublist in xy_pairs for element in sublist]
-    axmin, axmax = np.nanmin(data_combined)-0.05, np.nanmax(data_combined)+0.05
-    ax.set_xlim(axmin, axmax)
-    ax.set_ylim(axmin, axmax)
-    ax.set_xlabel(f"{xlabel} {quantity}")
-    ax.set_ylabel(f"{ylabel} {quantity}")
-    ax.set_aspect("equal")
-    ax.locator_params(nbins=4)
-    ax.legend(*([x[i] for i in [3, 1, 2, 0]] for x in ax.get_legend_handles_labels()))
-    ax.grid(True)
-    _plot_diagonal(ax)
 
 
 def density_scatter(x, y, ax=None, sort=True, bins=20, **kwargs):

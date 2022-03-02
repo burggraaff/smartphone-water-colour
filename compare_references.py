@@ -128,15 +128,15 @@ print(f"Saved comparison table to `{saveto_data}`.")
 # Correlation plot: Radiances and irradiance
 plot.correlation_plot_radiance(data1, data2, keys=["Lu", "Lsky"], xlabel=reference1, ylabel=reference2, saveto=f"{saveto_base}_radiance.pdf")
 plot.correlation_plot_radiance_combined(data1, data2, keys=["Lu", "Lsky"], xlabel=f"{reference1}\n$L$ {plot.Wnmsr}", ylabel=f"{reference2} $L$ {plot.Wnmsr}", compare_directly=True, saveto=f"{saveto_base}_radiance_simple.pdf")
-plot.correlation_plot_RGB(data1, data2, "Ed ({c})", "Ed ({c})", xerrlabel="Ed_err ({c})", yerrlabel="Ed_err ({c})", xlabel=f"{reference1} {plot.keys_latex['Ed']} {plot.Wnm}", ylabel=f"{reference2} {plot.keys_latex['Ed']} {plot.Wnm}", regression="rgb", saveto=f"{saveto_base}_Ed.pdf")
+plot.correlation_plot_RGB(data1, data2, "Ed ({c})", "Ed ({c})", xerrlabel="Ed_err ({c})", yerrlabel="Ed_err ({c})", xlabel=f"{reference1} {plot.keys_latex['Ed']} {plot.Wnm}", ylabel=f"{reference2} {plot.keys_latex['Ed']} {plot.Wnm}", regression="all", saveto=f"{saveto_base}_Ed.pdf")
 
 # Correlation plot: Remote sensing reflectance
 label_R_rs = plot.keys_latex["R_rs"]
-plot.correlation_plot_RGB_equal(data1, data2, "R_rs", errlabel="R_rs_err", xlabel=f"{reference1} {label_R_rs} {plot.persr}", ylabel=f"{reference2} {label_R_rs} {plot.persr}", regression="all", difference_unit=plot.persr, saveto=f"{saveto_base}_R_rs.pdf")
+plot.correlation_plot_R_rs(data1, data2, xlabel=f"{reference1} {label_R_rs} {plot.persr}", ylabel=f"{reference2} {label_R_rs} {plot.persr}", saveto=f"{saveto_base}_R_rs.pdf")
 
 # Correlation plot: Band ratios
 plot.correlation_plot_bands(data1, data2, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=reference1, ylabel=reference2, saveto=f"{saveto_base}_band_ratio.pdf")
-plot.correlation_plot_bandratios_combined(data1, data2, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=reference1, ylabel=reference2, saveto=f"{saveto_base}_band_ratio_combined.pdf")
+plot.correlation_plot_bandratios_combined(data1, data2, xlabel=reference1, ylabel=reference2, saveto=f"{saveto_base}_band_ratio_combined.pdf")
 
 # Correlation plot: hue angle and Forel-Ule index
 plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=reference1, ylabel=reference2, saveto=f"{saveto_base}_hueangle_ForelUle.pdf")
