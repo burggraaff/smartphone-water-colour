@@ -156,17 +156,17 @@ table_combined.write(saveto_data, format="ascii.fast_csv", overwrite=True)
 print(f"Saved comparison table to `{saveto_data}`.")
 
 # Correlation plot: Radiances and irradiance
-plot.correlation_plot_radiance(data_reference, data_phone, keys=["Lu", "Lsky"], xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_radiance.pdf")
-plot.correlation_plot_radiance_combined(data_reference, data_phone, keys=["Lu", "Lsky"], xlabel=f"{reference}\n$L$ {plot.Wnmsr}", ylabel=f"{cameralabel} $L$ [a.u.]", saveto=f"{saveto_base}_radiance_simple.pdf")
-plot.correlation_plot_RGB(data_reference, data_phone, "Ed ({c})", "Ed ({c})", xerrlabel="Ed_err ({c})", yerrlabel="Ed_err ({c})", xlabel=f"{reference} {plot.keys_latex['Ed']} {plot.Wnm}", ylabel=f"{cameralabel} {plot.keys_latex['Ed']} {plot.ADUnm}", regression="rgb", saveto=f"{saveto_base}_Ed.pdf")
+plot.correlation_plot_radiance(data_reference, data_phone, keys=["Lu", "Lsky"], xlabel=reference, ylabel=cameralabel, title="Smartphone-Reference\nradiance comparison", saveto=f"{saveto_base}_radiance.pdf")
+plot.correlation_plot_radiance_combined(data_reference, data_phone, keys=["Lu", "Lsky"], xlabel=f"{reference} $L$ {plot.Wnmsr}", ylabel=f"{cameralabel} $L$ [a.u.]", title="Smartphone-Reference\nradiance comparison", saveto=f"{saveto_base}_radiance_simple.pdf")
+plot.correlation_plot_RGB(data_reference, data_phone, "Ed ({c})", "Ed ({c})", xerrlabel="Ed_err ({c})", yerrlabel="Ed_err ({c})", xlabel=f"{reference} {plot.keys_latex['Ed']} {plot.Wnm}", ylabel=f"{cameralabel} {plot.keys_latex['Ed']} {plot.ADUnm}", title="Smartphone-Reference\nirradiance comparison", regression="rgb", saveto=f"{saveto_base}_Ed.pdf")
 
 # Correlation plot: Remote sensing reflectance
 label_R_rs = plot.keys_latex["R_rs"]
-plot.correlation_plot_R_rs(data_reference, data_phone, xlabel=f"{reference} {label_R_rs} {plot.persr}", ylabel=f"{cameralabel}\n{label_R_rs} {plot.persr}", saveto=f"{saveto_base}_R_rs.pdf")
+plot.correlation_plot_R_rs(data_reference, data_phone, xlabel=f"{reference} {label_R_rs} {plot.persr}", ylabel=f"{cameralabel}\n{label_R_rs} {plot.persr}", title="Smartphone-Reference\nreflectance comparison", saveto=f"{saveto_base}_R_rs.pdf")
 
 # Correlation plot: Band ratios
-plot.correlation_plot_bands(data_reference, data_phone, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_band_ratio.pdf")
-plot.correlation_plot_bandratios_combined(data_reference, data_phone, xlabel=f"{reference} {label_R_rs} band ratio", ylabel=f"{cameralabel} {label_R_rs} band ratio", saveto=f"{saveto_base}_band_ratio_combined.pdf")
+plot.correlation_plot_bands(data_reference, data_phone, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=reference, ylabel=cameralabel, title="Smartphone-Reference\nband ratio comparison", saveto=f"{saveto_base}_band_ratio.pdf")
+plot.correlation_plot_bandratios_combined(data_reference, data_phone, xlabel=f"{reference} {label_R_rs} band ratio", ylabel=f"{cameralabel} {label_R_rs}\nband ratio", title="Smartphone-Reference\nband ratio comparison", saveto=f"{saveto_base}_band_ratio_combined.pdf")
 
 # Correlation plot: hue angle and Forel-Ule index
-plot.correlation_plot_hue_angle_and_ForelUle(data_reference["R_rs (hue)"], data_phone["R_rs (hue)"], xlabel=reference, ylabel=cameralabel, saveto=f"{saveto_base}_hueangle_ForelUle.pdf")
+plot.correlation_plot_hue_angle_and_ForelUle(data_reference["R_rs (hue)"], data_phone["R_rs (hue)"], xlabel=reference, ylabel=cameralabel, title="Smartphone-Reference\nwater color comparison", saveto=f"{saveto_base}_hueangle_ForelUle.pdf")

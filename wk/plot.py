@@ -625,7 +625,7 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
     ax.set_ylabel(ylabel)
 
 
-def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", regression="none", difference_unit="", legend=False, loop_keys=colours, through_origin=True, saveto=None, **kwargs):
+def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", title=None, regression="none", difference_unit="", legend=False, loop_keys=colours, through_origin=True, saveto=None, **kwargs):
     """
     Make a correlation plot between two tables `x` and `y`.
     Use the labels `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
@@ -669,6 +669,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     axs[1].set_xlabel(xlabel)
     axs[1].set_ylabel(f"Difference {difference_unit}")
     axs[0].set_ylabel(ylabel)
+    axs[0].set_title(title)
     force_equal_ticks(axs[0])
     fig.align_ylabels(axs)
 
@@ -682,7 +683,7 @@ correlation_plot_R_rs = functools.partial(correlation_plot_RGB_equal, datalabel=
 correlation_plot_bandratios_combined = functools.partial(correlation_plot_RGB_equal, datalabel="R_rs", errlabel="R_rs_err", regression="all", difference_unit="", legend=True, loop_keys=hc.bandratio_labels, plot_colours=bandratio_plotcolours, through_origin=False, markers="ovs")
 
 
-def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", regression="all", saveto=None):
+def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", title=None, regression="all", saveto=None):
     """
     Make a multi-panel plot comparing radiances.
     Each panel represents one of the keys, for example upwelling, sky, and downwelling radiance.
@@ -738,6 +739,7 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
     for ax, key in zip(axs, keys):
         ax.set_title(None)  # Remove default titles
         _textbox(ax, keys_latex[key], x=0.85, y=0.15, multialignment="right")
+    axs[0].set_title(title)
 
     # Save the result
     _saveshow(saveto)
@@ -801,7 +803,7 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
     ax.legend(scatters, labels, numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)})
 
 
-def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity=keys_latex["R_rs"], xlabel="", ylabel="", saveto=None):
+def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity=keys_latex["R_rs"], xlabel="", ylabel="", title=None, saveto=None):
     """
     Make a correlation plot for each of the RGB band ratios.
     """
@@ -843,6 +845,9 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity=keys_
     for ax, xy, xy_err in zip(axs, xy_pairs, xy_err_pairs):
         ax.set_title("")
         _plot_statistics(*xy, ax, xerr=xy_err[0], yerr=xy_err[1])
+
+    # Set the title if wanted
+    axs[0].set_title(title)
 
     # Save the result
     _saveshow(saveto)

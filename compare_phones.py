@@ -49,16 +49,16 @@ data1 = table.vstack(data1)
 data2 = table.vstack(data2)
 
 # Correlation plot: Radiances
-plot.correlation_plot_radiance(data1, data2, xlabel=phone1_name, ylabel=phone2_name, saveto=f"{saveto_base}_radiance.pdf")
-plot.correlation_plot_radiance_combined(data1, data2, xlabel=f"{phone1_name} $L$ [a.u.]", ylabel=f"{phone2_name} $L$ [a.u.]", saveto=f"{saveto_base}_radiance_simple.pdf")
+plot.correlation_plot_radiance(data1, data2, xlabel=phone1_name, ylabel=phone2_name, title="Smartphone radiance comparison", saveto=f"{saveto_base}_radiance.pdf")
+plot.correlation_plot_radiance_combined(data1, data2, xlabel=f"{phone1_name} $L$ [a.u.]", ylabel=f"{phone2_name} $L$ [a.u.]", title="Smartphone radiance comparison", saveto=f"{saveto_base}_radiance_simple.pdf")
 
 # Correlation plot: Remote sensing reflectance
 label_R_rs = plot.keys_latex["R_rs"]
-plot.correlation_plot_R_rs(data1, data2, xlabel=f"{phone1_name} {label_R_rs} {plot.persr}", ylabel=f"{phone2_name}\n{label_R_rs} {plot.persr}", saveto=f"{saveto_base}_R_rs.pdf")
+plot.correlation_plot_R_rs(data1, data2, xlabel=f"{phone1_name} {label_R_rs} {plot.persr}", ylabel=f"{phone2_name}\n{label_R_rs} {plot.persr}", title="Smartphone reflectance comparison", saveto=f"{saveto_base}_R_rs.pdf")
 
 # Correlation plot: Band ratios
-plot.correlation_plot_bands(data1, data2, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=phone1_name, ylabel=phone2_name, saveto=f"{saveto_base}_band_ratio.pdf")
-plot.correlation_plot_bandratios_combined(data1, data2, xlabel=f"{phone1_name} {label_R_rs} band ratio", ylabel=f"{phone2_name}\n{label_R_rs} band ratio", saveto=f"{saveto_base}_band_ratio_combined.pdf")
+plot.correlation_plot_bands(data1, data2, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=phone1_name, ylabel=phone2_name, title="Smartphone\nband ratio comparison", saveto=f"{saveto_base}_band_ratio.pdf")
+plot.correlation_plot_bandratios_combined(data1, data2, xlabel=f"{phone1_name} {label_R_rs} band ratio", ylabel=f"{phone2_name}\n{label_R_rs} band ratio", title="Smartphone band ratio comparison", saveto=f"{saveto_base}_band_ratio_combined.pdf")
 
 # Correlation plot: hue angle and Forel-Ule index
-plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=f"{phone1_name} {label_R_rs}", ylabel=f"{phone2_name} {label_R_rs}", saveto=f"{saveto_base}_hueangle_ForelUle.pdf")
+plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=f"{phone1_name} {label_R_rs}", ylabel=f"{phone2_name} {label_R_rs}", title="Smartphone water color comparison", saveto=f"{saveto_base}_hueangle_ForelUle.pdf")
