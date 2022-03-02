@@ -76,7 +76,7 @@ ax2.set_ylim(np.array(ax1.get_ylim())/5)
 ax2.set_ylabel("Uncertainty [FU]")
 
 # Save/show the result
-plot._saveshow(f"{saveto_base}_relative_uncertainty.pdf")
+plot.save_or_show(f"{saveto_base}_relative_uncertainty.pdf")
 
 # Calculate and print statistics
 pct5, pct95 = symmetric_percentiles(data_RGB, percent=5, axis=0)
