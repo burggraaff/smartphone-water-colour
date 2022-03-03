@@ -61,7 +61,7 @@ def new_or_existing_figure(func):
     In the "no" case, save/show the resulting plot at the end.
     """
     @functools.wraps(func)
-    def newfunc(*args, ax=None, saveto=None, title=None, figsize=(col1, col1), figure_kwargs={}, **kwargs):
+    def newfunc(*args, ax=None, title=None, figsize=(col1, col1), figure_kwargs={}, saveto=None, dpi=300, bbox_inches="tight", **kwargs):
         # If no Axes object was given, make a new one
         if ax is None:
             newaxes = True
@@ -76,7 +76,7 @@ def new_or_existing_figure(func):
         # If this is a new plot, add a title and save/show the result
         if newaxes:
             ax.set_title(title)
-            save_or_show(saveto, dpi=300)
+            save_or_show(saveto, dpi=dpi, bbox_inches=bbox_inches)
 
     return newfunc
 
