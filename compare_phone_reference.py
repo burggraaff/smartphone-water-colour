@@ -11,8 +11,8 @@ Example:
     %run compare_phone_reference.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/balaton_iPhone_SE_raw_18pct.csv water-colour-data/wisp_Balaton_20190703_20190705_table.csv
     %run compare_phone_reference.py C:/Users/Burggraaff/SPECTACLE_data/Samsung_Galaxy_S8/ water-colour-data/balaton_Samsung_Galaxy_S8_raw_18pct.csv water-colour-data/So-Rad_Balaton2019.csv
     %run compare_phone_reference.py C:/Users/Burggraaff/SPECTACLE_data/Samsung_Galaxy_S8/ water-colour-data/balaton_Samsung_Galaxy_S8_raw_18pct.csv water-colour-data/wisp_Balaton_20190703_20190705_table.csv
-    %run compare_phone_reference.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_6S/ water-colour-data/balaton_iPhone_6S_raw_18pct_18pct.csv water-colour-data/Data_Monocle2019_L5All_TriOS_table.csv
-    %run compare_phone_reference.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_6S/ water-colour-data/NZ_iPhone_6S_raw_18pct_18pct.csv water-colour-data/Trios_all_nz_south_L5statsPassed_TriOS_table.csv
+    %run compare_phone_reference.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_6S/ water-colour-data/balaton_iPhone_6S_raw_18pct.csv water-colour-data/Data_Monocle2019_L5All_TriOS_table.csv
+    %run compare_phone_reference.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_6S/ water-colour-data/NZ_iPhone_6S_raw_18pct.csv water-colour-data/Trios_all_nz_south_L5statsPassed_TriOS_table.csv
 """
 from sys import argv
 import numpy as np
