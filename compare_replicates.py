@@ -26,54 +26,58 @@ print(f"Analysing replicate data from {phone_name}. Results will be saved to '{s
 data = hc.table.Table.read(path_data)
 
 # Multiply the FU index values by a factor so they fit in the plot
-FU_scale_factor = 5.
+FU_scale_factor = 10.
 data["R_rs (FU)"] *= FU_scale_factor
-
-# Change the order of the band ratio labels for the plot
-roll_labels = lambda labels: list(np.roll(labels, 1))
-bandratio_labels = roll_labels(hc.bandratio_labels)
-bandratio_labels_latex = roll_labels(hc.bandratio_labels_latex)
 
 # Turn the data into an array matplotlib can understand
 keys = ["Lu", "Lsky", "Ld", "R_rs"]
-keys_RGB = hc.extend_keys_to_RGB(keys) + hc.extend_keys_to_RGB("R_rs", bandratio_labels+["hue", "FU"])
+keys_RGB = hc.extend_keys_to_RGB(keys) + hc.extend_keys_to_RGB("R_rs", hc.bandratio_labels+["hue", "FU"])
 data_RGB = hy.convert_columns_to_array(data, keys_RGB)
 data_max = data_RGB.max()
 ymax = 20.  # %/degree for all except FU
-ymax_FU = ymax/FU_scale_factor  # Scale the ymax by a factor for FU
 
 # Plot parameters
 # We want the boxes for the same parameter to be close together
 positions = np.ravel(np.array([0, 0.6, 1.2]) + 2.5*np.arange(5)[:, np.newaxis])
 positions = np.append(positions, positions[-1]+np.array([0.8, 1.6]))  # Positions for hue angle/FU
-labels = sum([["$R$", "$G$\n"+plot.keys_latex[key], "$B$"] for key in keys], start=[]) + bandratio_labels_latex + [r"$\alpha$", "FU"]
-labels[-4] += "\n" + plot.keys_latex["R_rs"]
+labels = sum([["$R$", "$G$\n"+plot.keys_latex[key], "$B$"] for key in keys], start=[]) + hc.bandratio_labels_latex + [r"$\alpha$", "FU"]
+# labels[-4] += "\n" + plot.keys_latex["R_rs"]
 colours = plot.RGB_OkabeIto * 4 + 5*["k"]
 
 # Make a box-plot of the relative uncertainties
-fig = plt.figure(figsize=(plot.col1, 0.5*plot.col1))
+fig, axs = plt.subplots(ncols=2, figsize=(plot.col2, 0.25*plot.col2), gridspec_kw={"width_ratios": [10, 2], "wspace": 0.25})
 
 # Plot the data
-bplot = plt.boxplot(data_RGB, positions=positions, labels=labels, sym=".", patch_artist=True)
+bplot = axs[0].boxplot(data_RGB[:,:-2], positions=positions[:-2], labels=labels[:-2], sym=".", patch_artist=True)
+axs[1].boxplot(data_RGB[:,-2:], positions=positions[-2:], labels=labels[-2:], sym=".", patch_artist=True, boxprops={"facecolor": "k"}, widths=0.4)
 
 # Adjust the colours
 for patch, colour in zip(bplot["boxes"], colours):
     patch.set_facecolor(colour)
 
 # Plot settings
-plt.yticks(np.arange(0, ymax+5, 5))
-plt.ylim(0, ymax)
-plt.ylabel(r"Uncertainty [%, $^\circ$]")
-plt.tick_params(axis="x", bottom=False)
-plt.grid(axis="y", ls="--")
-plt.title("Variations between replicate images")
+axs[0].set_yticks(np.arange(0, ymax+5, 5))
+axs[0].set_ylim(0, ymax)
+axs[0].set_ylabel(r"Uncertainty [%]")
+for item in axs[0].get_xticklabels()[-3:]:
+    item.set_fontsize(14)
+
+axs[1].tick_params(axis="y", left=True, labelleft=True)
+axs[1].set_ylabel(r"Uncertainty [$^\circ$]")
+axs[1].set_ylim(ymin=0)
+
+for ax in axs:
+    ax.tick_params(axis="x", bottom=False)
+    ax.grid(axis="y", ls="--")
 
 # Add a second y-axis for FU
-ax1 = plt.gca()
-ax2 = ax1.twinx()
-ax2.set_yticks(ax1.get_yticks()/5)
-ax2.set_ylim(np.array(ax1.get_ylim())/5)
+ax2 = axs[1].twinx()
+ax2.set_yticks(axs[1].get_yticks()/FU_scale_factor)
+ax2.set_ylim(np.array(axs[1].get_ylim())/FU_scale_factor)
 ax2.set_ylabel("Uncertainty [FU]")
+ymax_FU = ax2.get_ylim()[1]  # Scale the ymax by a factor for FU
+
+fig.suptitle("Variations between replicate images")
 
 # Save/show the result
 plot.save_or_show(f"{saveto_base}_relative_uncertainty.pdf")
