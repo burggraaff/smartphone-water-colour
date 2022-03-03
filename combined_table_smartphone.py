@@ -12,8 +12,9 @@ Example:
     %run combined_table_smartphone.py "iPhone_SE_jpeg_fromraw.csv" water-colour-data/Balaton*
     %run combined_table_smartphone.py "Samsung_Galaxy_S8_raw.csv" water-colour-data/Balaton*
     %run combined_table_smartphone.py "Samsung_Galaxy_S8_jpeg_fromraw.csv" water-colour-data/Balaton*
-    %run combined_table_smartphone.py "iPhone_6S_raw.csv" water-colour-data/Balaton* water-colour-data/NZ/* water-colour-data/Switzerland-Oli4/*
-    %run combined_table_smartphone.py "iPhone_6S_jpeg.csv" water-colour-data/Balaton* water-colour-data/NZ/* water-colour-data/Switzerland-Oli4/*
+    %run combined_table_smartphone.py "Samsung_Galaxy_S8_replicates.csv" water-colour-data/Balaton*
+    %run combined_table_smartphone.py "iPhone_6S_raw.csv" water-colour-data/Balaton* water-colour-data/NZ* water-colour-data/Switzerland_Oli4*
+    %run combined_table_smartphone.py "iPhone_6S_jpeg.csv" water-colour-data/Balaton* water-colour-data/NZ* water-colour-data/Switzerland_Oli4*
 """
 
 from sys import argv
