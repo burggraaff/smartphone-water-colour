@@ -64,35 +64,9 @@ print("Finished reading data")
 cols_example = hy.get_keys_for_parameter(table_reference, hy.parameters[0])
 wavelengths = hy.get_wavelengths_from_keys(cols_example, key=hy.parameters[0])
 
-# Convolve the hyperspectral data
-# Convolve R_rs itself for now because of fingerprinting
-for key in hy.parameters:
-    cols = hy.get_keys_for_parameter(table_reference, key)
-    data = hy.convert_columns_to_array(table_reference, cols)
-
-    # Apply spectral convolution with the RGB (not G2) bands
-    data_convolved = camera.convolve_multi(wavelengths, data)[:3].T
-
-    # Put convolved data in a table
-    keys_convolved = hc.extend_keys_to_RGB(key)
-    table_convolved = table.Table(data=data_convolved, names=keys_convolved)
-
-    # Merge convolved data table with original data table
-    table_reference = table.hstack([table_reference, table_convolved])
-
-# Don't use for now -- doesn't seem to work very well
-# # If we are using JPEG data, simply use the sRGB values already in the data files
-# else:
-#     for key in parameters:
-#         bands_RGB = hc.extend_keys_to_RGB(key)
-#         bands_sRGB = hc.extend_keys_to_RGB(key, hc.bands_sRGB)
-#         table_reference.rename_columns(bands_sRGB, bands_RGB)
-
-# For the WISP-3, where we have Lu, Lsky, and Ed, don't convolve R_rs directly
-if reference == "WISP-3":
-    for c in hc.colours:
-        table_reference[f"R_rs ({c})"] = (table_reference[f"Lu ({c})"] - 0.028*table_reference[f"Lsky ({c})"])/table_reference[f"Ed ({c})"]
-
+# Spectral convolution of radiance and reflectance
+table_reference = hy.convolve_radiance_to_camera_bands(table_reference, camera)
+table_reference = hy.convolve_reflectance_to_camera_bands[ref_small](table_reference, camera)
 
 # Find matches
 data_phone, data_reference = [], []  # Lists to contain matching table entries

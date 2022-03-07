@@ -4,7 +4,7 @@ Functions and variables used for processing hyperspectral reference data.
 import numpy as np
 from astropy import table
 from spectacle import spectral
-from . import hydrocolor as hc, wacodi as wa
+from . import colours, hydrocolor as hc, wacodi as wa
 
 # Function for reading astropy tables - short-hand
 read = table.Table.read
@@ -98,6 +98,75 @@ def interpolate_hyperspectral_table(data, parameters=parameters, wavelengths=wav
     table_data_combined = table.hstack([data, table_data_new])
 
     return table_data_combined
+
+
+def convolve_radiance_to_camera_bands(data, camera, parameters=["Ed", "Lsky", "Lu"]):
+    """
+    Convolve hyperspectral radiance data to the spectral bands of a given camera.
+    This uses the SPECTACLE convolution function.
+    """
+    for key in parameters:
+        # Extract the data
+        column_names = get_keys_for_parameter(data, key)
+        wavelengths = get_wavelengths_from_keys(column_names, key=key)
+        data_array = convert_columns_to_array(data, column_names)
+
+        # Convolve the data to RGB, discard G2
+        data_convolved = camera.convolve_multi(wavelengths, data_array)[:3].T
+
+        # Put convolved data in a table
+        keys_convolved = hc.extend_keys_to_RGB(key)
+        table_convolved = table.Table(data=data_convolved, names=keys_convolved)
+
+        # Merge convolved data table with original data table
+        data = table.hstack([data, table_convolved])
+
+    return data
+
+
+def convolve_reflectance_to_camera_bands_WISP3(data, *args, rho=0.028, **kwargs):
+    """
+    Add convolved reflectances to WISP-3 data.
+    Simply calculates R_rs from the convolved radiances.
+    Convolved radiances must be present.
+    """
+    # Calculate R_rs naïvely
+    data_R_rs = table.Table([(data[f"Lu ({c})"] - rho*data[f"Lsky ({c})"])/data[f"Ed ({c})"] for c in colours])
+    data_R_rs.rename_columns(hc.extend_keys_to_RGB("Lu"), hc.extend_keys_to_RGB("R_rs"))
+
+    # Add R_rs to the table and return the result
+    data = table.hstack([data, data_R_rs])
+    return data
+
+
+def convolve_reflectance_to_camera_bands_SoRad(data, camera, *args, **kwargs):
+    """
+    Add convolved reflectances to So-Rad data.
+    Calculates hyperspectral Lw from R_rs and Ed, convolves Lw, and then calculates convolved R_rs from Lw and Ed.
+    Convolved Ed must be present.
+    """
+    # Extract Ed and R_rs
+    Ed_keys, R_rs_keys = get_keys_for_parameter(data, "Ed"), get_keys_for_parameter(data, "R_rs")
+    wavelengths = get_wavelengths_from_keys(Ed_keys, "Ed")
+    Ed, R_rs = convert_columns_to_array(data, Ed_keys), convert_columns_to_array(data, R_rs_keys)
+
+    # Calculate and convolve Lw
+    Lw = R_rs * Ed
+    Lw_convolved = camera.convolve_multi(wavelengths, Lw)[:3].T
+
+    # Calculate convolved R_rs from convolved Lw
+    Ed_convolved = convert_columns_to_array(data, hc.extend_keys_to_RGB("Ed"))
+    R_rs_convolved = Lw_convolved / Ed_convolved
+    data_R_rs = table.Table(data=R_rs_convolved, names=hc.extend_keys_to_RGB("R_rs"))
+
+    # Add R_rs to the table and return the result
+    data = table.hstack([data, data_R_rs])
+    return data
+
+
+# Add reflectance convolution functions to a dictionary so they can be selected on the fly
+convolve_reflectance_to_camera_bands = {"sorad": convolve_reflectance_to_camera_bands_SoRad, "wisp": convolve_reflectance_to_camera_bands_WISP3}
+
 
 
 def find_elements_within_range(data, reference_value, maximum_difference=60, key="UTC"):
