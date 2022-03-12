@@ -12,7 +12,7 @@ Command-line inputs:
 Example:
     %run greycard_rotation.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Greycard/
 """
-from sys import argv
+from sys import argv, stdout
 import numpy as np
 from matplotlib import pyplot as plt
 from spectacle import io, load_camera
@@ -53,5 +53,7 @@ plt.show()
 
 # Print the relevant values (within 5 degrees)
 indices = np.where((angles >= 35) & (angles <= 45))[0]
-for ind in indices:
-    print(f"Angle {angles[ind]:.2f} degrees: Mean {mean_values[ind]:.2f} +- {uncertainties[ind]:.2f}")
+with open("results/greycard_angular_characterisation.txt", "w") as file:
+    for output in (stdout, file):
+        for ind in indices:
+            print(f"Angle {angles[ind]:.0f} degrees: Mean {mean_values[ind]:.2f} +- {uncertainties[ind]:.2f} ; Mean reflectance {mean_values[ind]*18:.1f} +- {uncertainties[ind]*18:.1f} %", file=output)
