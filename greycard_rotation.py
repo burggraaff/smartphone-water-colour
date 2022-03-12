@@ -10,7 +10,7 @@ Command-line inputs:
     * Folder containing data
 
 Example:
-    %run greycard.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Greycard/
+    %run greycard_rotation.py C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Greycard/
 """
 from sys import argv
 import numpy as np
