@@ -1058,4 +1058,4 @@ def compare_hyperspectral_datasets(datasets, parameter="R_rs", labels=None, save
         axs[1].tick_params(axis="y", left=False, labelleft=False)
 
     # Save/show the result
-    save_or_show(saveto, dpi=300)
+    save_or_show(saveto, dpi=600)
