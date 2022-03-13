@@ -180,7 +180,7 @@ def plot_image_small(image, vmin=0, vmax=None, saveto=None):
     ax.tick_params(bottom=False, labelbottom=False, left=False, labelleft=False)
 
     # Show
-    save_or_show(saveto)
+    save_or_show(saveto, dpi=300)
 
 
 @_plot_triple
@@ -215,7 +215,7 @@ def plot_image_small_RGBG2(images_RGBG2, camera, vmin=0, vmax=None, equal_aspect
 
     # Show
     fig.subplots_adjust(wspace=0, hspace=0)
-    save_or_show(saveto)
+    save_or_show(saveto, dpi=300)
 
 
 @_plot_triple
