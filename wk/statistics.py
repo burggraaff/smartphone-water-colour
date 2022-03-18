@@ -3,7 +3,7 @@ Functions and variables used for statistical analysis.
 Many of these will be moved to SPECTACLE in the near future.
 """
 import numpy as np
-from scipy import odr
+from scipy import odr, stats
 from robustats import weighted_median as weighted_median_original
 from spectacle.general import symmetric_percentiles, weighted_mean, uncertainty_from_covariance, correlation_from_covariance
 from . import colours
@@ -29,6 +29,25 @@ def correlation(x, y, w=None):
     Optional parameter w for weights.
     """
     return correlation_from_covariance(np.cov(x, y, aweights=w))[0, 1]
+
+
+def correlation_with_confidence_interval(x, y, w=None, alpha=0.05):
+    """
+    Calculate the sample correlation coefficient between data sets x and y with the confidence interval.
+    Optional parameter w for weights (currently not used for the confidence interval).
+    """
+    # Calculate the correlation coefficient itself first
+    r = correlation(x, y, w=w)
+
+    # Calculate the confidence interval
+    n = len(x)
+    z_half_alpha = stats.norm.ppf(1-alpha/2)
+    theta = 0.5*(np.log(1+r) - np.log(1-r))
+    a, b = theta - z_half_alpha/np.sqrt(n-3), theta + z_half_alpha/np.sqrt(n-3)
+    rmin = (np.exp(2*a) - 1) / (np.exp(2*a) + 1)
+    rmax = (np.exp(2*b) - 1) / (np.exp(2*b) + 1)
+
+    return r, rmin, rmax
 
 
 def max_correlation_in_covariance_matrix(covariance):
