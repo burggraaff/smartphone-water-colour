@@ -2,9 +2,10 @@
 Functions and variables used for statistical analysis.
 Many of these will be moved to SPECTACLE in the near future.
 """
+from functools import partial
 import numpy as np
 from scipy import odr, stats
-from robustats import weighted_median as weighted_median_original
+from wquantiles import median as weighted_median_wq
 from spectacle.general import symmetric_percentiles, weighted_mean, uncertainty_from_covariance, correlation_from_covariance
 from . import colours
 
@@ -20,7 +21,7 @@ def weighted_median(x, w=None):
     if w is None:
         return np.nanmedian(x)
     else:
-        return weighted_median_original(x, w)
+        return weighted_median_wq(x, w)
 
 
 def correlation(x, y, w=None):
@@ -98,6 +99,18 @@ def SSPB(x, y):
     return SSPB
 
 
+def statistic_with_bootstrap(data, statistic: callable, vectorized=False, paired=True, **kwargs):
+    """
+    Calculate a statistic with confidence intervals from bootstrapping.
+    `data` must contain all data in one iterable, e.g. data=(x,y).
+    """
+    statistic_mean = statistic(*data)
+    statistic_bootstrap = stats.bootstrap(data, statistic, vectorized=vectorized, paired=paired, **kwargs)
+    statistic_low, statistic_high = statistic_bootstrap.confidence_interval.low, statistic_bootstrap.confidence_interval.high
+
+    return statistic_mean, statistic_low, statistic_high
+
+
 def ravel_table(data, key, loop_keys=colours):
     """
     Apply np.ravel to a number of columns, e.g. to combine R_rs R, R_rs G, R_rs B into one array for all R_rs.
@@ -172,12 +185,22 @@ def full_statistics_for_title(x, y, xerr=None, yerr=None):
     Calculate the Pearson correlation r, median absolute deviation (MAD), zeta, and SSPB between x and y, and format them nicely.
     Returns the calculated values (in a list) and a formatted string.
     """
+    # Calculate weights if desired
     if xerr is not None and yerr is not None:
         weights = 1/(xerr**2 + yerr**2)
         weights_relative = 1/(xerr**2/x**2 + yerr**2/y**2)
     else:
         weights = weights_relative = None
-    N, r, mad, z, sspb = len(x), correlation(x, y, w=weights), MAD(x, y, w=weights), zeta(x, y), SSPB(x, y)
-    parts = [f"$N$ = {N}", f"$r$ = {r:.2g}", f"{mad_symbol} = {mad:.2g}", f"$\zeta$ = {z:.2g}%", f"{sspb_symbol} = {sspb:+.2g}%"]
+
+    # Calculate the statistics
+    N = len(x)
+    if weights is not None:
+        r, mad = [statistic_with_bootstrap((x,y,weights), func) for func in (correlation, MAD)]
+    else:
+        r, mad = [statistic_with_bootstrap((x,y), func) for func in (correlation, MAD)]
+    z, sspb = [statistic_with_bootstrap((x,y), func) for func in (zeta, SSPB)]
+
+    # Put everything into a nice string and return it
+    parts = [f"$N$ = {N}", f"$r$ = {r[0]:.2g}", f"({r[1]:.2g}$-${r[2]:.2g})", f"{mad_symbol} = {mad[0]:.2g}", f"({mad[1]:.2g}$-$\n{mad[2]:.2g})", f"$\zeta$ = {z[0]:.2g}%", f"({z[1]:.2g}$-${z[2]:.2g})%", f"{sspb_symbol} = {sspb[0]:+.2g}%", f"({sspb[1]:.2g} $-$ {sspb[2]:.2g})%"]
     statistic_text = "\n".join(parts)
     return [r, mad, z, sspb], statistic_text

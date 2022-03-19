@@ -2,6 +2,6 @@ numpy
 matplotlib
 astropy
 scipy
-robustats
+wquantiles
 colorio
 pyspectacle
