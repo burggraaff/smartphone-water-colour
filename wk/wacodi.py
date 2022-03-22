@@ -88,7 +88,7 @@ def convert_xy_to_hue_angle_covariance(xy_covariance, xy_data):
     x, y = xy_data
     xc, yc = x-1/3, y-1/3  # Subtract the white point
     denominator = xc**2 + yc**2
-    J = np.array([yc/denominator, -xc/denominator])
+    J = np.array([-yc/denominator, xc/denominator])
     hue_angle_uncertainty_rad = J @ xy_covariance @ J.T
     hue_angle_uncertainty = np.rad2deg(hue_angle_uncertainty_rad)
     return hue_angle_uncertainty
