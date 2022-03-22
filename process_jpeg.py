@@ -138,7 +138,7 @@ for data_path in hc.generate_folders(folders, pattern):
     # WACODI
 
     # Convert RGB to XYZ
-    R_rs_XYZ = wa.convert_to_XYZ(wa.M_sRGB_to_XYZ_E, R_rs)
+    R_rs_XYZ = wa.convert_between_colourspaces(R_rs, wa.M_sRGB_to_XYZ_E)
     R_rs_XYZ_covariance = wa.M_sRGB_to_XYZ_E @ R_rs_covariance @ wa.M_sRGB_to_XYZ_E.T
 
     # Calculate xy chromaticity
