@@ -15,7 +15,7 @@ Example:
     %run process_jpeg.py linear C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton*
     %run process_jpeg.py raw C:/Users/Burggraaff/SPECTACLE_data/iPhone_SE/ water-colour-data/Balaton*
     %run process_jpeg.py raw C:/Users/Burggraaff/SPECTACLE_data/Samsung_Galaxy_S8/ water-colour-data/Balaton*
-    %run process_jpeg.py normal C:/Users/Burggraaff/SPECTACLE_data/iPhone_6S/ water-colour-data/Balaton*
+    %run process_jpeg.py normal C:/Users/Burggraaff/SPECTACLE_data/iPhone_6S/ water-colour-data/Balaton* water-colour-data/NZ/* water-colour-data/Switzerland-Oli4/*
 """
 from sys import argv
 import numpy as np
