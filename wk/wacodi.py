@@ -47,9 +47,9 @@ def convert_XYZ_to_xy_covariance(XYZ_covariance, XYZ_data):
     Convert XYZ covariances to xy using the Jacobian.
     """
     X, Y, Z = XYZ_data  # Split the elements out
-    S = np.sum(XYZ_data, axis=0)  # Sum, used in denominators
-    J = np.array([[(Y+Z)/S, -X/S**2, -X/S**2],
-                  [-Y/S**2, (X+Z)/S, -Y/S**2]])
+    S = np.sum(XYZ_data, axis=0)**2  # Squared sum, used in denominators
+    J = np.array([[(Y+Z)/S, -X/S, -X/S],
+                  [-Y/S, (X+Z)/S, -Y/S]])
     xy_covariance = J @ XYZ_covariance @ J.T
     return xy_covariance
 
