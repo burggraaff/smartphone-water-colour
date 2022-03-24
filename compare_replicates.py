@@ -48,8 +48,9 @@ colours = plot.RGB_OkabeIto * 4 + 5*["k"]
 fig, axs = plt.subplots(ncols=2, figsize=(plot.col2, 0.25*plot.col2), gridspec_kw={"width_ratios": [10, 2], "wspace": 0.25})
 
 # Plot the data
-bplot = axs[0].boxplot(data_RGB[:,:-2], positions=positions[:-2], labels=labels[:-2], sym=".", patch_artist=True)
-axs[1].boxplot(data_RGB[:,-2:], positions=positions[-2:], labels=labels[-2:], sym=".", patch_artist=True, boxprops={"facecolor": "k"}, widths=0.4)
+bplot_kwargs = dict(sym=".", patch_artist=True)
+bplot = axs[0].boxplot(data_RGB[:,:-2], positions=positions[:-2], labels=labels[:-2], **bplot_kwargs)
+axs[1].boxplot(data_RGB[:,-2:], positions=positions[-2:], labels=labels[-2:], boxprops={"facecolor": "k"}, widths=0.4, **bplot_kwargs)
 
 # Adjust the colours
 for patch, colour in zip(bplot["boxes"], colours):
