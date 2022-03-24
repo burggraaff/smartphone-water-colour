@@ -83,10 +83,14 @@ fig.suptitle("Variations between replicate images")
 # Save/show the result
 plot.save_or_show(f"{saveto_base}_relative_uncertainty.pdf")
 
+# Divide the FU index values by a factor so we get correct statistics
+data["R_rs (FU)"] /= FU_scale_factor
+data_RGB[:,-1] = data["R_rs (FU)"]
+
 # Calculate and print statistics
-pct5, pct95 = symmetric_percentiles(data_RGB, percent=5, axis=0)
+q1, q3 = symmetric_percentiles(data_RGB, percent=25, axis=0)  # Outer limits of the first and third quartiles
 medians = np.nanmedian(data_RGB, axis=0)
 nr_above_ymax = (data_RGB > ymax).sum(axis=0)
 nr_above_ymax[-1] = (data_RGB[-1] > ymax_FU).sum()
-stats_table = table.Table(data=[keys_RGB, pct5, medians, pct95, nr_above_ymax], names=["Key", "5%", "Median", "95%", "# out of bounds"])
+stats_table = table.Table(data=[keys_RGB, q1, medians, q3, nr_above_ymax], names=["Key", "Q1", "Median", "Q3", "# out of bounds"])
 stats_table.write(f"{saveto_base}_statistics.dat", format="ascii.fixed_width", overwrite=True)
