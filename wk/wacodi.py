@@ -4,7 +4,7 @@ Functions and variables used for processing colour data.
 from functools import partial
 import numpy as np
 from spectacle.spectral import convert_between_colourspaces
-from .statistics import MAD
+from .statistics import MAD, statistic_with_bootstrap
 
 M_sRGB_to_XYZ = np.array([[0.4124564, 0.3575761, 0.1804375],
                           [0.2126729, 0.7151522, 0.0721750],
@@ -120,23 +120,34 @@ def convert_hue_angle_to_ForelUle_uncertainty(hue_angle_uncertainty, hue_angle):
     return minmax_FU
 
 
-def compare_FU_matches_from_hue_angle(x, y, threshold=1):
+def find_FU_matches(x, y, threshold=0):
     """
-    Count the percentage of matching FU colours in x and y.
-    Return the percentage that are the same (e.g. 1,1) the percentage within a threshold (default 1; e.g. 1, 2), and the MAD.
+    Find the number of FU matches between x and y.
+    """
+    absolute_difference = np.abs(x-y)
+    nr_below_threshold = np.sum(absolute_difference <= threshold)
+    percentage_below_threshold = 100*nr_below_threshold/len(x)
+    return percentage_below_threshold
+
+
+def compare_hue_angles(x, y, threshold_FU=1):
+    """
+    Compare two sets of hue angles, including the derived FU colours.
+    Calculates the MAD for hue angle and FU, and the number of direct FU matches (e.g. 1,1) and percentage within a threshold (e.g. 1,2).
+    Confidence intervals on these statistics are calculated by bootstrapping.
     """
     assert len(x) == len(y), f"x and y have different lengths: {len(x)} and {len(y)}."
 
     # Convert hue angles to Forel-Ule colours
     x_FU, y_FU = convert_hue_angle_to_ForelUle([x, y])
 
+    # Calculate the MADs
+    mad_hue_angle = statistic_with_bootstrap((x, y), MAD)
+    mad_FU = statistic_with_bootstrap((x_FU, y_FU), MAD, method="percentile")
+
     # Count the number of (near-)matching FU colours
-    matches = np.where(x_FU == y_FU)[0]
-    near_matches = np.where(np.abs(x_FU - y_FU) <= threshold)[0]
-    mad = MAD(x_FU, y_FU)
+    find_FU_matches_threshold = partial(find_FU_matches, threshold=threshold_FU)
+    matches_percent = statistic_with_bootstrap((x_FU, y_FU), find_FU_matches)
+    near_matches_percent = statistic_with_bootstrap((x_FU, y_FU), find_FU_matches_threshold)
 
-    # Convert counts to percentages
-    matches_percent = 100*len(matches)/len(x)
-    near_matches_percent = 100*len(near_matches)/len(x)
-
-    return matches_percent, near_matches_percent, mad
+    return mad_hue_angle, mad_FU, matches_percent, near_matches_percent

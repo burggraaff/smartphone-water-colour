@@ -15,7 +15,7 @@ import numpy as np
 from colorio._tools import plot_flat_gamut
 from spectacle.plot import RGB_OkabeIto, save_or_show, cmaps
 from . import statistics as stats, colours, hydrocolor as hc, hyperspectral as hy
-from .wacodi import FU_hueangles, compare_FU_matches_from_hue_angle
+from .wacodi import FU_hueangles, compare_hue_angles
 
 # Legend settings
 rcParams["legend.loc"] = "lower right"
@@ -1036,10 +1036,11 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
 
     # Calculate some statistics to compare the data
     # Median absolute deviation and number of FU matches
-    mad_hueangle = stats.MAD(x, y)
-    FU_matches, FU_near_matches, mad_FU = compare_FU_matches_from_hue_angle(x, y)
-    stats_text = f"$N$ = {len(x)}\n{stats.mad_symbol} = ${mad_hueangle:.1f} \\degree$\n{stats.mad_symbol} = {mad_FU:.0f} FU\n{FU_matches:.0f}% $\Delta$FU$= 0$\n{FU_near_matches:.0f}% $\Delta$FU$\leq 1$"
+    mad_hue_angle, mad_FU, matches_percent, near_matches_percent = compare_hue_angles(x, y)
+    stats_text = f"$N$ = {len(x)}\n{stats.mad_symbol} = ${mad_hue_angle[0]:.1f} \\degree$\n{stats.mad_symbol} = {mad_FU[0]:.0f} FU\n{matches_percent[0]:.0f}% $\Delta$FU$= 0$\n{near_matches_percent[0]:.0f}% $\Delta$FU$\leq 1$"
     _textbox(ax, stats_text)
+    for label, stat in zip(["MAD (alpha)", "MAD (FU)", "FU matches", "FU near-matches"], [mad_hue_angle, mad_FU, matches_percent, near_matches_percent]):
+        print(f"{label}: {stat[0]:.2f} ({stat[1]:.2f} -- {stat[2]:.2f})")
 
 
 def compare_hyperspectral_datasets(datasets, parameter="R_rs", labels=None, saveto=None):
