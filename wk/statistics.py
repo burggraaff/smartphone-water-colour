@@ -3,7 +3,9 @@ Functions and variables used for statistical analysis.
 Many of these will be moved to SPECTACLE in the near future.
 """
 from functools import partial
+from sys import stdout
 import numpy as np
+from astropy import table
 from scipy import odr, stats
 from wquantiles import median as weighted_median_wq
 from spectacle.general import symmetric_percentiles, weighted_mean, uncertainty_from_covariance, correlation_from_covariance
@@ -180,27 +182,64 @@ def linear_regression(x, y, xerr=0, yerr=0):
     return params, params_cov, output_function
 
 
+def calculate_weights_from_x_and_y_errors(x, y, xerr, yerr):
+    """
+    Combines the uncertainties in x and y into weights by sum-of-squares.
+    """
+    if xerr is None or yerr is None:
+        weights = weights_relative = None
+    else:
+        weights = 1/(xerr**2 + yerr**2)
+        weights_relative = 1/(xerr**2/x**2 + yerr**2/y**2)
+    return weights, weights_relative
+
+
 def full_statistics_for_title(x, y, xerr=None, yerr=None):
     """
     Calculate the Pearson correlation r, median absolute deviation (MAD), zeta, and SSPB between x and y, and format them nicely.
     Returns the calculated values (in a list) and a formatted string.
     """
-    # Calculate weights if desired
-    if xerr is not None and yerr is not None:
-        weights = 1/(xerr**2 + yerr**2)
-        weights_relative = 1/(xerr**2/x**2 + yerr**2/y**2)
-    else:
-        weights = weights_relative = None
+    # Calculate weights for r and MAD
+    weights, weights_relative = calculate_weights_from_x_and_y_errors(x, y, xerr, yerr)
 
     # Calculate the statistics
     N = len(x)
-    if weights is not None:
-        r, mad = [statistic_with_bootstrap((x,y,weights), func) for func in (correlation, MAD)]
-    else:
-        r, mad = [statistic_with_bootstrap((x,y), func) for func in (correlation, MAD)]
-    z, sspb = [statistic_with_bootstrap((x,y), func) for func in (zeta, SSPB)]
+    r = correlation(x, y, w=weights)
+    mad = MAD(x, y, w=weights)
+    z = zeta(x, y)
+    sspb = SSPB(x, y)
 
     # Put everything into a nice string and return it
-    parts = [f"$N$ = {N}", f"$r$ = {r[0]:.2g}", f"({r[1]:.2g}$-${r[2]:.2g})", f"{mad_symbol} = {mad[0]:.2g}", f"({mad[1]:.2g}$-$\n{mad[2]:.2g})", f"$\zeta$ = {z[0]:.2g}%", f"({z[1]:.2g}$-${z[2]:.2g})%", f"{sspb_symbol} = {sspb[0]:+.2g}%", f"({sspb[1]:.2g} $-$ {sspb[2]:.2g})%"]
+    parts = [f"$N$ = {N}", f"$r$ = {r:.2g}", f"{mad_symbol} = {mad:.2g}", f"$\zeta$ = {z:.2g}%", f"{sspb_symbol} = {sspb:+.2g}%"]
     statistic_text = "\n".join(parts)
     return [r, mad, z, sspb], statistic_text
+
+
+def save_statistics_to_file(x, y, xerr=None, yerr=None, saveto=stdout):
+    """
+    Calculate r, MAD, zeta, and SSPB, between x and y with optional weights, and their confidence intervals through bootstrapping.
+    Saves to file if a filename is specified, otherwise prints to the console.
+    """
+    # Calculate weights for r and MAD
+    weights, weights_relative = calculate_weights_from_x_and_y_errors(x, y, xerr, yerr)
+
+    # Calculate the statistics
+    N = len(x)
+    if weights is not None:  # This is not done in a loop for clarity
+        r = statistic_with_bootstrap((x, y, weights), correlation)
+        mad = statistic_with_bootstrap((x, y, weights), MAD)
+    else:
+        r = statistic_with_bootstrap((x, y), correlation)
+        mad = statistic_with_bootstrap((x, y), MAD)
+    z = statistic_with_bootstrap((x, y), zeta)
+    sspb = statistic_with_bootstrap((x, y), SSPB)
+
+    # Put everything into a table
+    labels = ["r", "MAD", "zeta", "SSPB"]
+    stats_combined = np.array([r, mad, z, sspb])
+    stats_combined = [labels, stats_combined[:,1], stats_combined[:,0], stats_combined[:,2]]
+    stats_table = table.Table(data=stats_combined, names=["Key", "P5", "Median", "P95"])
+    stats_table.add_row(["N", N, N, N])
+
+    # Save the table to file
+    stats_table.write(saveto, format="ascii.fixed_width", overwrite=True)

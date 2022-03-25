@@ -3,6 +3,8 @@ Functions and variables used for plotting data and results.
 Some of these will be moved to SPECTACLE in the near future.
 """
 import functools
+from pathlib import Path
+from sys import stdout
 from matplotlib import pyplot as plt, transforms, patheffects as pe, rcParams
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Ellipse
@@ -464,7 +466,7 @@ def _plot_linear_regression_RGB(funcs, *args, **kwargs):
         _plot_linear_regression(func, *args, color=c, path_effects=path_effects_RGBlines, **kwargs)
 
 
-def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, fontsize=9, **kwargs):
+def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, fontsize=9, saveto_for_table=stdout, **kwargs):
     """
     Plot statistics about the data into a text box in the top right corner.
     Statistics: r, MAD, zeta, SSPB.
@@ -477,6 +479,13 @@ def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, fontsize=9, **kwargs):
 
     # Plot the text box
     _textbox(ax, text, fontsize=fontsize, **kwargs)
+
+    # Save the statistics to a file as well
+    try:
+        saveto = Path(saveto_for_table).with_suffix(".dat")
+    except TypeError:
+        saveto = saveto_for_table
+    stats.save_statistics_to_file(x, y, xerr, yerr, saveto=saveto)
 
 
 @new_or_existing_figure
@@ -659,7 +668,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     # Add statistics in a text box
     x_all, y_all = stats.ravel_table(x, datalabel, loop_keys=loop_keys), stats.ravel_table(y, datalabel, loop_keys=loop_keys)
     x_err_all, y_err_all = stats.ravel_table(x, errlabel, loop_keys=loop_keys), stats.ravel_table(y, errlabel, loop_keys=loop_keys)
-    _plot_statistics(x_all, y_all, axs[0], xerr=x_err_all, yerr=y_err_all)
+    _plot_statistics(x_all, y_all, axs[0], xerr=x_err_all, yerr=y_err_all, saveto_for_table=saveto)
 
     # Add a legend if desired
     if legend:
@@ -769,12 +778,12 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
 
         # Directly compare x and y - for when comparing two references (x, y)
         if compare_directly:
-            _plot_statistics(xdata, ydata, ax, xerr=xerr, yerr=yerr)
+            _plot_statistics(xdata, ydata, ax, xerr=xerr, yerr=yerr, saveto_for_table=saveto)
         # Fit x to y so the MAD is in x units - for when comparing a reference (x) to a smartphone (y)
         else:
             *_, func_y_to_x = stats.linear_regression(ydata, xdata, yerr, xerr)
             x_fitted = func_y_to_x(ydata)
-            _plot_statistics(xdata, x_fitted, ax)
+            _plot_statistics(xdata, x_fitted, ax, saveto_for_table=saveto)
 
         # Fit y to x as normal and plot this
         params, _, func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)
