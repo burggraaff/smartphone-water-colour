@@ -466,7 +466,7 @@ def _plot_linear_regression_RGB(funcs, *args, **kwargs):
         _plot_linear_regression(func, *args, color=c, path_effects=path_effects_RGBlines, **kwargs)
 
 
-def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, fontsize=9, saveto_for_table=stdout, **kwargs):
+def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, fontsize=9, **kwargs):
     """
     Plot statistics about the data into a text box in the top right corner.
     Statistics: r, MAD, zeta, SSPB.
@@ -479,13 +479,6 @@ def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, fontsize=9, saveto_for
 
     # Plot the text box
     _textbox(ax, text, fontsize=fontsize, **kwargs)
-
-    # Save the statistics to a file as well
-    try:
-        saveto = Path(saveto_for_table).with_suffix(".dat")
-    except TypeError:
-        saveto = saveto_for_table
-    stats.save_statistics_to_file(x, y, xerr, yerr, saveto=saveto)
 
 
 @new_or_existing_figure
@@ -634,7 +627,7 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
     ax.set_ylabel(ylabel)
 
 
-def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", title=None, regression="none", difference_unit="", legend=False, loop_keys=colours, through_origin=True, saveto=None, **kwargs):
+def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", title=None, regression="none", difference_unit="", legend=False, loop_keys=colours, through_origin=True, saveto=None, saveto_stats=stdout, **kwargs):
     """
     Make a correlation plot between two tables `x` and `y`.
     Use the labels `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
@@ -668,7 +661,8 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     # Add statistics in a text box
     x_all, y_all = stats.ravel_table(x, datalabel, loop_keys=loop_keys), stats.ravel_table(y, datalabel, loop_keys=loop_keys)
     x_err_all, y_err_all = stats.ravel_table(x, errlabel, loop_keys=loop_keys), stats.ravel_table(y, errlabel, loop_keys=loop_keys)
-    _plot_statistics(x_all, y_all, axs[0], xerr=x_err_all, yerr=y_err_all, saveto_for_table=saveto)
+    _plot_statistics(x_all, y_all, axs[0], xerr=x_err_all, yerr=y_err_all)
+    stats.save_statistics_to_file(x_all, y_all, x_err_all, y_err_all, saveto=saveto_stats)
 
     # Add a legend if desired
     if legend:
@@ -692,7 +686,7 @@ correlation_plot_R_rs = functools.partial(correlation_plot_RGB_equal, datalabel=
 correlation_plot_bandratios_combined = functools.partial(correlation_plot_RGB_equal, datalabel="R_rs", errlabel="R_rs_err", regression="all", difference_unit="", legend=True, loop_keys=hc.bandratio_labels, plot_colours=bandratio_plotcolours, through_origin=False, markers="ovs")
 
 
-def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", title=None, regression="all", saveto=None):
+def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xlabel="x", ylabel="y", title=None, regression="all", saveto=None, saveto_stats=stdout):
     """
     Make a multi-panel plot comparing radiances.
     Each panel represents one of the keys, for example upwelling, sky, and downwelling radiance.
@@ -726,6 +720,7 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
         func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)[2]
         y_fitted = func_linear(xdata)
         _plot_statistics(ydata, y_fitted, axs[-1])
+        stats.save_statistics_to_file(ydata, y_fitted, saveto=saveto_stats)
         for ax in axs:
             _plot_linear_regression(func_linear, ax)
 
@@ -755,7 +750,7 @@ def correlation_plot_radiance(x, y, keys=["Lu", "Lsky", "Ld"], combine=True, xla
 
 
 @new_or_existing_figure
-def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="x", ylabel="y", regression="all", compare_directly=False, ax=None, saveto=None):
+def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="x", ylabel="y", regression="all", compare_directly=False, ax=None, saveto=None, saveto_stats=stdout):
     """
     Make a single-panel plot comparing the combined radiances from x and y.
     Do a combined linear regression and plot the result.
@@ -778,12 +773,14 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
 
         # Directly compare x and y - for when comparing two references (x, y)
         if compare_directly:
-            _plot_statistics(xdata, ydata, ax, xerr=xerr, yerr=yerr, saveto_for_table=saveto)
+            _plot_statistics(xdata, ydata, ax, xerr=xerr, yerr=yerr)
+            stats.save_statistics_to_file(x, y, xerr, yerr, saveto=saveto_stats)
         # Fit x to y so the MAD is in x units - for when comparing a reference (x) to a smartphone (y)
         else:
             *_, func_y_to_x = stats.linear_regression(ydata, xdata, yerr, xerr)
             x_fitted = func_y_to_x(ydata)
-            _plot_statistics(xdata, x_fitted, ax, saveto_for_table=saveto)
+            _plot_statistics(xdata, x_fitted, ax)
+            stats.save_statistics_to_file(xdata, x_fitted, saveto=saveto_stats)
 
         # Fit y to x as normal and plot this
         params, _, func_linear = stats.linear_regression(xdata, ydata, xerr, yerr)
@@ -812,7 +809,7 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
     ax.legend(scatters, labels, numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)})
 
 
-def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity=keys_latex["R_rs"], xlabel="", ylabel="", title=None, saveto=None):
+def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity=keys_latex["R_rs"], xlabel="", ylabel="", title=None, saveto=None, saveto_stats=stdout):
     """
     Make a correlation plot for each of the RGB band ratios.
     """
@@ -854,6 +851,7 @@ def correlation_plot_bands(x, y, datalabel="R_rs", errlabel=None, quantity=keys_
     for ax, xy, xy_err in zip(axs, xy_pairs, xy_err_pairs):
         ax.set_title("")
         _plot_statistics(*xy, ax, xerr=xy_err[0], yerr=xy_err[1])
+        stats.save_statistics_to_file(*xy, xy_err[0], xy_err[1], saveto=saveto_stats)
 
     # Set the title if wanted
     axs[0].set_title(title)
@@ -973,7 +971,7 @@ def plot_xy_on_gamut_covariance(xy, xy_covariance, covariance_scale=1, ax=None, 
 
 
 @new_or_existing_figure
-def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax=None, saveto=None):
+def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="", ylabel="", ax=None, saveto=None, saveto_stats=stdout):
     """
     Make a correlation plot of hue angles (x and y).
     Draw the equivalent Forel-Ule indices on the grid for reference.
@@ -1036,11 +1034,21 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
 
     # Calculate some statistics to compare the data
     # Median absolute deviation and number of FU matches
+    N = len(x)
     mad_hue_angle, mad_FU, matches_percent, near_matches_percent = compare_hue_angles(x, y)
-    stats_text = f"$N$ = {len(x)}\n{stats.mad_symbol} = ${mad_hue_angle[0]:.1f} \\degree$\n{stats.mad_symbol} = {mad_FU[0]:.0f} FU\n{matches_percent[0]:.0f}% $\Delta$FU$= 0$\n{near_matches_percent[0]:.0f}% $\Delta$FU$\leq 1$"
+    stats_text = f"$N$ = {N}\n{stats.mad_symbol} = ${mad_hue_angle[0]:.1f} \\degree$\n{stats.mad_symbol} = {mad_FU[0]:.0f} FU\n{matches_percent[0]:.0f}% $\Delta$FU$= 0$\n{near_matches_percent[0]:.0f}% $\Delta$FU$\leq 1$"
     _textbox(ax, stats_text)
-    for label, stat in zip(["MAD (alpha)", "MAD (FU)", "FU matches", "FU near-matches"], [mad_hue_angle, mad_FU, matches_percent, near_matches_percent]):
-        print(f"{label}: {stat[0]:.2f} ({stat[1]:.2f} -- {stat[2]:.2f})")
+
+    # Put everything into a table
+    labels = ["MAD (alpha)", "MAD (FU)", "FU matches", "FU near-matches"]
+    stats_combined = np.array([mad_hue_angle, mad_FU, matches_percent, near_matches_percent])
+    stats_combined = [labels, stats_combined[:,1], stats_combined[:,0], stats_combined[:,2]]
+    stats_table = stats.table.Table(data=stats_combined, names=["Key", "P5", "Median", "P95"])
+    stats_table.add_row(["N", N, N, N])
+
+    # Save the table to file
+    stats_table.write(saveto_stats, format="ascii.fixed_width", overwrite=True)
+
 
 
 def compare_hyperspectral_datasets(datasets, parameter="R_rs", labels=None, saveto=None):
