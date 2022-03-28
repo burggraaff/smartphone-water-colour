@@ -87,10 +87,19 @@ plot.save_or_show(f"{saveto_base}_relative_uncertainty.pdf")
 data["R_rs (FU)"] /= FU_scale_factor
 data_RGB[:,-1] = data["R_rs (FU)"]
 
+# Get combined RGB statistics
+data_RGB_combined = np.array([np.ravel(data_RGB[:,3*i:3*(i+1)]) for i in range(5)]).T  # Very ugly but .reshape screws with the order of elements
+q1_combined, q3_combined = symmetric_percentiles(data_RGB_combined, percent=25, axis=0)
+medians_combined = np.nanmedian(data_RGB_combined, axis=0)
+nr_above_ymax_combined = (data_RGB_combined > ymax).sum(axis=0)
+keys_combined = hc.extend_keys_to_RGB(keys+["B.R."], ["all"])
+
 # Calculate and print statistics
 q1, q3 = symmetric_percentiles(data_RGB, percent=25, axis=0)  # Outer limits of the first and third quartiles
 medians = np.nanmedian(data_RGB, axis=0)
 nr_above_ymax = (data_RGB > ymax).sum(axis=0)
 nr_above_ymax[-1] = (data_RGB[-1] > ymax_FU).sum()
 stats_table = table.Table(data=[keys_RGB, q1, medians, q3, nr_above_ymax], names=["Key", "Q1", "Median", "Q3", "# out of bounds"])
+stats_combined_table = table.Table(data=[keys_combined, q1_combined, medians_combined, q3_combined, nr_above_ymax_combined], names=["Key", "Q1", "Median", "Q3", "# out of bounds"])
+stats_table = table.vstack([stats_table, stats_combined_table])
 stats_table.write(f"{saveto_base}_statistics.dat", format="ascii.fixed_width", overwrite=True)
