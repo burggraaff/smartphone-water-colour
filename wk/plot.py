@@ -49,11 +49,12 @@ col2 = 180/25.4
 smallpanel = (2, 1.5)
 
 
-def _textbox(ax, text, x=0.05, y=0.95, fontsize=10, **kwargs):
+def _textbox(ax, text, x=0.05, y=0.95, fontsize=10, verticalalignment="top", horizontalalignment="left", bbox_kwargs={}, **kwargs):
     """
     Add a text box with given text and some standard parameters.
     """
-    ax.text(x, y, text, transform=ax.transAxes, verticalalignment="top", bbox=bbox_text, zorder=15, fontsize=fontsize, **kwargs)
+    bbox_new = {**bbox_text, **bbox_kwargs}  # Merge the kwarg lists
+    return ax.text(x, y, text, transform=ax.transAxes, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment, bbox=bbox_new, zorder=15, fontsize=fontsize, **kwargs)
 
 
 def new_or_existing_figure(func):
@@ -478,7 +479,7 @@ def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, fontsize=9, **kwargs):
     statistics, text = stats.full_statistics_for_title(x, y, xerr, yerr)
 
     # Plot the text box
-    _textbox(ax, text, fontsize=fontsize, **kwargs)
+    return _textbox(ax, text, fontsize=fontsize, **kwargs)
 
 
 @new_or_existing_figure
@@ -627,7 +628,7 @@ def correlation_plot_RGB(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel
     ax.set_ylabel(ylabel)
 
 
-def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", title=None, regression="none", difference_unit="", legend=False, loop_keys=colours, through_origin=True, saveto=None, saveto_stats=stdout, **kwargs):
+def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabel="y", title=None, regression="none", difference_unit="", legend=False, loop_keys=colours, through_origin=True, compare_to_regression=False, saveto=None, saveto_stats=stdout, **kwargs):
     """
     Make a correlation plot between two tables `x` and `y`.
     Use the labels `xdatalabel` and `ydatalabel`, which are assumed to have RGB versions.
@@ -659,10 +660,25 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
         axs[0].set_ylim(ymin=0)
 
     # Add statistics in a text box
+    saveto_stats = Path(saveto_stats)
     x_all, y_all = stats.ravel_table(x, datalabel, loop_keys=loop_keys), stats.ravel_table(y, datalabel, loop_keys=loop_keys)
     x_err_all, y_err_all = stats.ravel_table(x, errlabel, loop_keys=loop_keys), stats.ravel_table(y, errlabel, loop_keys=loop_keys)
-    _plot_statistics(x_all, y_all, axs[0], xerr=x_err_all, yerr=y_err_all)
+    stats_textbox = _plot_statistics(x_all, y_all, axs[0], xerr=x_err_all, yerr=y_err_all)
     stats.save_statistics_to_file(x_all, y_all, x_err_all, y_err_all, saveto=saveto_stats)
+
+    # If desired, add statistics comparing the data to the linear regression
+    if compare_to_regression:
+        # First, perform a linear regression of y to x - this lets us rescale y (e.g. smartphone) to the scale of x (e.g. WISP-3)
+        params, _, func = stats.linear_regression(y_all, x_all, y_err_all, x_err_all)
+        y_rescaled = func(y_all)
+        y_err_rescaled = params[0]*y_err_all
+
+        # Calculate and print the results
+        stats_text = stats.full_statistics_for_title(x_all, y_rescaled, xerr=x_err_all, yerr=y_err_rescaled)[1]
+        stats_text = "\n".join(stats_text.split("\n")[2:])  # Remove the first two lines
+        _textbox(axs[0], stats_text, x=0.40, fontsize=9, bbox_kwargs={"linestyle": "--"})
+        stats.save_statistics_to_file(x_all, y_rescaled, x_err_all, y_err_rescaled, saveto=saveto_stats.with_name(saveto_stats.stem+"_linear_regression.dat"))
+
 
     # Add a legend if desired
     if legend:
@@ -682,7 +698,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
 
 
 # Shortcuts for RGB and band ratio R_rs plots
-correlation_plot_R_rs = functools.partial(correlation_plot_RGB_equal, datalabel="R_rs", errlabel="R_rs_err", regression="all", difference_unit=persr, legend=False, through_origin=True)
+correlation_plot_R_rs = functools.partial(correlation_plot_RGB_equal, datalabel="R_rs", errlabel="R_rs_err", regression="all", difference_unit=persr, legend=False, through_origin=True, compare_to_regression=True)
 correlation_plot_bandratios_combined = functools.partial(correlation_plot_RGB_equal, datalabel="R_rs", errlabel="R_rs_err", regression="all", difference_unit="", legend=True, loop_keys=hc.bandratio_labels, plot_colours=bandratio_plotcolours, through_origin=False, markers="ovs")
 
 
