@@ -136,7 +136,7 @@ plot.correlation_plot_RGB(data_reference, data_phone, "Ed ({c})", "Ed ({c})", xe
 
 # Correlation plot: Remote sensing reflectance
 label_R_rs = plot.keys_latex["R_rs"]
-plot.correlation_plot_R_rs(data_reference, data_phone, xlabel=f"{reference} {label_R_rs} {plot.persr}", ylabel=f"{cameralabel}\n{label_R_rs} {plot.persr}", title="Smartphone-Reference\nreflectance comparison", saveto=f"{saveto_base}_R_rs.pdf", saveto_stats=f"{saveto_base}_R_rs.dat")
+plot.correlation_plot_R_rs(data_reference, data_phone, xlabel=f"{reference} {label_R_rs} {plot.persr}", ylabel=f"{cameralabel}\n{label_R_rs} {plot.persr}", title="Smartphone-Reference\nreflectance comparison", saveto=f"{saveto_base}_R_rs.pdf", saveto_stats=f"{saveto_base}_R_rs.dat", compare_to_regression=True)
 
 # Correlation plot: Band ratios
 plot.correlation_plot_bands(data_reference, data_phone, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=reference, ylabel=cameralabel, title="Smartphone-Reference\nband ratio comparison", saveto=f"{saveto_base}_band_ratio.pdf")

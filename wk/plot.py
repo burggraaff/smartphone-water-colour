@@ -698,7 +698,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
 
 
 # Shortcuts for RGB and band ratio R_rs plots
-correlation_plot_R_rs = functools.partial(correlation_plot_RGB_equal, datalabel="R_rs", errlabel="R_rs_err", regression="all", difference_unit=persr, legend=False, through_origin=True, compare_to_regression=True)
+correlation_plot_R_rs = functools.partial(correlation_plot_RGB_equal, datalabel="R_rs", errlabel="R_rs_err", regression="all", difference_unit=persr, legend=False, through_origin=True)
 correlation_plot_bandratios_combined = functools.partial(correlation_plot_RGB_equal, datalabel="R_rs", errlabel="R_rs_err", regression="all", difference_unit="", legend=True, loop_keys=hc.bandratio_labels, plot_colours=bandratio_plotcolours, through_origin=False, markers="ovs")
 
 
