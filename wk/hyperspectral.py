@@ -203,7 +203,7 @@ def extend_keys_to_wavelengths(keys, wavelengths=wavelengths_interpolation):
     return list_wavelengths_flat
 
 
-def average_hyperspectral_data(data, *, parameters=parameters, wavelengths=wavelengths_interpolation, colour_keys=[*"RGBXYZxy", *hc.bands_sRGB, "hue", "FU"], default_row=0, func_average=np.nanmedian, func_uncertainty=np.nanstd):
+def average_hyperspectral_data(data, *, parameters=parameters, wavelengths=wavelengths_interpolation, colour_keys=[*"RGBXYZxy", *hc.bands_sRGB, "hue", "FU"], include_bandratios=True, default_row=0, func_average=np.nanmedian, func_uncertainty=np.nanstd):
     """
     Calculate the average (default: median) across multiple rows of a given data table.
     The uncertainties are also estimated using np.nanstd by default.
@@ -217,6 +217,9 @@ def average_hyperspectral_data(data, *, parameters=parameters, wavelengths=wavel
     parameters_err = [param+"_err" for param in parameters]
     keys = extend_keys_to_wavelengths(parameters, wavelengths=wavelengths) + hc.extend_keys_to_RGB(parameters, colour_keys)
     keys_err = extend_keys_to_wavelengths(parameters_err, wavelengths=wavelengths) + hc.extend_keys_to_RGB(parameters_err, colour_keys)
+    if include_bandratios:
+        keys += hc.extend_keys_to_RGB("R_rs", hc.bandratio_labels)
+        keys_err += hc.extend_keys_to_RGB("R_rs_err", hc.bandratio_labels)
 
     # Calculate the averages - this needs to be done in a loop to allow in-place editing of the astropy table
     for k in keys:
@@ -306,18 +309,10 @@ def add_bandratios_to_hyperspectral_data(data, parameter="R_rs"):
     # Calculate the band ratios and put them in a table
     bandratio_data = hc.calculate_bandratios(data[f"{parameter} (R)"], data[f"{parameter} (G)"], data[f"{parameter} (B)"]).T
     bandratio_names = hc.extend_keys_to_RGB(parameter, hc.bandratio_labels)
-
     bandratios = table.Table(data=bandratio_data, names=bandratio_names)
 
-    # Calculate the uncertainties in these band ratios and put them in a table
-    parameter_uncertainty = parameter + "_err"
-    bandratio_uncertainties_data = [bandratios[col] * np.sqrt(data[f"{parameter_uncertainty} ({bands[0]})"]**2/data[f"{parameter} ({bands[0]})"]**2 + data[f"{parameter_uncertainty} ({bands[1]})"]**2/data[f"{parameter} ({bands[1]})"]**2) for col, bands in zip(bandratios.colnames, hc.bandratio_pairs)]
-    bandratio_uncertainties_names = hc.extend_keys_to_RGB(parameter_uncertainty, hc.bandratio_labels)
-
-    bandratio_uncertainties = table.Table(data=bandratio_uncertainties_data, names=bandratio_uncertainties_names)
-
     # Combine everything into one table
-    data_combined = table.hstack([data, bandratios, bandratio_uncertainties])
+    data_combined = table.hstack([data, bandratios])
     return data_combined
 
 

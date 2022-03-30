@@ -68,6 +68,9 @@ wavelengths = hy.get_wavelengths_from_keys(cols_example, key=hy.parameters[0])
 table_reference = hy.convolve_radiance_to_camera_bands(table_reference, camera)
 table_reference = hy.convolve_reflectance_to_camera_bands[ref_small](table_reference, camera)
 
+# Add band ratios to reference data
+table_reference = hy.add_bandratios_to_hyperspectral_data(table_reference)
+
 # Find matches
 data_phone, data_reference = [], []  # Lists to contain matching table entries
 for row in table_phone:  # Loop over the smartphone table to look for matches
@@ -118,9 +121,6 @@ data_reference = table.vstack(data_reference)
 
 # Add typical errors if only a single match was found
 data_reference = hy.fill_in_median_uncertainties(data_reference)
-
-# Add band ratios to reference data
-data_reference = hy.add_bandratios_to_hyperspectral_data(data_reference)
 
 # Save the comparison table to file
 saveto_data = f"{saveto_base}_data.csv"
