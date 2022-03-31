@@ -49,12 +49,12 @@ col2 = 180/25.4
 smallpanel = (2, 1.5)
 
 
-def _textbox(ax, text, x=0.05, y=0.95, fontsize=10, verticalalignment="top", horizontalalignment="left", bbox_kwargs={}, **kwargs):
+def _textbox(ax, text, x=0.05, y=0.95, fontsize=10, verticalalignment="top", horizontalalignment="left", bbox_kwargs={}, zorder=15, **kwargs):
     """
     Add a text box with given text and some standard parameters.
     """
     bbox_new = {**bbox_text, **bbox_kwargs}  # Merge the kwarg lists
-    return ax.text(x, y, text, transform=ax.transAxes, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment, bbox=bbox_new, zorder=15, fontsize=fontsize, **kwargs)
+    return ax.text(x, y, text, transform=ax.transAxes, verticalalignment=verticalalignment, horizontalalignment=horizontalalignment, bbox=bbox_new, zorder=zorder, fontsize=fontsize, **kwargs)
 
 
 def new_or_existing_figure(func):
@@ -403,7 +403,7 @@ def plot_hyperspectral_dataset(data, parameter="R_rs", *, title=None, facecolor=
 
 
 @new_or_existing_figure
-def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err=None, reference=None, title=None, ax=None, saveto=None):
+def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err=None, reference=None, title=None, ax=None, saveto=None, **kwargs):
     """
     Plot RGB R_rs data, with an optional hyperspectral reference.
     `reference` must contain 2 or 3 elements: [wavelengths, R_rs, R_rs_uncertainty (optional)]
@@ -420,7 +420,7 @@ def plot_R_rs_RGB(RGB_wavelengths, R_rs, effective_bandwidths=None, R_rs_err=Non
 
     # Plot the RGB bands
     for j, c in enumerate(RGB_OkabeIto[:3]):
-        ax.errorbar(RGB_wavelengths[j], R_rs[j], xerr=xerr[j], yerr=R_rs_err[j], c=c, fmt="o")
+        ax.errorbar(RGB_wavelengths[j], R_rs[j], xerr=xerr[j], yerr=R_rs_err[j], c=c, fmt="o", **kwargs)
 
     # Plot the reference line if one was given
     if reference:

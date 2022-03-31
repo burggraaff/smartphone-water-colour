@@ -21,13 +21,14 @@ def get_reference_name(path_reference):
     """
     From a given filename, extract the name of the sensor.
     """
-    if "So-Rad" in path_reference.stem:
+    path_lowercase = path_reference.stem.lower()
+    if "so-rad" in path_lowercase:
         reference = "So-Rad"
         ref_small = "sorad"
-    elif "wisp" in path_reference.stem:
+    elif "wisp" in path_lowercase:
         reference = "WISP-3"
         ref_small = "wisp"
-    elif "TriOS" in path_reference.stem:
+    elif "trios" in path_lowercase:
         reference = "TriOS"
         ref_small = "trios"
     else:
