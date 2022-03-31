@@ -23,6 +23,10 @@ phone2_name = hc.get_phone_name(path_data2)
 saveto_base = f"results/comparison_{phone1_name}_X_{phone2_name}"
 print(f"Comparing data from {phone1_name} and {phone2_name}. Results will be saved to '{saveto_base}_XXX.pdf'.")
 
+# Remove "Samsung" from the Galaxy S8 name
+if phone2_name == "Samsung Galaxy S8":
+    phone2_name = "Galaxy S8"
+
 # Read the data
 table_phone1 = hc.read_results(path_data1)
 table_phone2 = hc.read_results(path_data2)
@@ -58,7 +62,7 @@ plot.correlation_plot_R_rs(data1, data2, xlabel=f"{phone1_name} {label_R_rs} {pl
 
 # Correlation plot: Band ratios
 plot.correlation_plot_bands(data1, data2, datalabel="R_rs", errlabel="R_rs_err", quantity=label_R_rs, xlabel=phone1_name, ylabel=phone2_name, title="Smartphone\nband ratio comparison", saveto=f"{saveto_base}_band_ratio.pdf")
-plot.correlation_plot_bandratios_combined(data1, data2, xlabel=f"{phone1_name} {label_R_rs} band ratio", ylabel=f"{phone2_name}\n{label_R_rs} band ratio", title="Smartphone band ratio comparison", saveto=f"{saveto_base}_band_ratio_combined.pdf", saveto_stats=f"{saveto_base}_band_ratio_combined.dat")
+plot.correlation_plot_bandratios_combined(data1, data2, xlabel=f"{phone1_name} {label_R_rs} band ratio", ylabel=f"{phone2_name} {label_R_rs} band ratio", title="Smartphone band ratio comparison", saveto=f"{saveto_base}_band_ratio_combined.pdf", saveto_stats=f"{saveto_base}_band_ratio_combined.dat")
 
 # Correlation plot: hue angle and Forel-Ule index
 plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=f"{phone1_name} {label_R_rs}", ylabel=f"{phone2_name} {label_R_rs}", title="Smartphone water color comparison", saveto=f"{saveto_base}_hueangle_ForelUle.pdf", saveto_stats=f"{saveto_base}_hueangle_ForelUle.dat")
