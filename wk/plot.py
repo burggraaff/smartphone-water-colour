@@ -441,7 +441,7 @@ def _plot_diagonal(ax=None, **kwargs):
     ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', zorder=10, label="1:1", **kwargs)
 
 
-def _plot_linear_regression(func, ax=None, color="k", ls="--", x=np.array([-1000., 1000.]), **kwargs):
+def _plot_linear_regression(func, ax=None, color="k", ls="--", x=np.linspace(-1, 50, 1000), **kwargs):
     """
     Helper function to plot linear regression lines consistently.
     `func` is a function describing how to map `x` to y.
@@ -806,8 +806,10 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
 
     # If RGB regression, do each band separately
     elif regression == "rgb":
-        funcs_linear = [stats.linear_regression(x_radiance[f"L ({c})"], y_radiance[f"L ({c})"], x_radiance[f"L_err ({c})"], y_radiance[f"L_err ({c})"])[2] for c in colours]
-        _plot_linear_regression_RGB(funcs_linear, ax)
+        params, funcs = zip(*[stats.sRGB_regression(x_radiance[f"L ({c})"], y_radiance[f"L ({c})"], x_radiance[f"L_err ({c})"], y_radiance[f"L_err ({c})"])[::2] for c in colours])
+        print(params)
+        print(funcs)
+        _plot_linear_regression_RGB(funcs, ax)
 
     # Plot settings
     ax.set_xlim(0, _axis_limit_RGB(x_radiance, "L ({c})")[1])

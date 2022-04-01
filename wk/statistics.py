@@ -161,25 +161,40 @@ def residual_table(x, y, xdatalabel, ydatalabel, xerrlabel=None, yerrlabel=None,
     return result
 
 
-def linear_regression(x, y, xerr=0, yerr=0):
+def _linear(params, x):
     """
-    Linear regression, using uncertainties in x and y.
+    Helper function for linear regression.
+    """
+    return params[0]*x + params[1]
+
+
+def _inverse_sRGB(params, x):
+    """
+    Helper function for inverse sRGB gamma regression.
+    """
+    return x**params[0] + params[1]
+
+
+def regression(x, y, xerr=0, yerr=0, func=_linear, starting_estimates=[1., 0.]):
+    """
+    Regression, using uncertainties in x and y.
     https://docs.scipy.org/doc/scipy/reference/odr.html
     """
-    def linear(params, x):
-        return params[0]*x + params[1]
-
     data = odr.RealData(x, y, sx=xerr, sy=yerr)
-    model = odr.Model(linear)  # Ignore Jacobians for now
+    model = odr.Model(func)  # Ignore Jacobians for now
 
-    odr_holder = odr.ODR(data, model, beta0=[1., 0.])
+    odr_holder = odr.ODR(data, model, beta0=starting_estimates)
     output = odr_holder.run()
 
     params = output.beta
     params_cov = output.cov_beta
-    output_function = lambda x: linear(params, x)
+    output_function = lambda x: func(params, x)
 
     return params, params_cov, output_function
+
+
+linear_regression = partial(regression, func=_linear, starting_estimates=[1., 0.])
+sRGB_regression = partial(regression, func=_inverse_sRGB, starting_estimates=[1/2.4, 0.])
 
 
 def calculate_weights_from_x_and_y_errors(x, y, xerr, yerr):
