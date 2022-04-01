@@ -660,7 +660,6 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
         axs[0].set_ylim(ymin=0)
 
     # Add statistics in a text box
-    saveto_stats = Path(saveto_stats)
     x_all, y_all = stats.ravel_table(x, datalabel, loop_keys=loop_keys), stats.ravel_table(y, datalabel, loop_keys=loop_keys)
     x_err_all, y_err_all = stats.ravel_table(x, errlabel, loop_keys=loop_keys), stats.ravel_table(y, errlabel, loop_keys=loop_keys)
     stats_textbox = _plot_statistics(x_all, y_all, axs[0], xerr=x_err_all, yerr=y_err_all)
@@ -677,6 +676,8 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
         stats_text = stats.full_statistics_for_title(x_all, y_rescaled, xerr=x_err_all, yerr=y_err_rescaled)[1]
         stats_text = "\n".join(stats_text.split("\n")[2:])  # Remove the first two lines
         _textbox(axs[0], stats_text, x=0.40, fontsize=9, bbox_kwargs={"linestyle": "--"})
+        if saveto_stats != stdout:
+            saveto_stats = Path(saveto_stats)
         stats.save_statistics_to_file(x_all, y_rescaled, x_err_all, y_err_rescaled, saveto=saveto_stats.with_name(saveto_stats.stem+"_linear_regression.dat"))
 
 
