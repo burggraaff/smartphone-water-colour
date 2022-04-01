@@ -65,4 +65,4 @@ plot.correlation_plot_bands(data1, data2, datalabel="R_rs", errlabel="R_rs_err",
 plot.correlation_plot_bandratios_combined(data1, data2, xlabel=f"{phone1_name} {label_R_rs} band ratio", ylabel=f"{phone2_name} {label_R_rs} band ratio", title="Smartphone band ratio comparison", saveto=f"{saveto_base}_band_ratio_combined.pdf", saveto_stats=f"{saveto_base}_band_ratio_combined.dat")
 
 # Correlation plot: hue angle and Forel-Ule index
-plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=f"{phone1_name} {label_R_rs}", ylabel=f"{phone2_name} {label_R_rs}", title="Smartphone water color comparison", saveto=f"{saveto_base}_hueangle_ForelUle.pdf", saveto_stats=f"{saveto_base}_hueangle_ForelUle.dat")
+plot.correlation_plot_hue_angle_and_ForelUle(data1["R_rs (hue)"], data2["R_rs (hue)"], xlabel=phone1_name, ylabel=phone2_name, title="Smartphone water color comparison", saveto=f"{saveto_base}_hueangle_ForelUle.pdf", saveto_stats=f"{saveto_base}_hueangle_ForelUle.dat")

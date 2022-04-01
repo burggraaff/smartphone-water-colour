@@ -652,7 +652,7 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     for ax in axs:
         ax.grid(True)
     _plot_diagonal(axs[0])
-    axs[1].axhline(0, c='k')
+    axs[1].axhline(0, c='k', zorder=15)
 
     # If desired, change the lower limit on the x and y axes to go through the origin
     if through_origin:
@@ -993,10 +993,10 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     Draw the equivalent Forel-Ule indices on the grid for reference.
     """
     # Generate labels for the x and y axes
-    xlabel_hue = f"{xlabel}\nHue angle $\\alpha$ [degrees]"
-    ylabel_hue = f"{ylabel}\nHue angle $\\alpha$ [degrees]"
-    xlabel_FU = f"{xlabel}\nForel-Ule index"
-    ylabel_FU = f"{ylabel}\nForel-Ule index"
+    xlabel_hue = f"{xlabel} $\\alpha$ [$^\\circ$]"
+    ylabel_hue = f"{ylabel} $\\alpha$ [$^\\circ$]"
+    xlabel_FU = f"{xlabel} FU index"
+    ylabel_FU = f"{ylabel} FU index"
 
     # Plot the data
     correlation_plot_simple(x, y, xerr=xerr, yerr=yerr, ax=ax, equal_aspect=True)
@@ -1029,8 +1029,9 @@ def correlation_plot_hue_angle_and_ForelUle(x, y, xerr=None, yerr=None, xlabel="
     ax.set_ylim(minangle, maxangle)
 
     # Labels for FU colours: every odd colour, in the middle of the range
-    FU_middles = np.array([(a + b)/2 for a, b in zip(FU_hueangles, FU_hueangles[1:])])[::2]
-    FU_labels = np.arange(1, 21)[::2]
+    fu_start, fu_step = 2, 3
+    FU_middles = np.array([(a + b)/2 for a, b in zip(FU_hueangles, FU_hueangles[1:])])[fu_start::fu_step]
+    FU_labels = np.arange(1, 21)[fu_start::fu_step]
 
     # Add a new x axis at the top with FU colours
     ax2 = ax.twinx()
