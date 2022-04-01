@@ -441,7 +441,7 @@ def _plot_diagonal(ax=None, **kwargs):
     ax.plot([-1e6, 1e6], [-1e6, 1e6], c='k', zorder=10, label="1:1", **kwargs)
 
 
-def _plot_linear_regression(func, ax=None, color="k", x=np.array([-1000., 1000.]), **kwargs):
+def _plot_linear_regression(func, ax=None, color="k", ls="--", x=np.array([-1000., 1000.]), **kwargs):
     """
     Helper function to plot linear regression lines consistently.
     `func` is a function describing how to map `x` to y.
@@ -451,7 +451,7 @@ def _plot_linear_regression(func, ax=None, color="k", x=np.array([-1000., 1000.]
         ax = plt.gca()
 
     y = func(x)
-    return ax.plot(x, y, color=color, ls="--", zorder=10, **kwargs)
+    return ax.plot(x, y, color=color, ls=ls, zorder=10, **kwargs)
 
 
 def _plot_linear_regression_RGB(funcs, *args, **kwargs):
@@ -464,7 +464,7 @@ def _plot_linear_regression_RGB(funcs, *args, **kwargs):
     # Path effects for RGB linear regression lines
     path_effects_RGBlines = [pe.Stroke(linewidth=3, foreground="k"), pe.Normal()]
     for func, c in zip(funcs, RGB_OkabeIto):
-        _plot_linear_regression(func, *args, color=c, path_effects=path_effects_RGBlines, **kwargs)
+        _plot_linear_regression(func, *args, color=c, ls="-", path_effects=path_effects_RGBlines, **kwargs)
 
 
 def _plot_statistics(x, y, ax=None, xerr=None, yerr=None, fontsize=9, **kwargs):
