@@ -804,12 +804,24 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
         regression_line, = _plot_linear_regression(func_linear, ax)
         regression_label = "Best\nfit"# f"$y =$\n${params[1]:.3g} + {params[0]:.3g} x$"
 
-    # If RGB regression, do each band separately
+    # If RGB regression (JPEG-RAW), fit a power law to each channel separately
     elif regression == "rgb":
-        params, funcs = zip(*[stats.powerlaw_regression(x_radiance[f"L ({c})"], y_radiance[f"L ({c})"], x_radiance[f"L_err ({c})"], y_radiance[f"L_err ({c})"])[::2] for c in colours])
-        print(params)
-        print(funcs)
+        # Fit power laws and plot them
+        params, param_covs, funcs = zip(*[stats.powerlaw_regression(x_radiance[f"L ({c})"], y_radiance[f"L ({c})"], x_radiance[f"L_err ({c})"], y_radiance[f"L_err ({c})"]) for c in colours])
         _plot_linear_regression_RGB(funcs, ax)
+
+        # Compare x to the regressed y data and compare them. This means MAD is in y units.
+        for c, func, p, cov in zip(colours, funcs, params, param_covs):
+            if saveto_stats != stdout:
+                saveto_stats = Path(saveto_stats)
+                saveto = saveto_stats.with_name(saveto_stats.stem+f"_powerlaw_regression_{c}.dat")
+            else:
+                saveto = stdout
+            y_fitted = func(x_radiance[f"L ({c})"])
+            stats.save_statistics_to_file(y_fitted, y_radiance[f"L ({c})"], saveto=saveto)
+            param_uncertainties = np.sqrt(np.diag(cov))
+            param_correlation = stats.correlation_from_covariance(cov)[0, 1]
+            print(f"Radiance power law parameters for {c}: {p} +- {param_uncertainties} (r = {param_correlation:.2f})")
 
     # Plot settings
     ax.set_xlim(0, _axis_limit_RGB(x_radiance, "L ({c})")[1])
