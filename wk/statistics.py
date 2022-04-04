@@ -168,11 +168,11 @@ def _linear(params, x):
     return params[0]*x + params[1]
 
 
-def _inverse_sRGB(params, x):
+def _powerlaw(params, x):
     """
-    Helper function for inverse sRGB gamma regression.
+    Helper function for a power law regression.
     """
-    return x**params[0] + params[1]
+    return params[0]*x**params[1]
 
 
 def regression(x, y, xerr=0, yerr=0, func=_linear, starting_estimates=[1., 0.]):
@@ -194,7 +194,7 @@ def regression(x, y, xerr=0, yerr=0, func=_linear, starting_estimates=[1., 0.]):
 
 
 linear_regression = partial(regression, func=_linear, starting_estimates=[1., 0.])
-sRGB_regression = partial(regression, func=_inverse_sRGB, starting_estimates=[1/2.4, 0.])
+powerlaw_regression = partial(regression, func=_powerlaw, starting_estimates=[0.1, 1/2.4])
 
 
 def calculate_weights_from_x_and_y_errors(x, y, xerr, yerr):
