@@ -66,6 +66,7 @@ for item in axs[0].get_xticklabels()[-3:]:
 axs[1].tick_params(axis="y", left=True, labelleft=True)
 axs[1].set_ylabel(r"Uncertainty [$^\circ$]")
 axs[1].set_ylim(ymin=0)
+axs[1].axvline(np.mean(positions[-2:]), c='k', lw=plot.rcParams["axes.linewidth"])  # Vertical line in the second panel
 
 for ax in axs:
     ax.tick_params(axis="x", bottom=False)
