@@ -17,7 +17,7 @@ from spectacle import io, spectral, load_camera
 from wk import hydrocolor as hc, hyperspectral as hy, plot
 
 # Indices we want to plot - arbitrary choices
-indices = [0, 13, 4, 4]
+indices = [19, 13, 1, 4]
 
 # Get the data folder from the command line
 path_calibration, *data_paths = io.path_from_input(argv)
@@ -61,12 +61,14 @@ for ax, data, rownumber, phone_wavelengths, phone_bandwidths in zip(axs.ravel(),
     plot.plot_R_rs_RGB(phone_wavelengths, smartphone_R_rs, phone_bandwidths, smartphone_R_rs_err, reference=[reference_wavelengths, reference_R_rs, reference_R_rs_err], ax=ax)
 
     # Print the time, for reference
-    time = data["UTC (ISO)"][rownumber]
+    time = data["UTC (ISO)"][rownumber].replace("T", " ")[:-3]
     print(time)
+    # ax.text(s=time, x=0.50, y=0.95, transform=ax.transAxes, bbox=plot.bbox_text, fontsize=9, horizontalalignment="center", verticalalignment="top")
 
 # Adjust the axes
 axs[0,0].set_xticks(np.arange(400, 1000, 200))
 axs[0,0].set_yticks(np.arange(0.00, 0.08, 0.02))
+axs[0,0].set_ylim(0, 0.065)
 
 # Labels outside panels
 for ax, label in zip(axs[0], smartphone_names):
