@@ -17,7 +17,7 @@ from spectacle import io, spectral, load_camera
 from wk import hydrocolor as hc, hyperspectral as hy, plot
 
 # Indices we want to plot - arbitrary choices
-indices = [19, 13, 1, 4]
+indices = [25, 19, 3, 7]
 
 # Get the data folder from the command line
 path_calibration, *data_paths = io.path_from_input(argv)
