@@ -22,6 +22,10 @@ phone_name = " ".join(path_data.stem.split("_")[1:-2])
 saveto_base = f"results/replicates_{phone_name}"
 print(f"Analysing replicate data from {phone_name}. Results will be saved to '{saveto_base}_XXX.pdf'.")
 
+# Remove "Samsung" from the Galaxy S8 name
+if phone_name == "Samsung Galaxy S8":
+    phone_name = "Galaxy S8"
+
 # Read the data
 data = hc.table.Table.read(path_data)
 
@@ -59,12 +63,12 @@ for patch, colour in zip(bplot["boxes"], colours):
 # Plot settings
 axs[0].set_yticks(np.arange(0, ymax+5, 5))
 axs[0].set_ylim(0, ymax)
-axs[0].set_ylabel(r"Uncertainty [%]")
+axs[0].set_ylabel(r"Variability [%]")
 for item in axs[0].get_xticklabels()[-3:]:
     item.set_fontsize(14)
 
 axs[1].tick_params(axis="y", left=True, labelleft=True)
-axs[1].set_ylabel(r"Uncertainty [$^\circ$]")
+axs[1].set_ylabel(r"Variability [$^\circ$]")
 axs[1].set_ylim(ymin=0)
 axs[1].axvline(np.mean(positions[-2:]), c='k', lw=plot.rcParams["axes.linewidth"])  # Vertical line in the second panel
 
@@ -76,10 +80,10 @@ for ax in axs:
 ax2 = axs[1].twinx()
 ax2.set_yticks(axs[1].get_yticks()/FU_scale_factor)
 ax2.set_ylim(np.array(axs[1].get_ylim())/FU_scale_factor)
-ax2.set_ylabel("Uncertainty [FU]")
+ax2.set_ylabel("Variability [FU]")
 ymax_FU = ax2.get_ylim()[1]  # Scale the ymax by a factor for FU
 
-fig.suptitle("Variations between replicate images")
+fig.suptitle(f"Variability among replicate {phone_name} images", y=1)
 
 # Save/show the result
 plot.save_or_show(f"{saveto_base}_relative_uncertainty.pdf")
