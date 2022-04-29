@@ -825,7 +825,7 @@ def correlation_plot_radiance_combined(x, y, keys=["Lu", "Lsky", "Ld"], xlabel="
 
     # Plot settings
     ax.set_xlim(0, _axis_limit_RGB(x_radiance, "L ({c})")[1])
-    ax.set_ylim(0, _axis_limit_RGB(y_radiance, "L ({c})")[1])
+    ax.set_ylim(0, 26)
     ax.set_title(None)  # Remove default titles
     if compare_directly:  # Plot the y=x diagonal if x and y are to be compared directly
         _plot_diagonal(ax)
