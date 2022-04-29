@@ -42,7 +42,7 @@ smartphone_names = [name.strip("Samsung ") for name in smartphone_names]
 data_all = [hy.read(filename) for filename in data_paths]
 
 # Create a figure
-fig, axs = plt.subplots(ncols=2, nrows=2, sharex=True, sharey=True, figsize=(plot.col1, plot.col1), gridspec_kw={"hspace": 0.05, "wspace": 0.05})
+fig, axs = plt.subplots(ncols=4, nrows=1, sharex=True, sharey=True, figsize=(plot.col2, plot.col1*0.4), gridspec_kw={"hspace": 0.05, "wspace": 0.05})
 
 # Plot everything
 for ax, data, rownumber, phone_wavelengths, phone_bandwidths in zip(axs.ravel(), data_all, indices, RGB_wavelengths, effective_bandwidths):
@@ -66,22 +66,21 @@ for ax, data, rownumber, phone_wavelengths, phone_bandwidths in zip(axs.ravel(),
     # ax.text(s=time, x=0.50, y=0.95, transform=ax.transAxes, bbox=plot.bbox_text, fontsize=9, horizontalalignment="center", verticalalignment="top")
 
 # Adjust the axes
-axs[0,0].set_xticks(np.arange(400, 1000, 200))
-axs[0,0].set_yticks(np.arange(0.00, 0.08, 0.02))
-axs[0,0].set_ylim(0, 0.065)
+axs.ravel()[0].set_xticks(np.arange(400, 1000, 200))
+axs.ravel()[0].set_yticks(np.arange(0.00, 0.08, 0.02))
+axs.ravel()[0].set_ylim(0, 0.065)
 
 # Labels outside panels
-for ax, label in zip(axs[0], smartphone_names):
-    ax.set_xlabel(label)
-    ax.xaxis.set_label_position("top")
-    ax.tick_params(axis="x", bottom=False, labelbottom=False)
-for ax, label in zip(axs[:,1], reference_names[::2]):
-    ax.set_ylabel(label)
-    ax.yaxis.set_label_position("right")
+for ax, smartphone, reference in zip(axs.ravel(), smartphone_names, reference_names):
+    ax.set_title(f"{smartphone}\nvs. {reference}")
+
+# Remove ylabels for all but the left-most plot
+for ax in axs.ravel()[1:]:
+    ax.set_ylabel(None)
     ax.tick_params(axis="y", left=False, labelleft=False)
 
 # Final settings
-fig.suptitle("Example match-up spectra")
+# fig.suptitle("Example match-up spectra", y=1.35)
 
 # Save to file
 plt.savefig("results/matchup_examples.pdf", bbox_inches="tight")
