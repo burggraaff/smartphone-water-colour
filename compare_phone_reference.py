@@ -86,12 +86,6 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
     default_index = np.where(close_enough == closest)[0][0]
     row_reference = hy.average_hyperspectral_data(table_reference[close_enough], default_row=default_index, wavelengths=wavelengths)
 
-    # If the uncertainties on the reference data are above a threshold, disregard this match-up
-    # This may cause differences between RAW and JPEG matchup numbers for the same data set
-    threshold = 0.1  # relative
-    if any(row_reference[f"R_rs_err ({c})"]/row_reference[f"R_rs ({c})"] >= threshold for c in hc.colours):
-        continue
-
     # Add some metadata that may be used to identify the quality of the match
     row_reference = hy.add_hyperspectral_matchup_metadata(row_reference, nr_matches, min_time_diff)
 
