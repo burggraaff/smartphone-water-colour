@@ -638,8 +638,23 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     # Convert the data and error labels to RGB-aware ones
     datalabel, errlabel = [label + " ({c})" for label in (datalabel, errlabel)]
 
+    # Create arrays that contain all data, combining channels
+    x_all, y_all = stats.ravel_table(x, datalabel, loop_keys=loop_keys), stats.ravel_table(y, datalabel, loop_keys=loop_keys)
+    x_err_all, y_err_all = stats.ravel_table(x, errlabel, loop_keys=loop_keys), stats.ravel_table(y, errlabel, loop_keys=loop_keys)
+
+    # Linear regression - the plotting functions also do this, but we need it again for the statistics. Bit sloppy.
+    params, _, func = stats.linear_regression(y_all, x_all, y_err_all, x_err_all)
+
     # Calculate residuals
-    residuals = stats.residual_table(x, y, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel, loop_keys=loop_keys)
+    if compare_to_regression:  # Calculate residuals compared to the regression line (rescaling y)
+        y_rescaled = y.copy()
+        for c in loop_keys:  # Rescale the means and uncertainties using hte regression line
+            y_rescaled[datalabel.format(c=c)] = func(y[datalabel.format(c=c)])
+            y_rescaled[errlabel.format(c=c)] = params[0]*y[errlabel.format(c=c)]
+        residuals = stats.residual_table(x, y_rescaled, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel, loop_keys=loop_keys)
+
+    else:  # Calculate residuals compared 1:1 (no rescaling)
+        residuals = stats.residual_table(x, y, datalabel, datalabel, xerrlabel=errlabel, yerrlabel=errlabel, loop_keys=loop_keys)
 
     # Create figure to hold plot
     fig, axs = plt.subplots(figsize=(col1, 5), nrows=2, sharex=True, gridspec_kw={"height_ratios": [3, 1]})
@@ -652,7 +667,11 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
     for ax in axs:
         ax.grid(True)
     _plot_diagonal(axs[0])
-    axs[1].axhline(0, c='k', zorder=15)
+    if compare_to_regression:
+        linestyle = "--"
+    else:
+        linestyle = "solid"
+    axs[1].axhline(0, c='k', ls=linestyle, zorder=15)
 
     # If desired, change the lower limit on the x and y axes to go through the origin
     if through_origin:
@@ -660,15 +679,12 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
         axs[0].set_ylim(ymin=0)
 
     # Add statistics in a text box
-    x_all, y_all = stats.ravel_table(x, datalabel, loop_keys=loop_keys), stats.ravel_table(y, datalabel, loop_keys=loop_keys)
-    x_err_all, y_err_all = stats.ravel_table(x, errlabel, loop_keys=loop_keys), stats.ravel_table(y, errlabel, loop_keys=loop_keys)
     stats_textbox = _plot_statistics(x_all, y_all, axs[0], xerr=x_err_all, yerr=y_err_all)
     stats.save_statistics_to_file(x_all, y_all, x_err_all, y_err_all, saveto=saveto_stats)
 
     # If desired, add statistics comparing the data to the linear regression
     if compare_to_regression:
         # First, perform a linear regression of y to x - this lets us rescale y (e.g. smartphone) to the scale of x (e.g. WISP-3)
-        params, _, func = stats.linear_regression(y_all, x_all, y_err_all, x_err_all)
         y_rescaled = func(y_all)
         y_err_rescaled = params[0]*y_err_all
 
@@ -680,6 +696,8 @@ def correlation_plot_RGB_equal(x, y, datalabel, errlabel=None, xlabel="x", ylabe
             saveto_stats = Path(saveto_stats)
         stats.save_statistics_to_file(x_all, y_rescaled, x_err_all, y_err_rescaled, saveto=saveto_stats.with_name(saveto_stats.stem+"_linear_regression.dat"))
 
+    # Statistics about the residuals
+    residuals_all = stats.ravel_table(residuals, datalabel, loop_keys=loop_keys)
 
     # Add a legend if desired
     if legend:
