@@ -18,7 +18,7 @@ from sys import argv
 import numpy as np
 from astropy import table
 from spectacle import io, spectral, load_camera
-from wk import hydrocolor as hc, hyperspectral as hy, plot
+from wk import hydrocolor as hc, hyperspectral as hy, plot, statistics as stats
 
 # Get the data folder from the command line
 path_calibration, path_phone, path_reference = io.path_from_input(argv)
@@ -112,6 +112,27 @@ for row in table_phone:  # Loop over the smartphone table to look for matches
 # Make new tables from the match-up rows
 data_phone = table.vstack(data_phone)
 data_reference = table.vstack(data_reference)
+
+# Calculate and print the quartile ranges for the uncertainties
+indices_single_match, indices_multiple_matches = hy.find_single_and_multiple_matchups(data_reference)
+for key in ["Lu", "Lsky", "Ed", "R_rs"]:
+    means = stats.ravel_table(data_reference[indices_multiple_matches], key=key+" ({c})")
+    uncertainties = stats.ravel_table(data_reference[indices_multiple_matches], key=key+"_err ({c})")
+    relative_uncertainties = uncertainties/means * 100  # %
+    quartiles = stats.symmetric_percentiles(relative_uncertainties, percent=25)
+    print(f"Relative uncertainty QR for {key}: {quartiles[0]:.2f}% -- {quartiles[1]:.2f}%")
+
+means = stats.ravel_table(data_reference[indices_multiple_matches], key="R_rs ({c})", loop_keys=hc.bandratio_labels)
+uncertainties = stats.ravel_table(data_reference[indices_multiple_matches], key="R_rs_err ({c})", loop_keys=hc.bandratio_labels)
+relative_uncertainties = uncertainties/means * 100  # %
+quartiles = stats.symmetric_percentiles(relative_uncertainties, percent=25)
+print(f"Relative uncertainty QR for R_rs band ratios: {quartiles[0]:.2f}% -- {quartiles[1]:.2f}%")
+
+for sub_key in ["hue", "FU"]:
+    uncertainties = data_reference[indices_multiple_matches][f"R_rs_err ({sub_key})"]
+    quartiles = stats.symmetric_percentiles(uncertainties, percent=25)
+    print(f"Relative uncertainty QR for R_rs {sub_key}: {quartiles[0]:.2f} -- {quartiles[1]:.2f}")
+
 
 # Add typical errors if only a single match was found
 data_reference = hy.fill_in_median_uncertainties(data_reference)
