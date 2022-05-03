@@ -71,8 +71,8 @@ for timestamp, index_table1 in zip(table_data1_timestamps, table_data1_timestamp
     colour_keys = [*"XYZxy", *hc.bands_sRGB, "hue", "FU"]
     default_index1 = np.where(close_enough1 == closest1)[0][0]
     default_index2 = np.where(close_enough2 == closest2)[0][0]
-    data1_averaged = hy.average_hyperspectral_data(table_data1[close_enough1], default_row=default_index1, colour_keys=colour_keys)
-    data2_averaged = hy.average_hyperspectral_data(table_data2[close_enough2], default_row=default_index2, colour_keys=colour_keys)
+    data1_averaged = hy.average_hyperspectral_data(table_data1[close_enough1], default_row=default_index1, colour_keys=colour_keys, include_bandratios=False)
+    data2_averaged = hy.average_hyperspectral_data(table_data2[close_enough2], default_row=default_index2, colour_keys=colour_keys, include_bandratios=False)
 
     # Add some metadata that may be used to identify the quality of the match
     data1_averaged = hy.add_hyperspectral_matchup_metadata(data1_averaged, nr_matches1, min_time_diff1)
