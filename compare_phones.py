@@ -52,6 +52,13 @@ for row_phone1 in table_phone1:  # Loop over the first table to look for matches
 data1 = table.vstack(data1)
 data2 = table.vstack(data2)
 
+# Save the comparison table to file
+saveto_data = f"{saveto_base}_data.csv"
+table_combined = table.hstack([data1, data2], table_names=[phone1_name, phone2_name])
+table_combined.remove_columns([key for key in table_combined.keys() if "cov_" in key])
+table_combined.write(saveto_data, format="ascii.fast_csv", overwrite=True)
+print(f"Saved comparison table to `{saveto_data}`.")
+
 # Correlation plot: Radiances
 plot.correlation_plot_radiance(data1, data2, xlabel=phone1_name, ylabel=phone2_name, title="Smartphone radiance comparison", saveto=f"{saveto_base}_radiance.pdf")
 plot.correlation_plot_radiance_combined(data1, data2, xlabel=f"{phone1_name} $L$ [a.u.]", ylabel=f"{phone2_name} $L$ [a.u.]", title="Smartphone radiance comparison", saveto=f"{saveto_base}_radiance_simple.pdf", saveto_stats=f"{saveto_base}_radiance_simple.dat")
